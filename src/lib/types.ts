@@ -110,6 +110,32 @@ export interface Unit {
   agreements?: RentalAgreement[];
 }
 
+export interface BulkUnitInput {
+  unitNumber: string;
+  unitType: UnitType;
+  bedrooms?: number;
+  bathrooms?: number;
+  monthlyBaseRent: number;
+  defaultServiceFee: number;
+  defaultParkingFee: number;
+  defaultExtraCharge: number;
+}
+
+export interface CreateUnitInput extends BulkUnitInput {
+  floor: number;
+  status?: UnitStatus;
+}
+
+export interface BulkCreateUnitsPayload {
+  floor: number;
+  units: BulkUnitInput[];
+}
+
+export interface BulkCreateUnitsResult {
+  created: number;
+  units: Unit[];
+}
+
 // Tenant
 export interface Tenant {
   id: string;

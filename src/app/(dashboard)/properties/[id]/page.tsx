@@ -5,12 +5,11 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { apiClient } from '@/lib/api';
+import { propertiesApi, unitsApi } from '@/lib/api';
 import { useLanguageStore } from '@/stores/language-store';
 import { useTranslation } from '@/lib/translations';
-import { Property, PropertySummary, Unit, ApiResponse } from '@/lib/types';
+import { Unit } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
-import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -25,6 +24,7 @@ import {
   TableCell,
 } from '@/components/ui/table';
 import { UnitFormDialog } from '@/components/units/unit-form-dialog';
+import { BulkUnitFormDialog } from '@/components/units/bulk-unit-form-dialog';
 import { PropertyFormDialog } from '@/components/properties/property-form-dialog';
 import {
   Building2,
@@ -34,13 +34,7 @@ import {
   MapPin,
   Edit,
   Trash2,
-  Bed,
-  Bath,
   Layers,
-  Percent,
-  CheckCircle2,
-  AlertCircle,
-  FileText,
 } from 'lucide-react';
 
 export default function PropertyDetailPage() {
@@ -53,6 +47,7 @@ export default function PropertyDetailPage() {
   const isEn = language === 'en';
 
   const [unitDialogOpen, setUnitDialogOpen] = useState(false);
+  const [bulkUnitDialogOpen, setBulkUnitDialogOpen] = useState(false);
   const [editingUnit, setEditingUnit] = useState<Unit | null>(null);
   const [propertyEditOpen, setPropertyEditOpen] = useState(false);
 
@@ -64,7 +59,7 @@ export default function PropertyDetailPage() {
   } = useQuery({
     queryKey: ['property-details', propertyId],
     queryFn: async () => {
-      const res = await apiClient.get<ApiResponse<Property>>(`/properties/${propertyId}`);
+      const res = await propertiesApi.get(propertyId);
       return res.data?.data;
     },
     enabled: !!propertyId,
@@ -73,11 +68,11 @@ export default function PropertyDetailPage() {
   // 2. Fetch Property Financial & Units Summary
   const {
     data: summary,
-    isLoading: isSummaryLoading,
+    refetch: refetchSummary,
   } = useQuery({
     queryKey: ['property-summary', propertyId],
     queryFn: async () => {
-      const res = await apiClient.get<ApiResponse<PropertySummary>>(`/properties/${propertyId}/summary`);
+      const res = await propertiesApi.getSummary(propertyId);
       return res.data?.data;
     },
     enabled: !!propertyId,
@@ -91,7 +86,7 @@ export default function PropertyDetailPage() {
   } = useQuery({
     queryKey: ['property-units', propertyId],
     queryFn: async () => {
-      const res = await apiClient.get<ApiResponse<Unit[]>>(`/properties/${propertyId}/units?limit=100`);
+      const res = await unitsApi.listByProperty(propertyId);
       return res.data?.data || [];
     },
     enabled: !!propertyId,
@@ -102,9 +97,20 @@ export default function PropertyDetailPage() {
     setUnitDialogOpen(true);
   };
 
+  const unitsByFloor = (units || []).reduce<Record<number, Unit[]>>((groups, unit) => {
+    (groups[unit.floor] ||= []).push(unit);
+    return groups;
+  }, {});
+
   const handleEditUnit = (u: Unit) => {
     setEditingUnit(u);
     setUnitDialogOpen(true);
+  };
+
+  const refreshUnitViews = () => {
+    refetchUnits();
+    refetchProperty();
+    refetchSummary();
   };
 
   const handleDeleteUnit = async (unitId: string, unitNumber: string) => {
@@ -112,12 +118,14 @@ export default function PropertyDetailPage() {
       return;
     }
     try {
-      await apiClient.delete(`/units/${unitId}`);
+      await unitsApi.remove(unitId);
       toast.success(isEn ? 'Unit deleted successfully' : 'ইউনিট মুছে ফেলা হয়েছে');
-      refetchUnits();
-      refetchProperty();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || (isEn ? 'Failed to delete unit' : 'ইউনিট মুছে ফেলা সম্ভব হয়নি'));
+      refreshUnitViews();
+    } catch (error: unknown) {
+      const message = typeof error === 'object' && error !== null && 'response' in error
+        ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
+        : undefined;
+      toast.error(message || (isEn ? 'Failed to delete unit' : 'ইউনিট মুছে ফেলা সম্ভব হয়নি'));
     }
   };
 
@@ -146,7 +154,7 @@ export default function PropertyDetailPage() {
     <div className="space-y-6">
       {/* Top Back & Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <Link href="/properties">
             <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl">
               <ArrowLeft className="h-4 w-4" />
@@ -169,6 +177,10 @@ export default function PropertyDetailPage() {
           <Button onClick={handleAddUnit} variant="gradient" size="sm" className="gap-1.5 shadow-xs">
             <Plus className="w-4 h-4" />
             {t.addNewUnit}
+          </Button>
+          <Button onClick={() => setBulkUnitDialogOpen(true)} variant="outline" size="sm" className="gap-1.5">
+            <Layers className="w-4 h-4" />
+            {t.addUnitsByFloor}
           </Button>
         </div>
       </div>
@@ -210,10 +222,10 @@ export default function PropertyDetailPage() {
               {isEn ? 'Flats and Units' : 'ফ্ল্যাট ও ইউনিটের তালিকা'}
             </CardTitle>
           </div>
-          <Button onClick={handleAddUnit} variant="outline" size="sm" className="gap-1.5 text-xs">
-            <Plus className="w-3.5 h-3.5" />
-            {t.addNewUnit}
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={handleAddUnit} variant="outline" size="sm" className="gap-1.5 text-xs"><Plus className="w-3.5 h-3.5" />{t.addNewUnit}</Button>
+            <Button onClick={() => setBulkUnitDialogOpen(true)} variant="outline" size="sm" className="gap-1.5 text-xs"><Layers className="w-3.5 h-3.5" />{t.addByFloor}</Button>
+          </div>
         </CardHeader>
         <CardContent>
           {isUnitsLoading ? (
@@ -236,7 +248,15 @@ export default function PropertyDetailPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {units.map((unit) => (
+                {Object.entries(unitsByFloor)
+                  .sort(([a], [b]) => Number(b) - Number(a))
+                  .flatMap(([floor, floorUnits]) => [
+                    <TableRow key={`floor-${floor}`} className="bg-slate-50 hover:bg-slate-50">
+                      <TableCell colSpan={8} className="py-2 text-sm font-semibold text-slate-700">
+                        <span className="inline-flex items-center gap-2"><Layers className="h-4 w-4 text-emerald-600" />{isEn ? `Floor ${floor}` : `${floor} তলা`}<span className="font-normal text-slate-500">({floorUnits.length} {t.units})</span></span>
+                      </TableCell>
+                    </TableRow>,
+                    ...floorUnits.map((unit) => (
                   <TableRow key={unit.id}>
                     <TableCell className="font-bold text-slate-900">
                       {unit.unitNumber}
@@ -280,7 +300,8 @@ export default function PropertyDetailPage() {
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                    )),
+                  ])}
               </TableBody>
             </Table>
           ) : (
@@ -304,7 +325,16 @@ export default function PropertyDetailPage() {
         onSuccess={() => {
           refetchUnits();
           refetchProperty();
+          refetchSummary();
         }}
+      />
+
+      <BulkUnitFormDialog
+        propertyId={propertyId}
+        units={units || []}
+        open={bulkUnitDialogOpen}
+        onOpenChange={setBulkUnitDialogOpen}
+        onSuccess={refreshUnitViews}
       />
 
       {/* Property Edit Dialog */}

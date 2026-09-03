@@ -5,10 +5,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'sonner';
-import { apiClient } from '@/lib/api';
+import { unitsApi } from '@/lib/api';
 import { useLanguageStore } from '@/stores/language-store';
 import { useTranslation } from '@/lib/translations';
-import { Unit, UnitType, UnitStatus, ApiResponse } from '@/lib/types';
+import { Unit, UnitType, UnitStatus } from '@/lib/types';
 import {
   Dialog,
   DialogContent,
@@ -42,28 +42,17 @@ const unitStatuses: { value: UnitStatus; labelBn: string; labelEn: string }[] = 
 const unitSchema = z.object({
   unitNumber: z.string().min(1, 'ইউনিট নম্বর দিন (যেমন: 4A, Flat-B)'),
   floor: z.number(),
-  unitType: z.string(),
-  bedrooms: z.number().optional().nullable(),
-  bathrooms: z.number().optional().nullable(),
+  unitType: z.enum(['APARTMENT', 'FLAT', 'ROOM', 'SHOP', 'OFFICE', 'PARKING', 'OTHER']),
+  bedrooms: z.number().optional(),
+  bathrooms: z.number().optional(),
   monthlyBaseRent: z.number().min(0),
   defaultServiceFee: z.number().min(0),
   defaultParkingFee: z.number().min(0),
   defaultExtraCharge: z.number().min(0),
-  status: z.string(),
+  status: z.enum(['VACANT', 'OCCUPIED', 'MAINTENANCE', 'INACTIVE']),
 });
 
-type UnitFormValues = {
-  unitNumber: string;
-  floor: number;
-  unitType: string;
-  bedrooms?: number | null;
-  bathrooms?: number | null;
-  monthlyBaseRent: number;
-  defaultServiceFee: number;
-  defaultParkingFee: number;
-  defaultExtraCharge: number;
-  status: string;
-};
+type UnitFormValues = z.infer<typeof unitSchema>;
 
 interface UnitFormDialogProps {
   propertyId: string;
@@ -112,18 +101,20 @@ export function UnitFormDialog({
     setIsLoading(true);
     try {
       if (isEditing && unit) {
-        const res = await apiClient.patch<ApiResponse<Unit>>(`/units/${unit.id}`, data);
+        const res = await unitsApi.update(unit.id, data);
         toast.success(res.data.message || (isEn ? 'Unit updated successfully!' : 'ইউনিট সফলভাবে হালনাগাদ করা হয়েছে!'));
       } else {
-        const res = await apiClient.post<ApiResponse<Unit>>(`/properties/${propertyId}/units`, data);
+        const res = await unitsApi.create(propertyId, data);
         toast.success(res.data.message || (isEn ? 'Unit added successfully!' : 'নতুন ইউনিট সফলভাবে যুক্ত করা হয়েছে!'));
       }
       reset();
       onOpenChange(false);
       if (onSuccess) onSuccess();
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMsg =
-        error.response?.data?.message || (isEn ? 'Failed to save unit' : 'ইউনিট সংরক্ষণ ব্যর্থ হয়েছে।');
+        (typeof error === 'object' && error !== null && 'response' in error
+          ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
+          : undefined) || (isEn ? 'Failed to save unit' : 'ইউনিট সংরক্ষণ ব্যর্থ হয়েছে।');
       toast.error(errorMsg);
     } finally {
       setIsLoading(false);

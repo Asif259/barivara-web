@@ -1,7 +1,15 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '../stores/auth-store';
 import { useLanguageStore } from '../stores/language-store';
-import { ApiResponse } from './types';
+import {
+  ApiResponse,
+  BulkCreateUnitsPayload,
+  BulkCreateUnitsResult,
+  CreateUnitInput,
+  Property,
+  PropertySummary,
+  Unit,
+} from './types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -134,3 +142,21 @@ apiClient.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// Domain API methods keep transport details out of UI components.
+export const propertiesApi = {
+  get: (propertyId: string) => apiClient.get<ApiResponse<Property>>(`/properties/${propertyId}`),
+  getSummary: (propertyId: string) =>
+    apiClient.get<ApiResponse<PropertySummary>>(`/properties/${propertyId}/summary`),
+};
+
+export const unitsApi = {
+  listByProperty: (propertyId: string) =>
+    apiClient.get<ApiResponse<Unit[]>>(`/properties/${propertyId}/units?limit=100`),
+  create: (propertyId: string, payload: CreateUnitInput) =>
+    apiClient.post<ApiResponse<Unit>>(`/properties/${propertyId}/units`, payload),
+  update: (unitId: string, payload: Partial<Unit>) => apiClient.patch<ApiResponse<Unit>>(`/units/${unitId}`, payload),
+  remove: (unitId: string) => apiClient.delete(`/units/${unitId}`),
+  bulkCreate: (propertyId: string, payload: BulkCreateUnitsPayload) =>
+    apiClient.post<ApiResponse<BulkCreateUnitsResult>>(`/properties/${propertyId}/units/bulk`, payload),
+};
