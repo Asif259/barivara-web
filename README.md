@@ -1,5 +1,25 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Environment variables
+
+Copy `.env.example` to `.env.local` for local development:
+
+```bash
+cp .env.example .env.local
+```
+
+```ini
+NEXT_PUBLIC_API_URL=http://localhost:3000/api/v1
+```
+
+In Vercel, add the following environment variable to the Production environment before building or redeploying:
+
+```ini
+NEXT_PUBLIC_API_URL=https://barivara-api.onrender.com/api/v1
+```
+
+`NEXT_PUBLIC_API_URL` is embedded in the browser bundle at build time, so redeploy after changing it.
+
 ## Getting Started
 
 First, run the development server:

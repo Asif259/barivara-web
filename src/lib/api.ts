@@ -3,10 +3,14 @@ import { useAuthStore } from '../stores/auth-store';
 import { useLanguageStore } from '../stores/language-store';
 import { ApiResponse } from './types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+if (!API_URL) {
+  throw new Error('NEXT_PUBLIC_API_URL is not configured.');
+}
 
 export const apiClient = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -98,7 +102,7 @@ apiClient.interceptors.response.use(
 
       try {
         const refreshResponse = await axios.post<ApiResponse<{ accessToken: string; refreshToken?: string }>>(
-          `${API_BASE_URL}/auth/refresh`,
+          `${API_URL}/auth/refresh`,
           { refreshToken }
         );
 
