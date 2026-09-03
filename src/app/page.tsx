@@ -6,7 +6,8 @@ import { useLanguageStore, Language } from '@/stores/language-store';
 import { useAuthStore } from '@/stores/auth-store';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Building2, Globe, Check, ArrowRight, ShieldCheck, Sparkles } from 'lucide-react';
+import { Globe, Check, ArrowRight, ShieldCheck, Sparkles, Building2 } from 'lucide-react';
+import Image from 'next/image';
 
 export default function RootPage() {
   const router = useRouter();
@@ -52,8 +53,8 @@ export default function RootPage() {
       {/* Top Brand */}
       <div className="w-full max-w-5xl mx-auto flex items-center justify-between z-10 pt-4">
         <div className="flex items-center gap-3">
-          <div className="h-11 w-11 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/25">
-            <Building2 className="h-6 w-6 text-slate-950" />
+          <div className="h-11 w-11 rounded-2xl overflow-hidden shrink-0 shadow-lg shadow-emerald-500/25">
+            <Image src="/logo.png" alt="BariVara" width={44} height={44} className="w-full h-full object-cover" />
           </div>
           <div>
             <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">

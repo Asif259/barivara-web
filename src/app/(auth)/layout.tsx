@@ -1,5 +1,5 @@
 import React from 'react';
-import { Building2 } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 
 export default function AuthLayout({
@@ -15,8 +15,8 @@ export default function AuthLayout({
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md z-10 text-center mb-6">
         <Link href="/" className="inline-flex items-center gap-3 group">
-          <div className="h-12 w-12 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-600/20 group-hover:scale-105 transition-transform duration-200">
-            <Building2 className="h-6 w-6 text-white" />
+          <div className="h-12 w-12 rounded-2xl overflow-hidden shrink-0 shadow-lg shadow-emerald-600/20 group-hover:scale-105 transition-transform duration-200">
+            <Image src="/logo.png" alt="BariVara" width={48} height={48} className="w-full h-full object-cover" />
           </div>
           <div className="text-left">
             <span className="text-2xl font-bold text-slate-900 tracking-tight block">

@@ -3,8 +3,12 @@ import "./globals.css";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "BariVara (বাড়িভাড়া) - স্মার্ট বাড়ি ও ভাড়া ব্যবস্থাপনা",
+  title: "BariVara (বাড়িভাড়া) - স্মার্ট বাড়ি ও ভাড়া ব্যবস্থাপনা",
   description: "Modern Bangla-first rental property and billing management platform",
+  icons: {
+    icon: '/logo.png',
+    apple: '/logo.png',
+  },
 };
 
 export default function RootLayout({

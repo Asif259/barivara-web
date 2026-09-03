@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
@@ -83,12 +84,12 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
         {/* Brand */}
         <div className="p-6 border-b border-slate-800/80 flex items-center justify-between">
           <Link href="/dashboard" className="flex items-center gap-3 group" onClick={onClose}>
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform duration-200">
-              <Building2 className="h-5 w-5 text-slate-950 font-bold" />
+            <div className="h-10 w-10 rounded-xl overflow-hidden shrink-0 group-hover:scale-105 transition-transform duration-200 shadow-lg shadow-emerald-500/20">
+              <Image src="/logo.png" alt="BariVara" width={40} height={40} className="w-full h-full object-cover" />
             </div>
             <div>
               <span className="text-lg font-bold text-white tracking-tight flex items-center gap-1.5">
-                বাড়িভাড়া <span className="text-xs px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-normal">v1</span>
+                বাড়িভাড়া <span className="text-xs px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-normal">v1</span>
               </span>
               <span className="text-xs text-slate-400 block font-normal">Smart Rental Manager</span>
             </div>

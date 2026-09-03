@@ -14,7 +14,8 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Building2, CheckCircle2, Download, Loader2 } from 'lucide-react';
+import { CheckCircle2, Download, Loader2 } from 'lucide-react';
+import Image from 'next/image';
 import { toPng } from 'html-to-image';
 import { toast } from 'sonner';
 
@@ -122,11 +123,8 @@ export function PaymentReceiptDialog({
             <div className="border-y-[3px] border-emerald-800 py-4">
               <div className="flex items-start justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div 
-                  className="h-11 w-11 bg-emerald-800 text-white flex items-center justify-center shrink-0 text-xl"
-                  style={{ backgroundColor: '#065f46', color: '#ffffff' }}
-                >
-                  <Building2 className="w-5 h-5 text-white stroke-[2.2]" />
+                <div className="h-11 w-11 shrink-0 overflow-hidden rounded">
+                  <Image src="/logo.png" alt="BariVara" width={44} height={44} className="w-full h-full object-cover" />
                 </div>
                 <div>
                   <h2 className="font-serif text-xl sm:text-2xl font-bold text-slate-950 tracking-tight leading-tight">
