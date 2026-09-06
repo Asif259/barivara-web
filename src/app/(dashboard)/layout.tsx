@@ -50,14 +50,6 @@ export default function DashboardLayout({
             onClick={() => setMobileMenuOpen(false)}
           />
           <div className="relative flex w-full max-w-xs flex-1 flex-col bg-slate-900 pt-5 pb-4">
-            <div className="absolute top-3 right-3">
-              <button
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:text-white bg-slate-800"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
             <Sidebar onClose={() => setMobileMenuOpen(false)} />
           </div>
         </div>

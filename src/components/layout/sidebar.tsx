@@ -18,6 +18,7 @@ import {
   LogOut,
   ChevronRight,
   Settings as SettingsIcon,
+  X,
 } from 'lucide-react';
 import { useLanguageStore } from '@/stores/language-store';
 import { useTranslation } from '@/lib/translations';
@@ -94,6 +95,16 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
               <span className="text-xs text-slate-400 block font-normal">Smart Rental Manager</span>
             </div>
           </Link>
+
+          {/* Mobile Close Button */}
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="flex md:hidden h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:text-white bg-slate-800/50 hover:bg-slate-800 transition-colors shrink-0"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
 
         {/* Nav Links */}

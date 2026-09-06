@@ -11,7 +11,7 @@ import {
   Property,
   ApiResponse,
 } from '@/lib/types';
-import { formatCurrency, formatBnDate } from '@/lib/utils';
+import { formatCurrency, formatBnDate, formatNumber } from '@/lib/utils';
 import { StatCard } from '@/components/ui/stat-card';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Button } from '@/components/ui/button';
@@ -151,7 +151,7 @@ export default function DashboardPage() {
           <>
             <StatCard
               title={t.properties}
-              value={overviewData?.totalProperties || 0}
+              value={formatNumber(overviewData?.totalProperties || 0, language)}
               subtitle={isEn ? 'Registered properties' : 'মোট নিবন্ধিত বাড়ি'}
               icon={Building2}
               iconColor="text-emerald-600"
@@ -159,15 +159,15 @@ export default function DashboardPage() {
             />
             <StatCard
               title={t.units}
-              value={overviewData?.totalUnits || 0}
-              subtitle={`${overviewData?.occupiedUnits || 0} ${t.occupied} &bull; ${overviewData?.vacantUnits || 0} ${t.vacant}`}
+              value={formatNumber(overviewData?.totalUnits || 0, language)}
+              subtitle={`${formatNumber(overviewData?.occupiedUnits || 0, language)} ${t.occupied} • ${formatNumber(overviewData?.vacantUnits || 0, language)} ${t.vacant}`}
               icon={Home}
               iconColor="text-sky-600"
               iconBgColor="bg-sky-50"
             />
             <StatCard
               title={t.tenants}
-              value={overviewData?.totalTenants || 0}
+              value={formatNumber(overviewData?.totalTenants || 0, language)}
               subtitle={isEn ? 'Active tenants' : 'সক্রিয় ভাড়াটিয়া'}
               icon={Users}
               iconColor="text-purple-600"
@@ -175,7 +175,7 @@ export default function DashboardPage() {
             />
             <StatCard
               title={t.occupancyRate}
-              value={`${overviewData?.occupancyRate || 0}%`}
+              value={`${formatNumber(overviewData?.occupancyRate || 0, language)}%`}
               subtitle={isEn ? 'Units occupied' : 'ভাড়া হওয়ার হার'}
               icon={Percent}
               iconColor="text-teal-600"
@@ -204,7 +204,7 @@ export default function DashboardPage() {
             <StatCard
               title={isEn ? 'Collected Rent' : 'আদায়কৃত ভাড়া'}
               value={formatCurrency(currentMonth?.collected || 0, language)}
-              subtitle={`${currentMonth?.paidCount || 0} ${isEn ? 'units fully paid' : 'টি ফ্ল্যাট পরিশোধিত'}`}
+              subtitle={`${formatNumber(currentMonth?.paidCount || 0, language)} ${isEn ? 'units fully paid' : 'টি ফ্ল্যাট পরিশোধিত'}`}
               icon={CheckCircle2}
               iconColor="text-emerald-600"
               iconBgColor="bg-emerald-50"
@@ -212,14 +212,14 @@ export default function DashboardPage() {
             <StatCard
               title={isEn ? 'Outstanding Due' : 'বকেয়া ও অপরিশোধিত'}
               value={formatCurrency(currentMonth?.outstanding || 0, language)}
-              subtitle={`${(currentMonth?.pendingCount || 0) + (currentMonth?.overdueCount || 0) + (currentMonth?.partialCount || 0)} ${isEn ? 'units pending' : 'টি বকেয়া রয়েছে'}`}
+              subtitle={`${formatNumber((currentMonth?.pendingCount || 0) + (currentMonth?.overdueCount || 0) + (currentMonth?.partialCount || 0), language)} ${isEn ? 'units pending' : 'টি বকেয়া রয়েছে'}`}
               icon={AlertCircle}
               iconColor="text-rose-600"
               iconBgColor="bg-rose-50"
             />
             <StatCard
               title={t.collectionRate}
-              value={`${currentMonth?.collectionRate || 0}%`}
+              value={`${formatNumber(currentMonth?.collectionRate || 0, language)}%`}
               subtitle={isEn ? 'Collected vs expected' : 'আদায়ের অগ্রগতি'}
               icon={TrendingUp}
               iconColor="text-emerald-600"

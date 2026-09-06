@@ -5,6 +5,18 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export function formatNumber(num: number | string | null | undefined, lang: 'en' | 'bn' = 'bn'): string {
+  if (num === null || num === undefined) return lang === 'bn' ? '০' : '0';
+  const str = num.toString();
+  if (lang === 'en') return str;
+  const bnDigits: { [key: string]: string } = {
+    '0': '০', '1': '১', '2': '২', '3': '৩', '4': '৪',
+    '5': '৫', '6': '৬', '7': '৭', '8': '৮', '9': '৯',
+    '.': '.', ',': ','
+  };
+  return str.split('').map(char => bnDigits[char] || char).join('');
+}
+
 export function formatCurrency(amount: number | string | null | undefined, lang: 'en' | 'bn' = 'bn'): string {
   const num = typeof amount === 'string' ? parseFloat(amount) : (amount || 0);
   if (isNaN(num)) return lang === 'bn' ? '৳০' : '৳0';
