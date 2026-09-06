@@ -25,8 +25,8 @@ import { UserPlus, User, Loader2, Save } from 'lucide-react';
 
 const tenantSchema = z.object({
   name: z.string().min(2, 'ভাড়াটিয়ার নাম লিখুন'),
-  phone: z.string().min(11, '১১ ডিজিটের সঠিক মোবাইল নম্বর দিন'),
-  email: z.string().email('সঠিক ইমেইল দিন').optional().or(z.literal('')),
+  phone: z.string().optional().or(z.literal('')),
+  email: z.union([z.literal(''), z.string().email('সঠিক ইমেইল দিন')]).optional(),
   nid: z.string().optional(),
   nidImageId: z.string().optional().nullable(),
   permanentAddress: z.string().optional(),
@@ -83,12 +83,24 @@ export function TenantFormDialog({
 
   const onSubmit = async (data: TenantFormValues) => {
     setIsLoading(true);
+    const payload = {
+      ...data,
+      phone: data.phone?.trim() || undefined,
+      email: data.email?.trim() || undefined,
+      nid: data.nid?.trim() || undefined,
+      permanentAddress: data.permanentAddress?.trim() || undefined,
+      emergencyContactName: data.emergencyContactName?.trim() || undefined,
+      emergencyContactPhone: data.emergencyContactPhone?.trim() || undefined,
+      occupation: data.occupation?.trim() || undefined,
+      notes: data.notes?.trim() || undefined,
+    };
+
     try {
       if (isEditing && tenant) {
-        const res = await apiClient.patch<ApiResponse<Tenant>>(`/tenants/${tenant.id}`, data);
+        const res = await apiClient.patch<ApiResponse<Tenant>>(`/tenants/${tenant.id}`, payload);
         toast.success(res.data.message || (isEn ? 'Tenant updated successfully!' : 'ভাড়াটিয়ার তথ্য সফলভাবে হালনাগাদ করা হয়েছে!'));
       } else {
-        const res = await apiClient.post<ApiResponse<Tenant>>('/tenants', data);
+        const res = await apiClient.post<ApiResponse<Tenant>>('/tenants', payload);
         toast.success(res.data.message || (isEn ? 'Tenant created successfully!' : 'নতুন ভাড়াটিয়া যুক্ত করা হয়েছে!'));
       }
       reset();
@@ -125,7 +137,7 @@ export function TenantFormDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">{t.phone}</Label>
+              <Label htmlFor="phone">{t.phone} ({isEn ? 'Optional' : 'ঐচ্ছিক'})</Label>
               <Input id="phone" placeholder="01812345678" {...register('phone')} />
               {errors.phone && <p className="text-xs text-rose-500">{errors.phone.message}</p>}
             </div>
