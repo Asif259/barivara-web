@@ -49,7 +49,9 @@ export default function DashboardLayout({
             className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity"
             onClick={() => setMobileMenuOpen(false)}
           />
-          <Sidebar onClose={() => setMobileMenuOpen(false)} />
+          <div className="relative z-10 flex h-full">
+            <Sidebar onClose={() => setMobileMenuOpen(false)} />
+          </div>
         </div>
       )}
 
