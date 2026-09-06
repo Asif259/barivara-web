@@ -45,9 +45,11 @@ export default function DashboardLayout({
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-50 flex md:hidden">
-          <div className="relative flex w-full max-w-xs flex-1 flex-col bg-slate-900 pt-5 pb-4">
-            <Sidebar onClose={() => setMobileMenuOpen(false)} />
-          </div>
+          <div
+            className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+          <Sidebar onClose={() => setMobileMenuOpen(false)} />
         </div>
       )}
 
