@@ -188,38 +188,42 @@ export default function MonthlyRentsPage() {
               <TableBody>
                 {rents.map((rent) => (
                   <TableRow key={rent.id}>
-                    <TableCell className="font-bold text-slate-900">
-                      {rent.agreement?.tenant?.name || 'Tenant'}
-                      <span className="block text-xs font-normal text-slate-500">
-                        {rent.agreement?.tenant?.phone}
-                      </span>
+                    <TableCell data-label={t.tenantName} className="font-bold text-slate-900">
+                      <div className="text-right sm:text-left">
+                        <span>{rent.agreement?.tenant?.name || 'Tenant'}</span>
+                        <span className="block text-xs font-normal text-slate-500">
+                          {rent.agreement?.tenant?.phone}
+                        </span>
+                      </div>
                     </TableCell>
-                    <TableCell>
-                      <span className="font-semibold text-slate-800">{rent.agreement?.unit?.unitNumber}</span>
-                      <span className="block text-xs text-slate-500">{rent.agreement?.unit?.property?.name}</span>
+                    <TableCell data-label={t.unitNumber}>
+                      <div className="text-right sm:text-left">
+                        <span className="font-semibold text-slate-800">{rent.agreement?.unit?.unitNumber}</span>
+                        <span className="block text-xs text-slate-500">{rent.agreement?.unit?.property?.name}</span>
+                      </div>
                     </TableCell>
-                    <TableCell className="text-slate-700">
+                    <TableCell data-label={t.baseRent} className="text-slate-700">
                       {formatCurrency(rent.rent, language)}
                     </TableCell>
-                    <TableCell className="text-slate-600">
+                    <TableCell data-label={t.serviceFee} className="text-slate-600">
                       {formatCurrency(rent.serviceFee, language)}
                     </TableCell>
-                    <TableCell className="font-bold text-slate-900">
+                    <TableCell data-label={t.total} className="font-bold text-slate-900">
                       {formatCurrency(rent.totalAmount, language)}
                     </TableCell>
-                    <TableCell className="text-emerald-600 font-semibold">
+                    <TableCell data-label={t.paid} className="text-emerald-600 font-semibold">
                       {formatCurrency(rent.paidAmount, language)}
                     </TableCell>
-                    <TableCell className="text-rose-600 font-bold">
+                    <TableCell data-label={t.remaining} className="text-rose-600 font-bold">
                       {formatCurrency(rent.remainingAmount, language)}
                     </TableCell>
-                    <TableCell className="text-xs text-slate-500">
+                    <TableCell data-label={isEn ? 'Due Date' : 'পরিশোধের শেষ তারিখ'} className="text-xs text-slate-500">
                       {formatBnDate(rent.dueDate, language)}
                     </TableCell>
-                    <TableCell>
+                    <TableCell data-label={t.status}>
                       <StatusBadge status={rent.status} lang={language} />
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell data-label={t.actions} className="text-right">
                       {rent.status !== 'PAID' && rent.remainingAmount > 0 ? (
                         <Button
                           size="sm"

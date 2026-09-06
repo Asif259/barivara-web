@@ -182,31 +182,31 @@ export default function ExpensesPage() {
               <TableBody>
                 {expenses.map((expense) => (
                   <TableRow key={expense.id}>
-                    <TableCell className="text-xs text-slate-600 font-medium">
+                    <TableCell data-label={t.date} className="text-xs text-slate-600 font-medium">
                       {formatBnDate(expense.expenseDate, language)}
                     </TableCell>
-                    <TableCell className="font-semibold text-slate-900">
+                    <TableCell data-label={t.propertyName} className="font-semibold text-slate-900">
                       {expense.property?.name || 'Property'}
                     </TableCell>
-                    <TableCell>
+                    <TableCell data-label={isEn ? 'Category' : 'খরচের খাত'}>
                       <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
                         {expense.category}
                       </span>
                     </TableCell>
-                    <TableCell className="font-bold text-rose-600 text-sm">
+                    <TableCell data-label={t.amount} className="font-bold text-rose-600 text-sm">
                       {formatCurrency(expense.amount, language)}
                     </TableCell>
-                    <TableCell className="text-xs text-slate-600 max-w-xs truncate">
+                    <TableCell data-label={isEn ? 'Description' : 'বিবরণ'} className="text-xs text-slate-600 max-w-xs truncate">
                       {expense.description || '-'}
                     </TableCell>
-                    <TableCell className="text-xs text-slate-600">
+                    <TableCell data-label={t.paymentMethod} className="text-xs text-slate-600">
                       {expense.paymentMethod}
                     </TableCell>
-                    <TableCell className="font-mono text-xs text-slate-500">
+                    <TableCell data-label={isEn ? 'Voucher' : 'ভাউচার'} className="font-mono text-xs text-slate-500">
                       {expense.reference || '-'}
                     </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
+                    <TableCell data-label={t.actions} className="text-right">
+                      <div className="flex items-center justify-end gap-1 table-actions">
                         <Button
                           size="sm"
                           variant="ghost"

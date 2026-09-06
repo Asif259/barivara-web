@@ -227,22 +227,22 @@ export default function TenantDetailPage() {
               <TableBody>
                 {tenant.agreements.map((agr) => (
                   <TableRow key={agr.id}>
-                    <TableCell className="font-bold text-slate-900">
+                    <TableCell data-label={t.unitNumber} className="font-bold text-slate-900">
                       {agr.unit?.unitNumber} ({agr.unit?.property?.name})
                     </TableCell>
-                    <TableCell className="font-semibold text-slate-900">
+                    <TableCell data-label={t.baseRent} className="font-semibold text-slate-900">
                       {formatCurrency(agr.monthlyRent, language)}
                     </TableCell>
-                    <TableCell className="text-slate-600">
+                    <TableCell data-label={t.serviceFee} className="text-slate-600">
                       {formatCurrency(agr.serviceFee, language)}
                     </TableCell>
-                    <TableCell className="text-emerald-700 font-medium">
+                    <TableCell data-label={t.securityDeposit} className="text-emerald-700 font-medium">
                       {formatCurrency(agr.securityDeposit, language)}
                     </TableCell>
-                    <TableCell className="text-xs text-slate-600">
+                    <TableCell data-label={t.startDate} className="text-xs text-slate-600">
                       {formatBnDate(agr.startDate, language)}
                     </TableCell>
-                    <TableCell>
+                    <TableCell data-label={t.status}>
                       <StatusBadge status={agr.status} lang={language} />
                     </TableCell>
                   </TableRow>

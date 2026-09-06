@@ -132,31 +132,31 @@ export default function TenantsPage() {
               <TableBody>
                 {tenants.map((tenant) => (
                   <TableRow key={tenant.id}>
-                    <TableCell className="font-bold text-slate-900">
+                    <TableCell data-label={t.tenantName} className="font-bold text-slate-900">
                       <div className="flex items-center gap-2.5">
-                        <div className="h-8 w-8 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center text-xs font-bold">
+                        <div className="h-8 w-8 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center text-xs font-bold shrink-0">
                           {tenant.name.charAt(0).toUpperCase()}
                         </div>
                         <span>{tenant.name}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="font-medium text-slate-700">
+                    <TableCell data-label={t.phone} className="font-medium text-slate-700">
                       {tenant.phone}
                     </TableCell>
-                    <TableCell className="text-slate-500 text-xs">
+                    <TableCell data-label={t.email} className="text-slate-500 text-xs">
                       {tenant.email || '-'}
                     </TableCell>
-                    <TableCell className="text-slate-600 text-xs">
+                    <TableCell data-label={t.occupation} className="text-slate-600 text-xs">
                       {tenant.occupation || '-'}
                     </TableCell>
-                    <TableCell className="text-slate-500 text-xs font-mono">
+                    <TableCell data-label={t.nid} className="text-slate-500 text-xs font-mono">
                       {tenant.nid || '-'}
                     </TableCell>
-                    <TableCell className="text-slate-500 text-xs">
+                    <TableCell data-label={isEn ? 'Added On' : 'যুক্ত করার তারিখ'} className="text-slate-500 text-xs">
                       {formatBnDate(tenant.createdAt, language)}
                     </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
+                    <TableCell data-label={t.actions} className="text-right">
+                      <div className="flex items-center justify-end gap-1 table-actions">
                         <Link href={`/tenants/${tenant.id}`}>
                           <Button size="sm" variant="outline" className="gap-1 text-xs h-8 px-2.5">
                             <span>{isEn ? 'Profile' : 'প্রোফাইল'}</span>

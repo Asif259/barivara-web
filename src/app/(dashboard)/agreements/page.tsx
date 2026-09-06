@@ -133,33 +133,37 @@ export default function AgreementsPage() {
               <TableBody>
                 {agreements.map((agr) => (
                   <TableRow key={agr.id}>
-                    <TableCell className="font-bold text-slate-900">
-                      {agr.tenant?.name || 'Tenant'}
-                      <span className="block text-xs font-normal text-slate-500">{agr.tenant?.phone}</span>
+                    <TableCell data-label={t.tenantName} className="font-bold text-slate-900">
+                      <div className="text-right sm:text-left">
+                        <span>{agr.tenant?.name || 'Tenant'}</span>
+                        <span className="block text-xs font-normal text-slate-500">{agr.tenant?.phone}</span>
+                      </div>
                     </TableCell>
-                    <TableCell>
-                      <span className="font-semibold text-slate-800">{agr.unit?.unitNumber}</span>
-                      <span className="block text-xs text-slate-500">{agr.unit?.property?.name}</span>
+                    <TableCell data-label={t.unitNumber}>
+                      <div className="text-right sm:text-left">
+                        <span className="font-semibold text-slate-800">{agr.unit?.unitNumber}</span>
+                        <span className="block text-xs text-slate-500">{agr.unit?.property?.name}</span>
+                      </div>
                     </TableCell>
-                    <TableCell className="font-medium text-slate-900">
+                    <TableCell data-label={t.baseRent} className="font-medium text-slate-900">
                       {formatCurrency(agr.monthlyRent, language)}
                     </TableCell>
-                    <TableCell className="text-slate-600">
+                    <TableCell data-label={t.serviceFee} className="text-slate-600">
                       {formatCurrency(agr.serviceFee, language)}
                     </TableCell>
-                    <TableCell className="text-emerald-700 font-medium">
+                    <TableCell data-label={t.securityDeposit} className="text-emerald-700 font-medium">
                       {formatCurrency(agr.securityDeposit, language)}
                     </TableCell>
-                    <TableCell className="text-slate-700 font-medium text-xs">
+                    <TableCell data-label={t.dueDay} className="text-slate-700 font-medium text-xs">
                       {isEn ? `Day ${agr.dueDay}` : `প্রতি মাসের ${agr.dueDay} তারিখ`}
                     </TableCell>
-                    <TableCell className="text-xs text-slate-500">
+                    <TableCell data-label={t.startDate} className="text-xs text-slate-500">
                       {formatBnDate(agr.startDate, language)}
                     </TableCell>
-                    <TableCell>
+                    <TableCell data-label={t.status}>
                       <StatusBadge status={agr.status} lang={language} />
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell data-label={t.actions} className="text-right">
                       {agr.status === 'ACTIVE' && (
                         <Button
                           size="sm"

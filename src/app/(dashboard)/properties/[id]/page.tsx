@@ -251,36 +251,36 @@ export default function PropertyDetailPage() {
                 {Object.entries(unitsByFloor)
                   .sort(([a], [b]) => Number(b) - Number(a))
                   .flatMap(([floor, floorUnits]) => [
-                    <TableRow key={`floor-${floor}`} className="bg-slate-50 hover:bg-slate-50">
+                    <TableRow key={`floor-${floor}`} className="bg-slate-50 hover:bg-slate-50 table-section-header">
                       <TableCell colSpan={8} className="py-2 text-sm font-semibold text-slate-700">
                         <span className="inline-flex items-center gap-2"><Layers className="h-4 w-4 text-emerald-600" />{isEn ? `Floor ${floor}` : `${floor} তলা`}<span className="font-normal text-slate-500">({floorUnits.length} {t.units})</span></span>
                       </TableCell>
                     </TableRow>,
                     ...floorUnits.map((unit) => (
                   <TableRow key={unit.id}>
-                    <TableCell className="font-bold text-slate-900">
+                    <TableCell data-label={t.unitNumber} className="font-bold text-slate-900">
                       {unit.unitNumber}
                     </TableCell>
-                    <TableCell className="text-slate-600">
+                    <TableCell data-label={t.floor} className="text-slate-600">
                       {unit.floor} {isEn ? 'Floor' : 'তলা'}
                     </TableCell>
-                    <TableCell className="text-xs font-medium text-slate-600">
+                    <TableCell data-label={t.unitType} className="text-xs font-medium text-slate-600">
                       {unit.unitType}
                     </TableCell>
-                    <TableCell className="text-xs text-slate-600">
+                    <TableCell data-label={isEn ? 'Rooms' : 'রুম ও বাথ'} className="text-xs text-slate-600">
                       {unit.bedrooms || 0} Bed &bull; {unit.bathrooms || 0} Bath
                     </TableCell>
-                    <TableCell className="font-semibold text-slate-900">
+                    <TableCell data-label={t.baseRent} className="font-semibold text-slate-900">
                       {formatCurrency(unit.monthlyBaseRent, language)}
                     </TableCell>
-                    <TableCell className="text-slate-600">
+                    <TableCell data-label={t.serviceFee} className="text-slate-600">
                       {formatCurrency(unit.defaultServiceFee, language)}
                     </TableCell>
-                    <TableCell>
+                    <TableCell data-label={t.status}>
                       <StatusBadge status={unit.status} lang={language} />
                     </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
+                    <TableCell data-label={t.actions} className="text-right">
+                      <div className="flex items-center justify-end gap-1 table-actions">
                         <Button
                           size="sm"
                           variant="ghost"

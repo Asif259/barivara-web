@@ -271,36 +271,40 @@ export default function DashboardPage() {
               <TableBody>
                 {outstandingRents.map((rent) => (
                   <TableRow key={rent.id}>
-                    <TableCell className="font-semibold text-slate-900">
-                      {rent.agreement?.tenant?.name || 'Tenant'}
-                      <span className="block text-xs font-normal text-slate-500">
-                        {rent.agreement?.tenant?.phone}
-                      </span>
+                    <TableCell data-label={t.tenantName} className="font-semibold text-slate-900">
+                      <div className="text-right sm:text-left">
+                        <span>{rent.agreement?.tenant?.name || 'Tenant'}</span>
+                        <span className="block text-xs font-normal text-slate-500">
+                          {rent.agreement?.tenant?.phone}
+                        </span>
+                      </div>
                     </TableCell>
-                    <TableCell>
-                      <span className="font-medium text-slate-800">
-                        {rent.agreement?.unit?.unitNumber}
-                      </span>
-                      <span className="block text-xs text-slate-500">
-                        {rent.agreement?.unit?.property?.name}
-                      </span>
+                    <TableCell data-label={t.unitNumber}>
+                      <div className="text-right sm:text-left">
+                        <span className="font-medium text-slate-800">
+                          {rent.agreement?.unit?.unitNumber}
+                        </span>
+                        <span className="block text-xs text-slate-500">
+                          {rent.agreement?.unit?.property?.name}
+                        </span>
+                      </div>
                     </TableCell>
-                    <TableCell className="text-xs">
+                    <TableCell data-label={isEn ? 'Month / Year' : 'মাস ও সাল'} className="text-xs">
                       {rent.month}/{rent.year}
                     </TableCell>
-                    <TableCell className="font-medium">
+                    <TableCell data-label={t.total} className="font-medium">
                       {formatCurrency(rent.totalAmount, language)}
                     </TableCell>
-                    <TableCell className="text-emerald-600 font-medium">
+                    <TableCell data-label={t.paid} className="text-emerald-600 font-medium">
                       {formatCurrency(rent.paidAmount, language)}
                     </TableCell>
-                    <TableCell className="text-rose-600 font-bold">
+                    <TableCell data-label={t.remaining} className="text-rose-600 font-bold">
                       {formatCurrency(rent.remainingAmount, language)}
                     </TableCell>
-                    <TableCell>
+                    <TableCell data-label={t.status}>
                       <StatusBadge status={rent.status} lang={language} />
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell data-label={t.actions} className="text-right">
                       <Button
                         size="sm"
                         variant="default"

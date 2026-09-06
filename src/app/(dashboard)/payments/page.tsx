@@ -130,39 +130,43 @@ export default function PaymentsPage() {
               <TableBody>
                 {payments.map((payment) => (
                   <TableRow key={payment.id}>
-                    <TableCell className="text-xs text-slate-600 font-medium">
+                    <TableCell data-label={t.date} className="text-xs text-slate-600 font-medium">
                       {formatBnDate(payment.paymentDate, language)}
                     </TableCell>
-                    <TableCell className="font-bold text-slate-900">
-                      {payment.monthlyRent?.agreement?.tenant?.name || 'Tenant'}
-                      <span className="block text-xs font-normal text-slate-500">
-                        {payment.monthlyRent?.agreement?.tenant?.phone}
-                      </span>
+                    <TableCell data-label={t.tenantName} className="font-bold text-slate-900">
+                      <div className="text-right sm:text-left">
+                        <span>{payment.monthlyRent?.agreement?.tenant?.name || 'Tenant'}</span>
+                        <span className="block text-xs font-normal text-slate-500">
+                          {payment.monthlyRent?.agreement?.tenant?.phone}
+                        </span>
+                      </div>
                     </TableCell>
-                    <TableCell>
-                      <span className="font-medium text-slate-800">
-                        {payment.monthlyRent?.agreement?.unit?.unitNumber}
-                      </span>
-                      <span className="block text-xs text-slate-500">
-                        {payment.monthlyRent?.agreement?.unit?.property?.name}
-                      </span>
+                    <TableCell data-label={t.unitNumber}>
+                      <div className="text-right sm:text-left">
+                        <span className="font-medium text-slate-800">
+                          {payment.monthlyRent?.agreement?.unit?.unitNumber}
+                        </span>
+                        <span className="block text-xs text-slate-500">
+                          {payment.monthlyRent?.agreement?.unit?.property?.name}
+                        </span>
+                      </div>
                     </TableCell>
-                    <TableCell className="font-bold text-emerald-600 text-sm">
+                    <TableCell data-label={t.amount} className="font-bold text-emerald-600 text-sm">
                       {formatCurrency(payment.amount, language)}
                     </TableCell>
-                    <TableCell className="text-xs font-semibold text-slate-700">
+                    <TableCell data-label={t.paymentMethod} className="text-xs font-semibold text-slate-700">
                       <span className="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200">
                         {payment.paymentMethod}
                       </span>
                     </TableCell>
-                    <TableCell className="font-mono text-xs text-slate-500">
+                    <TableCell data-label={t.transactionId} className="font-mono text-xs text-slate-500">
                       {payment.transactionId || '-'}
                     </TableCell>
-                    <TableCell>
+                    <TableCell data-label={t.status}>
                       <StatusBadge status={payment.status} lang={language} />
                     </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1.5">
+                    <TableCell data-label={t.actions} className="text-right">
+                      <div className="flex items-center justify-end gap-1.5 table-actions">
                         <Button
                           size="sm"
                           variant="outline"
