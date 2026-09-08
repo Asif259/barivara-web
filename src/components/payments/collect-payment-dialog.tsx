@@ -23,6 +23,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { FileUploader } from '@/components/ui/file-uploader';
 import { Loader2, CreditCard, CheckCircle2, User, Building, Home, DollarSign } from 'lucide-react';
+import { PaymentReceiptDialog } from './payment-receipt-dialog';
 
 const paymentMethods: { value: PaymentMethod; labelBn: string; labelEn: string }[] = [
   { value: 'CASH', labelBn: 'নগদ (Cash)', labelEn: 'Cash' },
@@ -104,8 +105,16 @@ export function CollectPaymentDialog({
           response.data.message || (isEn ? 'Payment recorded successfully!' : 'পেমেন্ট সফলভাবে গ্রহণ করা হয়েছে!')
         );
         reset();
-        onOpenChange(false);
-        if (onSuccess) onSuccess();
+        const createdPayment = response.data.data?.payment;
+        if (createdPayment) {
+          setReceiptPayment({
+            ...createdPayment,
+            monthlyRent: response.data.data?.monthlyRent || rent,
+          });
+        } else {
+          onOpenChange(false);
+          if (onSuccess) onSuccess();
+        }
       }
     } catch (error: any) {
       const errorMsg =
@@ -120,7 +129,8 @@ export function CollectPaymentDialog({
   if (!rent) return null;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <>
+      <Dialog open={open && !receiptPayment} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-slate-900">
@@ -264,5 +274,20 @@ export function CollectPaymentDialog({
         </form>
       </DialogContent>
     </Dialog>
+
+    {receiptPayment && (
+      <PaymentReceiptDialog
+        payment={receiptPayment}
+        open={!!receiptPayment}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) {
+            setReceiptPayment(null);
+            onOpenChange(false);
+            if (onSuccess) onSuccess();
+          }
+        }}
+      />
+    )}
+  </>
   );
 }

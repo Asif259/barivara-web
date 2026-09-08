@@ -153,6 +153,22 @@ export const translations = {
     accountInformation: 'অ্যাকাউন্ট তথ্য',
     role: 'ভূমিকা',
     memberSince: 'যোগদানের তারিখ',
+
+    // Receipt WhatsApp Sharing
+    sendReceipt: 'রসিদ পাঠান',
+    sendViaWhatsapp: 'হোয়াটসঅ্যাপে পাঠান',
+    sendingReceipt: 'প্রস্তুত হচ্ছে...',
+    receiptSharedSuccess: 'রসিদ সফলভাবে শেয়ার করা হয়েছে',
+    receiptDownloadedForWhatsapp: 'রসিদ ইমেজ ডাউনলোড হয়েছে। হোয়াটসঅ্যাপ চ্যাটে রসিদটি যুক্ত করে পাঠিয়ে দিন।',
+    whatsappShareFailed: 'রসিদ শেয়ার করা যায়নি',
+    desktopWhatsappInstructions: 'ডেস্কটপ থেকে হোয়াটসঅ্যাপে পাঠানোর নিয়ম',
+    step1Downloaded: 'রসিদের ইমেজ ফাইলটি আপনার ডিভাইসে ডাউনলোড হয়েছে।',
+    step2OpenWhatsapp: 'হোয়াটসঅ্যাপে চ্যাটটি খুলুন এবং ডাউনলোড করা ছবিটি ড্র্যাগ বা অ্যাটাচ করুন।',
+    step3PressSend: 'প্রিফিল্ড মেসেজটি দেখে সেন্ড (Send) বাটনে চাপ দিন।',
+    openWhatsapp: 'হোয়াটসঅ্যাপ ওপেন করুন',
+    copyMessage: 'মেসেজ কপি করুন',
+    messageCopied: 'মেসেজ কপি হয়েছে',
+    desktopNotice: 'ব্রাউজার সিকিউরিটির কারণে ওয়েব ব্রাউজার স্বয়ংক্রিয়ভাবে হোয়াটসঅ্যাপে ফাইল সংযুক্ত করতে পারে না। অনুগ্রহ করে ডাউনলোড করা ছবিটি চ্যাটে ড্রপ বা অ্যাটাচ করুন।',
   },
   en: {
     appName: 'BariVara',
@@ -308,6 +324,22 @@ export const translations = {
     accountInformation: 'Account Information',
     role: 'Role',
     memberSince: 'Member Since',
+
+    // Receipt WhatsApp Sharing
+    sendReceipt: 'Send Receipt',
+    sendViaWhatsapp: 'Send via WhatsApp',
+    sendingReceipt: 'Preparing...',
+    receiptSharedSuccess: 'Receipt shared successfully',
+    receiptDownloadedForWhatsapp: 'Receipt image downloaded. Please attach the image in WhatsApp and send.',
+    whatsappShareFailed: 'Failed to share receipt',
+    desktopWhatsappInstructions: 'Sending via WhatsApp on Desktop',
+    step1Downloaded: 'The receipt image has been downloaded to your device.',
+    step2OpenWhatsapp: 'Open WhatsApp and drag or attach the downloaded receipt image into the chat.',
+    step3PressSend: 'Review the message and press Send.',
+    openWhatsapp: 'Open WhatsApp',
+    copyMessage: 'Copy Message',
+    messageCopied: 'Message copied to clipboard',
+    desktopNotice: 'Due to browser security restrictions, web browsers cannot automatically attach files to WhatsApp Web. Please attach the downloaded receipt image manually.',
   }
 };
 
