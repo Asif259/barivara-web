@@ -201,7 +201,9 @@ export default function MonthlyRentsPage() {
                     <TableCell data-label={t.unitNumber}>
                       <div className="text-right sm:text-left">
                         <span className="font-semibold text-slate-800">{rent.agreement?.unit?.unitNumber}</span>
-                        <span className="block text-xs text-slate-500">{rent.agreement?.unit?.property?.name}</span>
+                        {(!propertyFilter && (properties?.length || 0) > 1) && rent.agreement?.unit?.property?.name && (
+                          <span className="block text-xs text-slate-500">{rent.agreement.unit.property.name}</span>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell data-label={t.baseRent} className="text-slate-700">

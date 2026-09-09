@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { apiClient } from '@/lib/api';
 import { useLanguageStore } from '@/stores/language-store';
 import { useTranslation } from '@/lib/translations';
-import { RentalAgreement, ApiResponse } from '@/lib/types';
+import { RentalAgreement, Property, ApiResponse } from '@/lib/types';
 import { formatCurrency, formatBnDate } from '@/lib/utils';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
@@ -23,12 +23,12 @@ import {
   TableCell,
 } from '@/components/ui/table';
 import { AgreementFormDialog } from '@/components/agreements/agreement-form-dialog';
+import { AgreementDetailsDialog } from '@/components/agreements/agreement-details-dialog';
 import {
   FileText,
   Plus,
   Ban,
-  Calendar,
-  CheckCircle2,
+  Eye,
 } from 'lucide-react';
 
 export default function AgreementsPage() {
@@ -37,7 +37,20 @@ export default function AgreementsPage() {
   const isEn = language === 'en';
 
   const [agreementDialogOpen, setAgreementDialogOpen] = useState(false);
+  const [selectedAgreement, setSelectedAgreement] = useState<RentalAgreement | null>(null);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>('ACTIVE');
+
+  // Fetch properties to determine if single property
+  const { data: properties } = useQuery({
+    queryKey: ['properties-list'],
+    queryFn: async () => {
+      const res = await apiClient.get<ApiResponse<Property[]>>('/properties');
+      return res.data?.data || [];
+    },
+  });
+
+  const isSingleProperty = (properties?.length || 0) <= 1;
 
   const {
     data: agreements,
@@ -51,6 +64,11 @@ export default function AgreementsPage() {
       return res.data?.data || [];
     },
   });
+
+  const handleViewDetails = (agr: RentalAgreement) => {
+    setSelectedAgreement(agr);
+    setDetailsDialogOpen(true);
+  };
 
   const handleEndAgreement = async (id: string, tenantName: string) => {
     if (!confirm(isEn ? `Are you sure you want to end the agreement for ${tenantName}? The unit will be marked VACANT.` : `আপনি কি ${tenantName}-এর চুক্তি সমাপ্ত করতে চান? ফ্ল্যাটটি পুনরায় খালি (VACANT) হিসেবে চিহ্নিত হবে।`)) {
@@ -106,8 +124,8 @@ export default function AgreementsPage() {
         </Button>
       </div>
 
-      {/* Agreements Table */}
-      <Card className="border-slate-200/80 shadow-xs">
+      {/* Compact, Information-Dense Agreements Table */}
+      <Card className="border-slate-200/80 shadow-xs overflow-hidden">
         <CardContent className="p-0">
           {isLoading ? (
             <div className="p-6 space-y-3">
@@ -116,71 +134,87 @@ export default function AgreementsPage() {
               <Skeleton className="h-10 w-full" />
             </div>
           ) : agreements && agreements.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t.tenantName}</TableHead>
-                  <TableHead>{t.unitNumber}</TableHead>
-                  <TableHead>{t.baseRent}</TableHead>
-                  <TableHead>{t.serviceFee}</TableHead>
-                  <TableHead>{t.securityDeposit}</TableHead>
-                  <TableHead>{t.dueDay}</TableHead>
-                  <TableHead>{t.startDate}</TableHead>
-                  <TableHead>{t.status}</TableHead>
-                  <TableHead className="text-right">{t.actions}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {agreements.map((agr) => (
-                  <TableRow key={agr.id}>
-                    <TableCell data-label={t.tenantName} className="font-bold text-slate-900">
-                      <div className="text-right sm:text-left">
-                        <span>{agr.tenant?.name || 'Tenant'}</span>
-                        <span className="block text-xs font-normal text-slate-500">{agr.tenant?.phone}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell data-label={t.unitNumber}>
-                      <div className="text-right sm:text-left">
-                        <span className="font-semibold text-slate-800">{agr.unit?.unitNumber}</span>
-                        <span className="block text-xs text-slate-500">{agr.unit?.property?.name}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell data-label={t.baseRent} className="font-medium text-slate-900">
-                      {formatCurrency(agr.monthlyRent, language)}
-                    </TableCell>
-                    <TableCell data-label={t.serviceFee} className="text-slate-600">
-                      {formatCurrency(agr.serviceFee, language)}
-                    </TableCell>
-                    <TableCell data-label={t.securityDeposit} className="text-emerald-700 font-medium">
-                      {formatCurrency(agr.securityDeposit, language)}
-                    </TableCell>
-                    <TableCell data-label={t.dueDay} className="text-slate-700 font-medium text-xs">
-                      {isEn ? `Day ${agr.dueDay}` : `প্রতি মাসের ${agr.dueDay} তারিখ`}
-                    </TableCell>
-                    <TableCell data-label={t.startDate} className="text-xs text-slate-500">
-                      {formatBnDate(agr.startDate, language)}
-                    </TableCell>
-                    <TableCell data-label={t.status}>
-                      <StatusBadge status={agr.status} lang={language} />
-                    </TableCell>
-                    <TableCell data-label={t.actions} className="text-right">
-                      {agr.status === 'ACTIVE' && (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleEndAgreement(agr.id, agr.tenant?.name || 'tenant')}
-                          className="h-8 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 gap-1 font-medium"
-                          title={t.endAgreement}
-                        >
-                          <Ban className="w-3.5 h-3.5" />
-                          <span>{t.endAgreement}</span>
-                        </Button>
-                      )}
-                    </TableCell>
+            <div className="overflow-x-auto">
+              <Table className="table-fixed w-full min-w-[1000px]">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[200px]">{t.tenantName}</TableHead>
+                    <TableHead className="w-[95px]">{t.unitNumber}</TableHead>
+                    <TableHead className="w-[105px]">{t.baseRent}</TableHead>
+                    <TableHead className="w-[100px]">{t.serviceFee}</TableHead>
+                    <TableHead className="w-[125px]">{t.securityDeposit}</TableHead>
+                    <TableHead className="w-[125px]">{t.dueDay}</TableHead>
+                    <TableHead className="w-[120px]">{t.startDate}</TableHead>
+                    <TableHead className="w-[95px]">{t.status}</TableHead>
+                    <TableHead className="w-[125px] text-right">{t.actions}</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {agreements.map((agr) => (
+                    <TableRow key={agr.id}>
+                      <TableCell data-label={t.tenantName} className="font-bold text-slate-900 truncate">
+                        <div className="text-right sm:text-left">
+                          <span className="block truncate">{agr.tenant?.name || 'Tenant'}</span>
+                          <span className="block text-xs font-normal text-slate-500">{agr.tenant?.phone}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell data-label={t.unitNumber}>
+                        <div className="text-right sm:text-left">
+                          <span className="font-semibold text-slate-800">{agr.unit?.unitNumber}</span>
+                          {!isSingleProperty && agr.unit?.property?.name && (
+                            <span className="block text-xs text-slate-500 truncate">{agr.unit.property.name}</span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell data-label={t.baseRent} className="font-medium text-slate-900 whitespace-nowrap">
+                        {formatCurrency(agr.monthlyRent, language)}
+                      </TableCell>
+                      <TableCell data-label={t.serviceFee} className="text-slate-600 whitespace-nowrap">
+                        {formatCurrency(agr.serviceFee, language)}
+                      </TableCell>
+                      <TableCell data-label={t.securityDeposit} className="text-emerald-700 font-medium whitespace-nowrap">
+                        {formatCurrency(agr.securityDeposit, language)}
+                      </TableCell>
+                      <TableCell data-label={t.dueDay} className="text-slate-700 font-medium text-xs whitespace-nowrap">
+                        {isEn ? `Day ${agr.dueDay}` : `প্রতি মাসের ${agr.dueDay} তারিখ`}
+                      </TableCell>
+                      <TableCell data-label={t.startDate} className="text-xs text-slate-500 whitespace-nowrap">
+                        {formatBnDate(agr.startDate, language)}
+                      </TableCell>
+                      <TableCell data-label={t.status}>
+                        <StatusBadge status={agr.status} lang={language} />
+                      </TableCell>
+                      <TableCell data-label={t.actions} className="text-right">
+                        <div className="flex items-center justify-end gap-1 table-actions">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleViewDetails(agr)}
+                            className="h-7 px-2 text-xs text-slate-700 hover:bg-slate-100 gap-1 border-slate-200"
+                            title={isEn ? 'View Details' : 'বিস্তারিত দেখুন'}
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>{isEn ? 'View' : 'দেখুন'}</span>
+                          </Button>
+                          {agr.status === 'ACTIVE' && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleEndAgreement(agr.id, agr.tenant?.name || 'tenant')}
+                              className="h-7 px-2 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 gap-1 border border-rose-200"
+                              title={t.endAgreement}
+                            >
+                              <Ban className="w-3.5 h-3.5" />
+                              <span>{isEn ? 'End' : 'শেষ'}</span>
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           ) : (
             <EmptyState
               icon={FileText}
@@ -198,6 +232,14 @@ export default function AgreementsPage() {
         open={agreementDialogOpen}
         onOpenChange={setAgreementDialogOpen}
         onSuccess={refetch}
+      />
+
+      {/* Agreement Details Modal */}
+      <AgreementDetailsDialog
+        agreement={selectedAgreement}
+        open={detailsDialogOpen}
+        onOpenChange={setDetailsDialogOpen}
+        onEndAgreement={handleEndAgreement}
       />
     </div>
   );
