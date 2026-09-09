@@ -1,41 +1,67 @@
 import { formatCurrency } from './utils';
 
-/**
- * Normalizes phone numbers to standard E.164 without '+' or leading symbols
- * specifically formatted for WhatsApp wa.me links.
- *
- * Handles:
- * - 01711223344 -> 8801711223344 (Bangladesh local format)
- * - +8801711223344 -> 8801711223344
- * - 8801711223344 -> 8801711223344
- * - 01711-223344 -> 8801711223344
- * - Bengali numerals: ০১৭১১২২৩৩৪৪ -> 8801711223344
- */
-export function formatWhatsAppPhone(phone: string | null | undefined): string {
-  if (!phone) return '';
+export interface PhoneValidationResult {
+  isValid: boolean;
+  normalizedPhone: string;
+}
 
-  // Convert Bengali numerals to Western Arabic digits
+/**
+ * Validates and normalizes phone numbers specifically for WhatsApp wa.me links.
+ *
+ * Rules:
+ * 1. Bangladesh local numbers (11 digits): 01[3-9]XXXXXXXX -> 8801[3-9]XXXXXXXX
+ * 2. Bangladesh international numbers (13 digits): 8801[3-9]XXXXXXXX -> 8801[3-9]XXXXXXXX (no double prefix)
+ * 3. Strips leading +, spaces, hyphens, parentheses
+ * 4. Converts Bengali digits (০-৯) to Arabic numerals (0-9)
+ * 5. General valid E.164 international numbers (10 to 15 digits starting with non-zero country code)
+ * 6. Empty, too short, or malformed numbers are treated as invalid.
+ */
+export function validateAndNormalizePhone(phone?: string | null): PhoneValidationResult {
+  if (!phone || typeof phone !== 'string') {
+    return { isValid: false, normalizedPhone: '' };
+  }
+
+  // Convert Bengali numerals to Western digits
   const bnDigits: Record<string, string> = {
     '০': '0', '১': '1', '২': '2', '৩': '3', '৪': '4',
     '৫': '5', '৬': '6', '৭': '7', '৮': '8', '৯': '9',
   };
-  const normalized = phone.replace(/[০-৯]/g, (d) => bnDigits[d] || d);
+  const converted = phone.replace(/[০-৯]/g, (d) => bnDigits[d] || d);
 
-  // Strip all non-digit characters
-  const digitsOnly = normalized.replace(/\D/g, '');
+  // Strip all whitespace, hyphens, parentheses, plus signs
+  const cleaned = converted.replace(/[\s\-\(\)\+]/g, '').trim();
 
-  // Bangladesh 11-digit mobile starting with 01 (e.g. 017XXXXXXXX)
-  if (digitsOnly.length === 11 && digitsOnly.startsWith('01')) {
-    return `88${digitsOnly}`;
+  // If non-digits remain after stripping formatting, it is invalid
+  if (!/^\d+$/.test(cleaned)) {
+    return { isValid: false, normalizedPhone: '' };
   }
 
-  // Bangladesh 13-digit mobile already prefixed with 8801
-  if (digitsOnly.length === 13 && digitsOnly.startsWith('8801')) {
-    return digitsOnly;
+  // 1. Bangladesh local 11-digit mobile: 01[3-9]XXXXXXXX
+  if (/^01[3-9]\d{8}$/.test(cleaned)) {
+    return { isValid: true, normalizedPhone: `88${cleaned}` };
   }
 
-  // Already prefixed with 88 and followed by 01 (or international format)
-  return digitsOnly;
+  // 2. Bangladesh international 13-digit mobile: 8801[3-9]XXXXXXXX
+  if (/^8801[3-9]\d{8}$/.test(cleaned)) {
+    return { isValid: true, normalizedPhone: cleaned };
+  }
+
+  // 3. Other valid international numbers: 10 to 15 digits, starting with non-zero country code
+  // E.g. +14155552671, +447911123456
+  if (/^[1-9]\d{9,14}$/.test(cleaned)) {
+    return { isValid: true, normalizedPhone: cleaned };
+  }
+
+  return { isValid: false, normalizedPhone: '' };
+}
+
+/**
+ * Normalizes phone numbers to standard international format for WhatsApp wa.me links.
+ * Returns empty string if the phone number is invalid.
+ */
+export function formatWhatsAppPhone(phone: string | null | undefined): string {
+  const result = validateAndNormalizePhone(phone);
+  return result.isValid ? result.normalizedPhone : '';
 }
 
 export interface ReceiptWhatsAppTextParams {
@@ -48,7 +74,7 @@ export interface ReceiptWhatsAppTextParams {
 }
 
 /**
- * Generates localized WhatsApp message text matching the required format.
+ * Generates localized WhatsApp message text matching the required specification.
  *
  * Bangla Example:
  * BariVara Payment Receipt
@@ -59,6 +85,16 @@ export interface ReceiptWhatsAppTextParams {
  * পরিশোধ: ৳25,500
  *
  * ধন্যবাদ।
+ *
+ * English Example:
+ * BariVara Payment Receipt
+ *
+ * Tenant: Rahim Ahmed
+ * Unit: 4B
+ * Month: September 2026
+ * Paid: ৳25,500
+ *
+ * Thank you.
  */
 export function buildReceiptWhatsAppText({
   tenantName,
@@ -103,7 +139,7 @@ export function buildReceiptWhatsAppText({
 
   if (isEn) {
     return [
-      'Rent Payment Receipt',
+      'BariVara Payment Receipt',
       '',
       `Tenant: ${cleanTenantName}`,
       `Unit: ${cleanUnitNumber}`,
@@ -115,7 +151,7 @@ export function buildReceiptWhatsAppText({
   }
 
   return [
-    'বাড়িভাড়া পরিশোধের রসিদ',
+    'BariVara Payment Receipt',
     '',
     `ভাড়াটিয়া: ${cleanTenantName}`,
     `ফ্ল্যাট: ${cleanUnitNumber}`,
@@ -130,10 +166,10 @@ export function buildReceiptWhatsAppText({
  * Generates a wa.me URL with prefilled text and optional international phone number.
  */
 export function getWhatsAppShareUrl(phone: string | null | undefined, text: string): string {
-  const formattedPhone = formatWhatsAppPhone(phone);
+  const normalizedPhone = formatWhatsAppPhone(phone);
   const encodedText = encodeURIComponent(text);
-  if (formattedPhone) {
-    return `https://wa.me/${formattedPhone}?text=${encodedText}`;
+  if (normalizedPhone) {
+    return `https://wa.me/${normalizedPhone}?text=${encodedText}`;
   }
   return `https://wa.me/?text=${encodedText}`;
 }

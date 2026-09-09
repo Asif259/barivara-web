@@ -157,10 +157,15 @@ export const translations = {
     // Receipt WhatsApp Sharing
     sendReceipt: 'রসিদ পাঠান',
     sendViaWhatsapp: 'হোয়াটসঅ্যাপে পাঠান',
+    sendInWhatsapp: 'হোয়াটসঅ্যাপে পাঠান',
+    chooseWhatsappContact: 'কন্টাক্ট নির্বাচন করুন',
     sendingReceipt: 'প্রস্তুত হচ্ছে...',
     receiptSharedSuccess: 'রসিদ সফলভাবে শেয়ার করা হয়েছে',
     receiptDownloadedForWhatsapp: 'রসিদ ইমেজ ডাউনলোড হয়েছে। হোয়াটসঅ্যাপ চ্যাটে রসিদটি যুক্ত করে পাঠিয়ে দিন।',
     whatsappShareFailed: 'রসিদ শেয়ার করা যায়নি',
+    whatsappUnavailable: 'হোয়াটসঅ্যাপ খোলা সম্ভব হয়নি',
+    receiptGenFailed: 'রসিদ ইমেজ তৈরি করতে সমস্যা হয়েছে',
+    shareViaNativeSheet: 'ফাইলসহ শেয়ার করুন',
     desktopWhatsappInstructions: 'ডেস্কটপ থেকে হোয়াটসঅ্যাপে পাঠানোর নিয়ম',
     step1Downloaded: 'রসিদের ইমেজ ফাইলটি আপনার ডিভাইসে ডাউনলোড হয়েছে।',
     step2OpenWhatsapp: 'হোয়াটসঅ্যাপে চ্যাটটি খুলুন এবং ডাউনলোড করা ছবিটি ড্র্যাগ বা অ্যাটাচ করুন।',
@@ -169,6 +174,7 @@ export const translations = {
     copyMessage: 'মেসেজ কপি করুন',
     messageCopied: 'মেসেজ কপি হয়েছে',
     desktopNotice: 'ব্রাউজার সিকিউরিটির কারণে ওয়েব ব্রাউজার স্বয়ংক্রিয়ভাবে হোয়াটসঅ্যাপে ফাইল সংযুক্ত করতে পারে না। অনুগ্রহ করে ডাউনলোড করা ছবিটি চ্যাটে ড্রপ বা অ্যাটাচ করুন।',
+    popupBlockedNotice: 'ব্রাউজারে পপ-আপ ব্লক করা হতে পারে। হোয়াটসঅ্যাপ খুলতে নিচের বাটনে চাপ দিন।',
   },
   en: {
     appName: 'BariVara',
@@ -328,10 +334,15 @@ export const translations = {
     // Receipt WhatsApp Sharing
     sendReceipt: 'Send Receipt',
     sendViaWhatsapp: 'Send via WhatsApp',
+    sendInWhatsapp: 'Send in WhatsApp',
+    chooseWhatsappContact: 'Choose WhatsApp Contact',
     sendingReceipt: 'Preparing...',
     receiptSharedSuccess: 'Receipt shared successfully',
     receiptDownloadedForWhatsapp: 'Receipt image downloaded. Please attach the image in WhatsApp and send.',
     whatsappShareFailed: 'Failed to share receipt',
+    whatsappUnavailable: 'Unable to open WhatsApp',
+    receiptGenFailed: 'Failed to generate receipt image',
+    shareViaNativeSheet: 'Share with File Attached',
     desktopWhatsappInstructions: 'Sending via WhatsApp on Desktop',
     step1Downloaded: 'The receipt image has been downloaded to your device.',
     step2OpenWhatsapp: 'Open WhatsApp and drag or attach the downloaded receipt image into the chat.',
@@ -340,6 +351,7 @@ export const translations = {
     copyMessage: 'Copy Message',
     messageCopied: 'Message copied to clipboard',
     desktopNotice: 'Due to browser security restrictions, web browsers cannot automatically attach files to WhatsApp Web. Please attach the downloaded receipt image manually.',
+    popupBlockedNotice: 'Pop-up window may have been blocked. Click the button below to open WhatsApp.',
   }
 };
 
