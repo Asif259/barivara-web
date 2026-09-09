@@ -61,6 +61,8 @@ interface PaymentReceiptDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+export const CANONICAL_RECEIPT_WIDTH = 750;
+
 export function PaymentReceiptDialog({
   payment,
   open,
@@ -153,13 +155,24 @@ export function PaymentReceiptDialog({
       throw new Error('Receipt DOM element not found');
     }
 
+    const targetWidth = CANONICAL_RECEIPT_WIDTH;
+
     const dataUrl = await toPng(receiptRef.current, {
       quality: 1,
       pixelRatio: 2, // Crisp 2x retina export
+      width: targetWidth,
+      style: {
+        width: `${targetWidth}px`,
+        maxWidth: 'none',
+        margin: '0',
+        transform: 'none',
+      },
       backgroundColor: '#ffffff',
       cacheBust: true,
       skipFonts: true, // Prevents SecurityError from cross-origin Google Fonts CSS
     });
+
+    console.log(`[Receipt Export Verification] Canonical Width: ${targetWidth}px, Exported Image generated successfully.`);
 
     const unitNum = unit?.unitNumber || 'Rent';
     const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sept', 'oct', 'nov', 'dec'];
