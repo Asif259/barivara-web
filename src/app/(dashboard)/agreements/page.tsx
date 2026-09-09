@@ -126,7 +126,7 @@ export default function AgreementsPage() {
 
       {/* Compact, Information-Dense Agreements Table */}
       <Card className="border-slate-200/80 shadow-xs overflow-hidden">
-        <CardContent className="p-2">
+        <CardContent className="p-0">
           {isLoading ? (
             <div className="p-6 space-y-3">
               <Skeleton className="h-10 w-full" />
@@ -135,7 +135,7 @@ export default function AgreementsPage() {
             </div>
           ) : agreements && agreements.length > 0 ? (
             <div className="overflow-x-auto">
-              <Table className="w-full md:table-fixed md:min-w-[900px]">
+              <Table className="w-full md:table-fixed md:min-w-[900px] p-2">
                 <TableHeader className="bg-slate-100/80">
                   <TableRow>
                     <TableHead className="w-[170px]">{t.tenantName}</TableHead>

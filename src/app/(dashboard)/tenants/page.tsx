@@ -109,7 +109,7 @@ export default function TenantsPage() {
 
       {/* Tenants Table */}
       <Card className="border-slate-200/80 shadow-xs">
-        <CardContent className="p-2">
+        <CardContent className="p-0">
           {isLoading ? (
             <div className="p-6 space-y-3">
               <Skeleton className="h-10 w-full" />
@@ -117,7 +117,7 @@ export default function TenantsPage() {
               <Skeleton className="h-10 w-full" />
             </div>
           ) : tenants && tenants.length > 0 ? (
-            <Table>
+            <Table className='p-2'>
               <TableHeader>
                 <TableRow>
                   <TableHead>{t.tenantName}</TableHead>

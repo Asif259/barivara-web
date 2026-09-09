@@ -164,7 +164,7 @@ export default function MonthlyRentsPage() {
 
       {/* Rents Table */}
       <Card className="border-slate-200/80 shadow-xs">
-        <CardContent className="p-2">
+        <CardContent className="p-0">
           {isLoading ? (
             <div className="p-6 space-y-3">
               <Skeleton className="h-10 w-full" />
@@ -172,7 +172,7 @@ export default function MonthlyRentsPage() {
               <Skeleton className="h-10 w-full" />
             </div>
           ) : rents && rents.length > 0 ? (
-            <Table>
+            <Table className='p-2'>
               <TableHeader>
                 <TableRow>
                   <TableHead>{t.tenantName}</TableHead>
