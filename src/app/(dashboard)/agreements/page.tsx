@@ -144,9 +144,9 @@ export default function AgreementsPage() {
                     <TableHead className="w-[100px]">{t.serviceFee}</TableHead>
                     <TableHead className="w-[100px]">{t.securityDeposit}</TableHead>
                     <TableHead className="w-[100px]">{t.dueDay}</TableHead>
-                    <TableHead className="w-[100px]">{t.startDate}</TableHead>
-                    <TableHead className="w-[95px]">{t.status}</TableHead>
-                    <TableHead className="w-[125px]">{t.actions}</TableHead>
+                    <TableHead className="w-[105px]">{t.startDate}</TableHead>
+                    <TableHead className="w-[105px]">{t.status}</TableHead>
+                    <TableHead className="w-[100px] text-center">{t.actions}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -188,7 +188,7 @@ export default function AgreementsPage() {
                           onView={() => handleViewDetails(agr)}
                         />
                       </TableCell>
-                      <TableCell data-label={t.actions} className="text-right">
+                      <TableCell data-label={t.actions} className="text-center">
                         {agr.status === 'ACTIVE' && (
                           <div className="flex items-center justify-end table-actions">
                             <Button
