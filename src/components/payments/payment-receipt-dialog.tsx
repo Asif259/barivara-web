@@ -84,6 +84,7 @@ export function PaymentReceiptDialog({
     hasPhone: boolean;
     file: File | null;
     popupBlocked?: boolean;
+    imageCopied?: boolean;
   } | null>(null);
 
   const receiptRef = React.useRef<HTMLDivElement>(null);
@@ -144,6 +145,7 @@ export function PaymentReceiptDialog({
    */
   const generateReceiptImage = async (): Promise<{
     dataUrl: string;
+    blob: Blob;
     file: File;
     filename: string;
   }> => {
@@ -172,7 +174,7 @@ export function PaymentReceiptDialog({
     const blob = await res.blob();
     const file = new File([blob], filename, { type: 'image/png' });
 
-    return { dataUrl, file, filename };
+    return { dataUrl, blob, file, filename };
   };
 
   /**
@@ -200,19 +202,13 @@ export function PaymentReceiptDialog({
   /**
    * Handles "Send in WhatsApp" flow:
    *
-   * CASE 1: Tenant has a valid phone number (e.g. 017XXXXXXXX)
-   * 1. Normalize number to 88017XXXXXXXX.
-   * 2. Prepare localized receipt message.
-   * 3. Download receipt image so user has it ready to attach.
-   * 4. Open the WhatsApp chat directly for that exact number with the prefilled message.
-   * 5. Open guidance dialog with attach instructions and native share sheet option.
-   *
-   * CASE 2: Tenant does NOT have a valid phone number
-   * 1. If Web Share API with files is supported (mobile):
-   *    Open native share sheet with the receipt image & localized message attached!
-   *    User selects WhatsApp, chooses the contact, and presses Send.
-   * 2. On desktop / unsupported:
-   *    Download receipt image, open WhatsApp Web to select contact, and show guide.
+   * 1. Generates receipt image file & localized message text.
+   * 2. If Web Share API with files is supported (Mobile iOS/Android):
+   *    ALWAYS uses navigator.share({ files: [file], text })!
+   *    This ensures the image IS attached to the message in WhatsApp.
+   * 3. On desktop / unsupported browsers:
+   *    Copies image directly to system clipboard (for Ctrl+V / Cmd+V instant paste in WhatsApp Web),
+   *    auto-downloads the file, opens WhatsApp Web, and presents guidance dialog.
    */
   const handleSendReceipt = async () => {
     try {
@@ -232,58 +228,12 @@ export function PaymentReceiptDialog({
         isEn,
       });
 
-      const { dataUrl, file, filename } = await generateReceiptImage();
+      const { dataUrl, blob, file, filename } = await generateReceiptImage();
 
-      // ─── CASE 1: Valid Phone Number Available ──────────────────────────────
-      if (hasValidPhone) {
-        const normalizedPhone = phoneResult.normalizedPhone;
-        const waUrl = getWhatsAppShareUrl(normalizedPhone, messageText);
-
-        // 1. Auto-download receipt image so it is ready for attaching
-        const link = document.createElement('a');
-        link.download = filename;
-        link.href = dataUrl;
-        link.click();
-
-        // 2. Try copying text to clipboard
-        if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
-          navigator.clipboard.writeText(messageText).catch(() => {});
-        }
-
-        // 3. Open WhatsApp chat directly for this specific phone number
-        let openedWindow: Window | null = null;
-        try {
-          openedWindow = window.open(waUrl, '_blank', 'noopener,noreferrer');
-        } catch (e) {
-          console.warn('window.open failed:', e);
-        }
-
-        const isPopupBlocked = !openedWindow || openedWindow.closed || typeof openedWindow.closed === 'undefined';
-
-        // 4. Open helper modal explaining next steps
-        setFallbackData({
-          filename,
-          waUrl,
-          messageText,
-          phone: normalizedPhone,
-          tenantName: tenantName || (isEn ? 'Tenant' : 'ভাড়াটিয়া'),
-          hasPhone: true,
-          file,
-          popupBlocked: isPopupBlocked,
-        });
-        setFallbackOpen(true);
-
-        toast.success(
-          isEn
-            ? `WhatsApp opened for ${tenantName || 'tenant'}! Receipt image downloaded.`
-            : `${tenantName || 'ভাড়াটিয়া'}-এর হোয়াটসঅ্যাপ খোলা হয়েছে! রসিদ ইমেজটি ডাউনলোড হয়েছে।`,
-          { duration: 5000 }
-        );
-        return;
-      }
-
-      // ─── CASE 2: Tenant does NOT have a valid phone number ──────────────────
-      // Sub-case 2A: Browser supports Web Share API with files (Mobile / supported devices)
+      // ─── STEP 1: Web Share API with Files (Mobile Devices) ─────────────────────
+      // On mobile browsers, navigator.share({ files: [file] }) is the ONLY browser
+      // mechanism that actually attaches the image file directly to WhatsApp.
+      // Regardless of whether a phone number is available, file sharing attaches the image!
       if (canShareFiles(file)) {
         try {
           await navigator.share({
@@ -295,24 +245,52 @@ export function PaymentReceiptDialog({
             t.receiptSharedSuccess || (isEn ? 'Receipt shared successfully!' : 'রসিদ সফলভাবে শেয়ার করা হয়েছে!')
           );
           return;
-        } catch (shareErr: any) {
-          if (shareErr?.name === 'AbortError') {
+        } catch (shareErr: unknown) {
+          if ((shareErr as Error)?.name === 'AbortError') {
             // User dismissed the native share sheet
             return;
           }
-          console.warn('Native share failed, falling back to WhatsApp Web:', shareErr);
+          console.warn('Native share error, switching to desktop fallback:', shareErr);
         }
       }
 
-      // Sub-case 2B: Desktop browser or unsupported share
+      // ─── STEP 2: Desktop / Unsupported Browser Flow ────────────────────────────
+      // Desktop browsers cannot attach files via URL or Web Share.
+      // We:
+      // a) Copy the PNG image directly to system clipboard (user can paste with Ctrl+V in WhatsApp Web!)
+      // b) Auto-download the receipt image file
+      // c) Open WhatsApp Web (to the tenant's number if available, or general wa.me if not)
+      // d) Show guidance modal explaining how to paste / attach the image.
+
       // 1. Auto-download receipt image file
       const link = document.createElement('a');
       link.download = filename;
       link.href = dataUrl;
       link.click();
 
-      // 2. Open general WhatsApp to choose a contact
-      const waUrl = getWhatsAppShareUrl('', messageText);
+      // 2. Copy image blob directly to clipboard (supported on modern desktop Chrome, Edge, Safari, Firefox)
+      let imageCopied = false;
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.write && typeof ClipboardItem !== 'undefined') {
+        try {
+          await navigator.clipboard.write([
+            new ClipboardItem({
+              'image/png': blob,
+            }),
+          ]);
+          imageCopied = true;
+        } catch (clipErr) {
+          console.warn('Could not copy image to clipboard:', clipErr);
+        }
+      }
+
+      // If image copy failed, copy message text
+      if (!imageCopied && typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(messageText).catch(() => {});
+      }
+
+      // 3. Open WhatsApp URL
+      const targetPhone = hasValidPhone ? phoneResult.normalizedPhone : '';
+      const waUrl = getWhatsAppShareUrl(targetPhone, messageText);
       let openedWindow: Window | null = null;
       try {
         openedWindow = window.open(waUrl, '_blank', 'noopener,noreferrer');
@@ -322,31 +300,36 @@ export function PaymentReceiptDialog({
 
       const isPopupBlocked = !openedWindow || openedWindow.closed || typeof openedWindow.closed === 'undefined';
 
-      // 3. Try copying message text to clipboard
-      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
-        navigator.clipboard.writeText(messageText).catch(() => {});
-      }
-
       // 4. Open guidance modal
       setFallbackData({
         filename,
         waUrl,
         messageText,
-        phone: '',
+        phone: targetPhone,
         tenantName: tenantName || (isEn ? 'Tenant' : 'ভাড়াটিয়া'),
-        hasPhone: false,
+        hasPhone: hasValidPhone,
         file,
         popupBlocked: isPopupBlocked,
+        imageCopied,
       });
       setFallbackOpen(true);
 
-      toast.success(
-        t.receiptDownloadedForWhatsapp ||
-          (isEn
-            ? 'Receipt image downloaded! Please attach it in WhatsApp.'
-            : 'রসিদ ইমেজ ডাউনলোড হয়েছে! হোয়াটসঅ্যাপ চ্যাটে রসিদটি যুক্ত করে পাঠিয়ে দিন।'),
-        { duration: 5000 }
-      );
+      if (imageCopied) {
+        toast.success(
+          isEn
+            ? 'Receipt image copied to clipboard & downloaded! Paste (Ctrl+V) in WhatsApp to attach.'
+            : 'রসিদ ইমেজ ক্লিপবোর্ডে কপি ও ডাউনলোড হয়েছে! হোয়াটসঅ্যাপে পেস্ট (Ctrl+V) করে সংযুক্ত করুন।',
+          { duration: 6000 }
+        );
+      } else {
+        toast.success(
+          t.receiptDownloadedForWhatsapp ||
+            (isEn
+              ? 'Receipt image downloaded! Please attach it in WhatsApp.'
+              : 'রসিদ ইমেজ ডাউনলোড হয়েছে! হোয়াটসঅ্যাপ চ্যাটে রসিদটি যুক্ত করে পাঠিয়ে দিন।'),
+          { duration: 5000 }
+        );
+      }
     } catch (error) {
       console.error('Failed to prepare receipt for WhatsApp:', error);
       toast.error(
@@ -668,6 +651,7 @@ interface WhatsAppShareFallbackProps {
     hasPhone: boolean;
     file: File | null;
     popupBlocked?: boolean;
+    imageCopied?: boolean;
   } | null;
   isEn: boolean;
 }
@@ -678,16 +662,39 @@ function WhatsAppShareFallbackDialog({
   data,
   isEn,
 }: WhatsAppShareFallbackProps) {
-  const [copied, setCopied] = React.useState(false);
+  const [copiedText, setCopiedText] = React.useState(false);
+  const [copiedImage, setCopiedImage] = React.useState(false);
 
   if (!data) return null;
 
-  const handleCopy = () => {
+  const handleCopyText = () => {
     if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
       navigator.clipboard.writeText(data.messageText);
-      setCopied(true);
-      toast.success(isEn ? 'Message copied to clipboard!' : 'মেসেজ ক্লিপবোর্ডে কপি হয়েছে!');
-      setTimeout(() => setCopied(false), 2500);
+      setCopiedText(true);
+      toast.success(isEn ? 'Message text copied!' : 'মেসেজ টেক্সট কপি হয়েছে!');
+      setTimeout(() => setCopiedText(false), 2500);
+    }
+  };
+
+  const handleCopyImage = async () => {
+    if (!data.file) return;
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.write && typeof ClipboardItem !== 'undefined') {
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            'image/png': data.file,
+          }),
+        ]);
+        setCopiedImage(true);
+        toast.success(
+          isEn
+            ? 'Receipt image copied! Paste (Ctrl+V) in WhatsApp.'
+            : 'রসিদ ইমেজ কপি হয়েছে! হোয়াটসঅ্যাপে পেস্ট (Ctrl+V) করুন।'
+        );
+        setTimeout(() => setCopiedImage(false), 2500);
+      }
+    } catch {
+      toast.error(isEn ? 'Could not copy image to clipboard' : 'ছবি ক্লিপবোর্ডে কপি করা যায়নি');
     }
   };
 
@@ -705,8 +712,8 @@ function WhatsAppShareFallbackDialog({
       });
       toast.success(isEn ? 'Receipt shared successfully!' : 'রসিদ সফলভাবে শেয়ার করা হয়েছে!');
       onOpenChange(false);
-    } catch (err: any) {
-      if (err?.name !== 'AbortError') {
+    } catch (err: unknown) {
+      if ((err as Error)?.name !== 'AbortError') {
         toast.error(isEn ? 'Failed to open share sheet' : 'শেয়ার শিট ওপেন করতে সমস্যা হয়েছে');
       }
     }
@@ -754,20 +761,49 @@ function WhatsAppShareFallbackDialog({
           </div>
         )}
 
+        {/* Image Copied Banner */}
+        {data.imageCopied && (
+          <div className="flex items-start gap-2.5 p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-950 text-xs">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+            <div className="space-y-0.5">
+              <span className="font-semibold block">
+                {isEn ? 'Receipt image copied to clipboard!' : 'রসিদ ইমেজ ক্লিপবোর্ডে কপি হয়েছে!'}
+              </span>
+              <p className="text-[11px] text-emerald-800">
+                {isEn
+                  ? 'In WhatsApp Web, press Ctrl+V (or Cmd+V) to paste the image directly into the chat.'
+                  : 'হোয়াটসঅ্যাপ চ্যাটে গিয়ে Ctrl+V (বা Cmd+V) চাপলেই ছবিটি মেসেজে যুক্ত হয়ে যাবে।'}
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* 3 Step Guidance */}
         <div className="space-y-2 py-1 text-xs">
-          {/* Step 1: Downloaded */}
-          <div className="flex items-start gap-2.5 p-2.5 bg-emerald-50/80 border border-emerald-200/80 rounded-xl text-emerald-950">
+          {/* Step 1: Downloaded & Copied */}
+          <div className="flex items-start gap-2.5 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800">
             <div className="h-5 w-5 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
               ✓
             </div>
-            <div className="space-y-0.5 min-w-0">
-              <span className="font-semibold block text-slate-900">
-                {isEn ? '1. Receipt Image Downloaded' : '১. রসিদ ইমেজ ডাউনলোড সম্পন্ন'}
-              </span>
+            <div className="space-y-0.5 min-w-0 flex-1">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold block text-slate-900">
+                  {isEn ? '1. Receipt Image Ready' : '১. রসিদ ইমেজ প্রস্তুত'}
+                </span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleCopyImage}
+                  className="h-5 px-1.5 text-[10px] text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50 gap-1 cursor-pointer"
+                >
+                  <Copy className="w-3 h-3" />
+                  <span>{copiedImage ? (isEn ? 'Copied!' : 'কপি হয়েছে!') : (isEn ? 'Copy Image' : 'ছবি কপি')}</span>
+                </Button>
+              </div>
               <p className="text-[11px] text-slate-600 truncate">
-                {isEn ? 'File: ' : 'ফাইল: '}
-                <code className="bg-white px-1.5 py-0.5 rounded border border-emerald-200 text-emerald-900 font-mono text-[10px]">
+                {isEn ? 'Downloaded as: ' : 'ডাউনলোড হয়েছে: '}
+                <code className="bg-white px-1.5 py-0.5 rounded border border-slate-300 text-slate-800 font-mono text-[10px]">
                   {data.filename}
                 </code>
               </p>
@@ -788,7 +824,7 @@ function WhatsAppShareFallbackDialog({
               <p className="text-[11px] text-slate-600">
                 {data.hasPhone
                   ? (isEn
-                      ? 'The conversation is ready with the prefilled receipt summary.'
+                      ? 'The conversation is open with the prefilled receipt summary.'
                       : 'ভাড়াটিয়ার চ্যাটে রসিদের তথ্যসহ মেসেজ প্রস্তুত করা হয়েছে।')
                   : (isEn
                       ? 'Select your tenant from your WhatsApp contact list.'
@@ -804,12 +840,12 @@ function WhatsAppShareFallbackDialog({
             </div>
             <div className="space-y-0.5">
               <span className="font-semibold block text-slate-900">
-                {isEn ? '3. Attach Image & Press Send' : '৩. ছবিটি চ্যাটে দিয়ে Send চাপুন'}
+                {isEn ? '3. Paste / Attach Image & Press Send' : '৩. ছবিটি পেস্ট বা অ্যাটাচ করে Send চাপুন'}
               </span>
               <p className="text-[11px] text-slate-600">
                 {isEn
-                  ? 'Drag & drop or attach the downloaded receipt image into the chat, then press Send.'
-                  : 'ডাউনলোড হওয়া রসিদের ছবিটি চ্যাটে ড্রপ বা অ্যাটাচ (Attach) করে Send বাটনে চাপ দিন।'}
+                  ? 'Press Ctrl+V (Cmd+V) or drag & drop the downloaded receipt image into the chat, then click Send.'
+                  : 'চ্যাট বক্সে Ctrl+V (Cmd+V) চাপুন অথবা ডাউনলোড করা ছবিটি ড্রপ করে Send বাটনে চাপ দিন।'}
               </p>
             </div>
           </div>
@@ -823,10 +859,10 @@ function WhatsAppShareFallbackDialog({
               type="button"
               variant="ghost"
               size="sm"
-              onClick={handleCopy}
+              onClick={handleCopyText}
               className="h-6 px-2 text-[11px] gap-1 text-slate-600 hover:text-slate-900 cursor-pointer"
             >
-              {copied ? (
+              {copiedText ? (
                 <>
                   <Check className="w-3.5 h-3.5 text-emerald-600" />
                   <span className="text-emerald-700 font-semibold">{isEn ? 'Copied' : 'কপি হয়েছে'}</span>
@@ -834,7 +870,7 @@ function WhatsAppShareFallbackDialog({
               ) : (
                 <>
                   <Copy className="w-3.5 h-3.5" />
-                  <span>{isEn ? 'Copy' : 'কপি করুন'}</span>
+                  <span>{isEn ? 'Copy Text' : 'টেক্সট কপি'}</span>
                 </>
               )}
             </Button>
@@ -844,7 +880,7 @@ function WhatsAppShareFallbackDialog({
           </pre>
         </div>
 
-        {/* Optional Native Share Option on supported devices */}
+        {/* Optional Native Share Option if available */}
         {showNativeShareOption && (
           <div className="pt-1">
             <Button
@@ -852,20 +888,13 @@ function WhatsAppShareFallbackDialog({
               variant="outline"
               size="sm"
               onClick={handleNativeShare}
-              className="w-full gap-2 text-xs border-emerald-300 text-emerald-800 bg-emerald-50/60 hover:bg-emerald-100/70"
+              className="w-full gap-2 text-xs border-emerald-300 text-emerald-800 bg-emerald-50/60 hover:bg-emerald-100/70 cursor-pointer"
             >
               <Share2 className="w-3.5 h-3.5 text-emerald-700" />
-              {isEn ? 'Prefer Native Share Sheet (Direct File Attachment)?' : 'সরাসরি ফাইলসহ শেয়ার করতে চান?'}
+              {isEn ? 'Share with File Attached (Native Share Sheet)' : 'ফাইলসহ সরাসরি শেয়ার করুন (শেয়ার শিট)'}
             </Button>
           </div>
         )}
-
-        {/* Technical limitation note */}
-        <p className="text-[10px] text-slate-500 bg-amber-50/70 p-2 border border-amber-200/60 rounded-md">
-          {isEn
-            ? 'Note: Due to web browser security policies, websites cannot automatically attach arbitrary files to WhatsApp Web. Please attach the downloaded receipt image manually.'
-            : 'উল্লেখ্য: ব্রাউজারের নিরাপত্তার কারণে ওয়েবসাইট থেকে হোয়াটসঅ্যাপে স্বয়ংক্রিয়ভাবে ফাইল যুক্ত করা সম্ভব নয়। অনুগ্রহ করে ডাউনলোড করা রসিদ ইমেজটি চ্যাটে যুক্ত করুন।'}
-        </p>
 
         <DialogFooter className="pt-2 flex items-center justify-between gap-2">
           <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
