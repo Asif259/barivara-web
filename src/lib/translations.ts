@@ -118,6 +118,12 @@ export const translations = {
     endAgreement: 'চুক্তি সমাপ্ত করুন',
     activeAgreement: 'সক্রিয়',
     endedAgreement: 'সমাপ্ত',
+    tenantHasActiveAgreement: 'এই ভাড়াটিয়ার ইতোমধ্যে একটি সক্রিয় ভাড়ার চুক্তি রয়েছে।',
+    tenantActiveAgreementWarning: 'এই ভাড়াটিয়া ইতিমধ্যে অন্য একটি ইউনিটে সক্রিয় রয়েছেন। নতুন চুক্তি করার আগে পূর্বের চুক্তি সমাপ্ত করতে হবে।',
+    currentActiveAgreement: 'বর্তমান সক্রিয় চুক্তি',
+    viewExistingAgreement: 'বর্তমান চুক্তি দেখুন',
+    previousMonth: 'আগের মাস',
+    dueDayDescription: 'প্রতি মাসের ১০ তারিখ',
     
     // Rent & Payments
     generateRent: 'ভাড়া জেনারেট করুন',
@@ -295,6 +301,12 @@ export const translations = {
     endAgreement: 'End Agreement',
     activeAgreement: 'Active',
     endedAgreement: 'Ended',
+    tenantHasActiveAgreement: 'This tenant already has an active rental agreement.',
+    tenantActiveAgreementWarning: 'This tenant currently has an active agreement. The existing agreement must be completed or terminated before creating a new one.',
+    currentActiveAgreement: 'Current Active Agreement',
+    viewExistingAgreement: 'View Existing Agreement',
+    previousMonth: 'Previous Month',
+    dueDayDescription: '10th of each month',
     
     // Rent & Payments
     generateRent: 'Generate Rents',

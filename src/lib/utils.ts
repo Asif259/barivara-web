@@ -57,3 +57,20 @@ export function formatBnDate(dateString: string | Date | null | undefined, lang:
 
   return `${day} ${monthsEn[date.getMonth()]}, ${year}`;
 }
+
+/**
+ * Returns the default monthly rent period { year, month } (1-indexed month)
+ * which is the calendar month immediately preceding the given date.
+ * If current month is September 2026, returns August 2026 { year: 2026, month: 8 }.
+ * If current month is January 2027, rolls back to December 2026 { year: 2026, month: 12 }.
+ */
+export function getDefaultRentPeriod(referenceDate: Date = new Date()): { year: number; month: number } {
+  const calYear = referenceDate.getFullYear();
+  const calMonth = referenceDate.getMonth() + 1; // 1-12
+
+  if (calMonth === 1) {
+    return { year: calYear - 1, month: 12 };
+  }
+  return { year: calYear, month: calMonth - 1 };
+}
+

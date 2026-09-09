@@ -6,7 +6,7 @@ import { apiClient } from '@/lib/api';
 import { useLanguageStore } from '@/stores/language-store';
 import { useTranslation } from '@/lib/translations';
 import { MonthlyRent, Property, ApiResponse } from '@/lib/types';
-import { formatCurrency, formatBnDate } from '@/lib/utils';
+import { formatCurrency, formatBnDate, getDefaultRentPeriod } from '@/lib/utils';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -26,22 +26,17 @@ import { GenerateRentDialog } from '@/components/rents/generate-rent-dialog';
 import {
   Receipt,
   Wallet,
-  Calendar,
-  Filter,
   Sparkles,
-  Search,
 } from 'lucide-react';
-
-const currentYear = new Date().getFullYear();
-const currentMonth = new Date().getMonth() + 1;
 
 export default function MonthlyRentsPage() {
   const { language } = useLanguageStore();
   const t = useTranslation(language);
   const isEn = language === 'en';
 
-  const [selectedYear, setSelectedYear] = useState<number>(currentYear);
-  const [selectedMonth, setSelectedMonth] = useState<number>(currentMonth);
+  const defaultPeriod = getDefaultRentPeriod();
+  const [selectedYear, setSelectedYear] = useState<number>(defaultPeriod.year);
+  const [selectedMonth, setSelectedMonth] = useState<number>(defaultPeriod.month);
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [propertyFilter, setPropertyFilter] = useState<string>('');
 
@@ -118,13 +113,20 @@ export default function MonthlyRentsPage() {
             onChange={(e) => setSelectedYear(Number(e.target.value))}
             className="h-9 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-800 outline-none"
           >
-            {[2024, 2025, 2026, 2027].map((y) => (
+            {Array.from(new Set([2024, 2025, 2026, 2027, defaultPeriod.year, selectedYear])).sort((a, b) => a - b).map((y) => (
               <option key={y} value={y}>
                 {y}
               </option>
             ))}
           </select>
         </div>
+
+        {/* Default / Previous Month Indicator */}
+        {selectedYear === defaultPeriod.year && selectedMonth === defaultPeriod.month && (
+          <span className="text-[11px] bg-emerald-50 text-emerald-700 font-semibold px-2.5 py-1 rounded-full border border-emerald-200">
+            {t.previousMonth}
+          </span>
+        )}
 
         {/* Status Selector */}
         <div className="flex items-center gap-2">

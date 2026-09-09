@@ -22,7 +22,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { FileUploader } from '@/components/ui/file-uploader';
-import { FileText, Loader2, Save } from 'lucide-react';
+import { FileText, Loader2, Save, AlertCircle, ExternalLink } from 'lucide-react';
 
 const agreementSchema = z.object({
   tenantId: z.string().min(1, 'ভাড়াটিয়া নির্বাচন করুন'),
@@ -54,6 +54,22 @@ type AgreementFormValues = {
   notes?: string;
   agreementDocumentId?: string;
   generateCurrentMonthRent: boolean;
+};
+
+const defaultAgreementValues: AgreementFormValues = {
+  tenantId: '',
+  unitId: '',
+  monthlyRent: 1300,
+  serviceFee: 2000,
+  parkingFee: 0,
+  extraCharge: 0,
+  securityDeposit: 15000,
+  dueDay: 10,
+  startDate: new Date().toISOString().split('T')[0],
+  endDate: '',
+  notes: '',
+  agreementDocumentId: '',
+  generateCurrentMonthRent: true,
 };
 
 interface AgreementFormDialogProps {
@@ -113,39 +129,61 @@ export function AgreementFormDialog({
     formState: { errors },
   } = useForm<AgreementFormValues>({
     resolver: zodResolver(agreementSchema),
-    values: {
-      tenantId: '',
-      unitId: '',
-      monthlyRent: 15000,
-      serviceFee: 2000,
-      parkingFee: 0,
-      extraCharge: 0,
-      dueDay: 5,
-      securityDeposit: 30000,
-      startDate: new Date().toISOString().split('T')[0],
-      endDate: '',
-      notes: '',
-      agreementDocumentId: '',
-      generateCurrentMonthRent: true,
-    },
+    defaultValues: defaultAgreementValues,
   });
+
+  // Reset form with standard default values whenever dialog opens
+  React.useEffect(() => {
+    if (open) {
+      reset(defaultAgreementValues);
+      setSelectedPropertyId('');
+    }
+  }, [open, reset]);
+
+  // Check if selected tenant already has an ACTIVE agreement
+  const selectedTenantId = watch('tenantId');
+  const { data: tenantActiveAgreements, isLoading: isCheckingTenant } = useQuery({
+    queryKey: ['tenant-active-agreements', selectedTenantId],
+    queryFn: async () => {
+      if (!selectedTenantId) return [];
+      const res = await apiClient.get<ApiResponse<RentalAgreement[]>>(
+        `/rental-agreements?tenantId=${selectedTenantId}&status=ACTIVE&limit=5`
+      );
+      return res.data?.data || [];
+    },
+    enabled: !!selectedTenantId && open,
+  });
+
+  const activeAgreement =
+    tenantActiveAgreements && tenantActiveAgreements.length > 0
+      ? tenantActiveAgreements[0]
+      : null;
+  const hasActiveAgreement = !!activeAgreement;
 
   const handleUnitSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const unitId = e.target.value;
     setValue('unitId', unitId);
     const selected = units?.find((u) => u.id === unitId);
     if (selected) {
-      setValue('monthlyRent', selected.monthlyBaseRent || 15000);
-      setValue('serviceFee', selected.defaultServiceFee || 0);
-      setValue('parkingFee', selected.defaultParkingFee || 0);
-      setValue('extraCharge', selected.defaultExtraCharge || 0);
+      if (selected.monthlyBaseRent && selected.monthlyBaseRent > 0) {
+        setValue('monthlyRent', selected.monthlyBaseRent);
+      }
+      if (selected.defaultServiceFee && selected.defaultServiceFee > 0) {
+        setValue('serviceFee', selected.defaultServiceFee);
+      }
+      if (selected.defaultParkingFee && selected.defaultParkingFee > 0) {
+        setValue('parkingFee', selected.defaultParkingFee);
+      }
+      if (selected.defaultExtraCharge && selected.defaultExtraCharge > 0) {
+        setValue('extraCharge', selected.defaultExtraCharge);
+      }
     }
   };
 
   const onSubmit = async (data: AgreementFormValues) => {
     setIsLoading(true);
     try {
-      const payload: any = {
+      const payload: Record<string, unknown> = {
         tenantId: data.tenantId,
         unitId: data.unitId,
         monthlyRent: data.monthlyRent,
@@ -172,9 +210,10 @@ export function AgreementFormDialog({
       reset();
       onOpenChange(false);
       if (onSuccess) onSuccess();
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMsg =
-        error.response?.data?.message || (isEn ? 'Failed to create agreement' : 'ভাড়া চুক্তি তৈরি করা সম্ভব হয়নি।');
+        (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        (isEn ? 'Failed to create agreement' : 'ভাড়া চুক্তি তৈরি করা সম্ভব হয়নি।');
       toast.error(errorMsg);
     } finally {
       setIsLoading(false);
@@ -197,7 +236,7 @@ export function AgreementFormDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* Tenant Select */}
+          {/* 1. Tenant Select & Active Agreement Warning */}
           <div className="space-y-2">
             <Label htmlFor="tenantId">{t.tenantName}</Label>
             <select
@@ -213,9 +252,51 @@ export function AgreementFormDialog({
               ))}
             </select>
             {errors.tenantId && <p className="text-xs text-rose-500">{errors.tenantId.message}</p>}
+
+            {/* Active Agreement Warning & Information Banner */}
+            {hasActiveAgreement && activeAgreement && (
+              <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl space-y-2.5 text-rose-900">
+                <div className="flex items-start gap-2.5">
+                  <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <p className="text-xs font-bold text-rose-950">
+                      {t.tenantHasActiveAgreement}
+                    </p>
+                    <p className="text-[11px] text-rose-800 leading-relaxed">
+                      {t.tenantActiveAgreementWarning}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-white/90 p-2.5 rounded-lg border border-rose-200 text-xs space-y-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-rose-800 block">
+                    {t.currentActiveAgreement}:
+                  </span>
+                  <div className="flex items-center justify-between text-slate-800 font-medium">
+                    <span>
+                      {isEn ? 'Unit' : 'ইউনিট'}: {activeAgreement.unit?.unitNumber || '-'} {activeAgreement.unit?.property?.name ? `(${activeAgreement.unit.property.name})` : ''}
+                    </span>
+                    <span className="font-semibold text-slate-950">৳{activeAgreement.monthlyRent}</span>
+                  </div>
+                </div>
+
+                <div className="pt-0.5 flex justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.open('/agreements', '_blank')}
+                    className="h-7 text-xs gap-1.5 border-rose-300 text-rose-800 hover:bg-rose-100 cursor-pointer"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    {t.viewExistingAgreement}
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Property and Unit Select */}
+          {/* 2. Property and Unit Select */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label htmlFor="propertySelect">{t.propertyName}</Label>
@@ -252,7 +333,7 @@ export function AgreementFormDialog({
             </div>
           </div>
 
-          {/* Financial Breakdown */}
+          {/* 3. Base Rent & Service Fee */}
           <div className="grid grid-cols-2 gap-3 border-t border-slate-100 pt-3">
             <div className="space-y-2">
               <Label htmlFor="monthlyRent">{t.baseRent} (৳)</Label>
@@ -274,6 +355,7 @@ export function AgreementFormDialog({
             </div>
           </div>
 
+          {/* 4. Parking Fee & Extra Charge */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label htmlFor="parkingFee">{t.parkingFee} (৳)</Label>
@@ -294,6 +376,7 @@ export function AgreementFormDialog({
             </div>
           </div>
 
+          {/* 5. Security Deposit & Due Day */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label htmlFor="securityDeposit">{t.securityDeposit} (৳)</Label>
@@ -311,12 +394,13 @@ export function AgreementFormDialog({
                 type="number"
                 min="1"
                 max="31"
-                placeholder="5"
+                placeholder="10"
                 {...register('dueDay', { valueAsNumber: true })}
               />
             </div>
           </div>
 
+          {/* 6. Start Date & End Date */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label htmlFor="startDate">{t.startDate}</Label>
@@ -330,7 +414,17 @@ export function AgreementFormDialog({
             </div>
           </div>
 
-          {/* Auto Generate Checkbox */}
+          {/* 7. Notes */}
+          <div className="space-y-2">
+            <Label htmlFor="notes">{t.note} ({isEn ? 'Optional' : 'ঐচ্ছিক'})</Label>
+            <Input
+              id="notes"
+              placeholder={isEn ? 'E.g. 1-year lease, special terms...' : 'যেমন: ১ বছরের চুক্তি, বিশেষ শর্তাবলী...'}
+              {...register('notes')}
+            />
+          </div>
+
+          {/* 8. Auto Generate Checkbox */}
           <div className="flex items-center gap-2 pt-2">
             <input
               type="checkbox"
@@ -343,7 +437,7 @@ export function AgreementFormDialog({
             </Label>
           </div>
 
-          {/* Agreement Contract Scan Upload */}
+          {/* 9. Agreement Contract Scan Upload */}
           <div className="border-t border-slate-100 pt-3">
             <FileUploader
               category="AGREEMENT_DOCUMENT"
@@ -365,7 +459,12 @@ export function AgreementFormDialog({
             >
               {t.cancel}
             </Button>
-            <Button type="submit" variant="gradient" disabled={isLoading} className="gap-2">
+            <Button
+              type="submit"
+              variant="gradient"
+              disabled={isLoading || hasActiveAgreement || isCheckingTenant}
+              className="gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -374,7 +473,9 @@ export function AgreementFormDialog({
               ) : (
                 <>
                   <Save className="w-4 h-4" />
-                  {t.create}
+                  {hasActiveAgreement
+                    ? (isEn ? 'Active Agreement Exists' : 'সক্রিয় চুক্তি রয়েছে')
+                    : t.create}
                 </>
               )}
             </Button>

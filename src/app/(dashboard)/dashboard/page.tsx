@@ -196,7 +196,11 @@ export default function DashboardPage() {
             <StatCard
               title={isEn ? 'Expected Rent' : 'প্রত্যাশিত মোট ভাড়া'}
               value={formatCurrency(currentMonth?.expected || 0, language)}
-              subtitle={isEn ? 'Current month bill' : 'চলতি মাসের মোট বিল'}
+              subtitle={
+                currentMonth?.month
+                  ? `${new Date(currentMonth.year, currentMonth.month - 1).toLocaleString(isEn ? 'en-US' : 'bn-BD', { month: 'long', year: 'numeric' })} ${isEn ? 'bill' : 'বিল'}`
+                  : (isEn ? 'Monthly bill' : 'মাসিক ভাড়ার বিল')
+              }
               icon={DollarSign}
               iconColor="text-slate-700"
               iconBgColor="bg-slate-100"

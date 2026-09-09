@@ -10,6 +10,7 @@ import { apiClient } from '@/lib/api';
 import { useLanguageStore } from '@/stores/language-store';
 import { useTranslation } from '@/lib/translations';
 import { Property, ApiResponse } from '@/lib/types';
+import { getDefaultRentPeriod } from '@/lib/utils';
 import {
   Dialog,
   DialogContent,
@@ -22,9 +23,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Receipt, Loader2, Sparkles } from 'lucide-react';
-
-const currentYear = new Date().getFullYear();
-const currentMonth = new Date().getMonth() + 1;
 
 const monthsBn = [
   { value: 1, label: 'জানুয়ারি (January)' },
@@ -75,6 +73,8 @@ export function GenerateRentDialog({
     enabled: open,
   });
 
+  const defaultPeriod = getDefaultRentPeriod();
+
   const {
     register,
     handleSubmit,
@@ -83,16 +83,28 @@ export function GenerateRentDialog({
   } = useForm<GenerateFormValues>({
     resolver: zodResolver(generateSchema),
     defaultValues: {
-      year: currentYear,
-      month: currentMonth,
+      year: defaultPeriod.year,
+      month: defaultPeriod.month,
       propertyId: '',
     },
   });
 
+  // Automatically reset to the previous calendar month when opened
+  React.useEffect(() => {
+    if (open) {
+      const period = getDefaultRentPeriod();
+      reset({
+        year: period.year,
+        month: period.month,
+        propertyId: '',
+      });
+    }
+  }, [open, reset]);
+
   const onSubmit = async (data: GenerateFormValues) => {
     setIsLoading(true);
     try {
-      const payload: any = {
+      const payload: Record<string, unknown> = {
         year: Number(data.year),
         month: Number(data.month),
       };
@@ -115,9 +127,10 @@ export function GenerateRentDialog({
       reset();
       onOpenChange(false);
       if (onSuccess) onSuccess();
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMsg =
-        error.response?.data?.message || (isEn ? 'Failed to generate rents' : 'ভাড়া তৈরি করতে সমস্যা হয়েছে।');
+        (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        (isEn ? 'Failed to generate rents' : 'ভাড়া তৈরি করতে সমস্যা হয়েছে।');
       toast.error(errorMsg);
     } finally {
       setIsLoading(false);
