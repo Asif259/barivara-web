@@ -227,7 +227,7 @@ export default function PropertyDetailPage() {
             <Button onClick={() => setBulkUnitDialogOpen(true)} variant="outline" size="sm" className="gap-1.5 text-xs"><Layers className="w-3.5 h-3.5" />{t.addByFloor}</Button>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className='p-2'>
           {isUnitsLoading ? (
             <div className="space-y-3">
               <Skeleton className="h-10 w-full" />

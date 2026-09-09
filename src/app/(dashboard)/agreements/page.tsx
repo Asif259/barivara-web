@@ -126,7 +126,7 @@ export default function AgreementsPage() {
 
       {/* Compact, Information-Dense Agreements Table */}
       <Card className="border-slate-200/80 shadow-xs overflow-hidden">
-        <CardContent className="p-0">
+        <CardContent className="p-2">
           {isLoading ? (
             <div className="p-6 space-y-3">
               <Skeleton className="h-10 w-full" />
