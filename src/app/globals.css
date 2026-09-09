@@ -208,6 +208,12 @@ body {
 }
 
 @media (max-width: 768px) {
+  .responsive-table {
+    min-width: 100% !important;
+    width: 100% !important;
+    table-layout: auto !important;
+  }
+
   /* Make outer parent card containers transparent on mobile so background between cards is transparent/gray */
   div:has(.responsive-table) {
     background-color: transparent !important;

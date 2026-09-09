@@ -135,7 +135,7 @@ export default function AgreementsPage() {
             </div>
           ) : agreements && agreements.length > 0 ? (
             <div className="overflow-x-auto">
-              <Table className="table-fixed w-full min-w-[1000px]">
+              <Table className="w-full md:table-fixed md:min-w-[900px]">
                 <TableHeader className="bg-slate-100/80">
                   <TableRow>
                     <TableHead className="w-[170px]">{t.tenantName}</TableHead>
