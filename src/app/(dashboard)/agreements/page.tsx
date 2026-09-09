@@ -24,11 +24,11 @@ import {
 } from '@/components/ui/table';
 import { AgreementFormDialog } from '@/components/agreements/agreement-form-dialog';
 import { AgreementDetailsDialog } from '@/components/agreements/agreement-details-dialog';
+import { TableStatusCell } from '@/components/ui/status-cell';
 import {
   FileText,
   Plus,
   Ban,
-  Eye,
 } from 'lucide-react';
 
 export default function AgreementsPage() {
@@ -152,9 +152,9 @@ export default function AgreementsPage() {
                 <TableBody>
                   {agreements.map((agr) => (
                     <TableRow key={agr.id}>
-                      <TableCell data-label={t.tenantName} className="font-bold text-slate-900 truncate">
+                      <TableCell data-label={t.tenantName} className="font-bold text-slate-900">
                         <div className="text-right sm:text-left">
-                          <span className="block truncate">{agr.tenant?.name || 'Tenant'}</span>
+                          <span className="block cell-clamp-2" title={agr.tenant?.name || 'Tenant'}>{agr.tenant?.name || 'Tenant'}</span>
                           <span className="block text-xs font-normal text-slate-500">{agr.tenant?.phone}</span>
                         </div>
                       </TableCell>
@@ -162,7 +162,7 @@ export default function AgreementsPage() {
                         <div className="text-right sm:text-left">
                           <span className="font-semibold text-slate-800">{agr.unit?.unitNumber}</span>
                           {!isSingleProperty && agr.unit?.property?.name && (
-                            <span className="block text-xs text-slate-500 truncate">{agr.unit.property.name}</span>
+                            <span className="block text-xs text-slate-500 cell-clamp-2" title={agr.unit.property.name}>{agr.unit.property.name}</span>
                           )}
                         </div>
                       </TableCell>
@@ -182,21 +182,15 @@ export default function AgreementsPage() {
                         {formatBnDate(agr.startDate, language)}
                       </TableCell>
                       <TableCell data-label={t.status}>
-                        <StatusBadge status={agr.status} lang={language} />
+                        <TableStatusCell
+                          status={agr.status}
+                          lang={language}
+                          onView={() => handleViewDetails(agr)}
+                        />
                       </TableCell>
                       <TableCell data-label={t.actions} className="text-right">
-                        <div className="flex items-center justify-end gap-1 table-actions">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleViewDetails(agr)}
-                            className="h-7 px-2 text-xs text-slate-700 hover:bg-slate-100 gap-1 border-slate-200"
-                            title={isEn ? 'View Details' : 'বিস্তারিত দেখুন'}
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                            <span>{isEn ? 'View' : 'দেখুন'}</span>
-                          </Button>
-                          {agr.status === 'ACTIVE' && (
+                        {agr.status === 'ACTIVE' && (
+                          <div className="flex items-center justify-end table-actions">
                             <Button
                               size="sm"
                               variant="ghost"
@@ -207,8 +201,8 @@ export default function AgreementsPage() {
                               <Ban className="w-3.5 h-3.5" />
                               <span>{isEn ? 'End' : 'শেষ'}</span>
                             </Button>
-                          )}
-                        </div>
+                          </div>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}

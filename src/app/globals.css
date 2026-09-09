@@ -184,6 +184,23 @@ body {
   border-collapse: collapse;
 }
 
+.responsive-table td,
+.responsive-table th {
+  vertical-align: middle;
+}
+
+/* Global 2-line text line-clamping for data tables */
+.cell-clamp-2,
+.long-cell {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  line-height: 1.35;
+}
+
 @media (max-width: 768px) {
   /* Make outer parent card containers transparent on mobile so background between cards is transparent/gray */
   div:has(.responsive-table) {
