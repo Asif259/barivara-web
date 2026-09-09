@@ -189,6 +189,12 @@ body {
   vertical-align: middle;
 }
 
+.responsive-table th {
+  white-space: normal !important;
+  word-break: break-word;
+  line-height: 1.25;
+}
+
 /* Global 2-line text line-clamping for data tables */
 .cell-clamp-2,
 .long-cell {
