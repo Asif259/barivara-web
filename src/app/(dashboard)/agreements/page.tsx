@@ -136,17 +136,17 @@ export default function AgreementsPage() {
           ) : agreements && agreements.length > 0 ? (
             <div className="overflow-x-auto">
               <Table className="table-fixed w-full min-w-[1000px]">
-                <TableHeader>
+                <TableHeader className="bg-slate-100/80">
                   <TableRow>
-                    <TableHead className="w-[200px]">{t.tenantName}</TableHead>
+                    <TableHead className="w-[170px]">{t.tenantName}</TableHead>
                     <TableHead className="w-[95px]">{t.unitNumber}</TableHead>
                     <TableHead className="w-[105px]">{t.baseRent}</TableHead>
                     <TableHead className="w-[100px]">{t.serviceFee}</TableHead>
-                    <TableHead className="w-[125px]">{t.securityDeposit}</TableHead>
-                    <TableHead className="w-[125px]">{t.dueDay}</TableHead>
-                    <TableHead className="w-[120px]">{t.startDate}</TableHead>
+                    <TableHead className="w-[100px]">{t.securityDeposit}</TableHead>
+                    <TableHead className="w-[100px]">{t.dueDay}</TableHead>
+                    <TableHead className="w-[100px]">{t.startDate}</TableHead>
                     <TableHead className="w-[95px]">{t.status}</TableHead>
-                    <TableHead className="w-[125px] text-right">{t.actions}</TableHead>
+                    <TableHead className="w-[125px]">{t.actions}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
