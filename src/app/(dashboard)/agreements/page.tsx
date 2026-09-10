@@ -23,8 +23,6 @@ import {
   TableCell,
 } from '@/components/ui/table';
 import { AgreementFormDialog } from '@/components/agreements/agreement-form-dialog';
-import { AgreementDetailsDialog } from '@/components/agreements/agreement-details-dialog';
-import { TableStatusCell } from '@/components/ui/status-cell';
 import {
   FileText,
   Plus,
@@ -37,8 +35,6 @@ export default function AgreementsPage() {
   const isEn = language === 'en';
 
   const [agreementDialogOpen, setAgreementDialogOpen] = useState(false);
-  const [selectedAgreement, setSelectedAgreement] = useState<RentalAgreement | null>(null);
-  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>('ACTIVE');
 
   // Fetch properties to determine if single property
@@ -64,11 +60,6 @@ export default function AgreementsPage() {
       return res.data?.data || [];
     },
   });
-
-  const handleViewDetails = (agr: RentalAgreement) => {
-    setSelectedAgreement(agr);
-    setDetailsDialogOpen(true);
-  };
 
   const handleEndAgreement = async (id: string, tenantName: string) => {
     if (!confirm(isEn ? `Are you sure you want to end the agreement for ${tenantName}? The unit will be marked VACANT.` : `আপনি কি ${tenantName}-এর চুক্তি সমাপ্ত করতে চান? ফ্ল্যাটটি পুনরায় খালি (VACANT) হিসেবে চিহ্নিত হবে।`)) {
@@ -182,11 +173,7 @@ export default function AgreementsPage() {
                         {formatBnDate(agr.startDate, language)}
                       </TableCell>
                       <TableCell data-label={t.status}>
-                        <TableStatusCell
-                          status={agr.status}
-                          lang={language}
-                          onView={() => handleViewDetails(agr)}
-                        />
+                        <StatusBadge status={agr.status} lang={language} />
                       </TableCell>
                       <TableCell data-label={t.actions} className="text-center">
                         {agr.status === 'ACTIVE' && (
@@ -226,14 +213,6 @@ export default function AgreementsPage() {
         open={agreementDialogOpen}
         onOpenChange={setAgreementDialogOpen}
         onSuccess={refetch}
-      />
-
-      {/* Agreement Details Modal */}
-      <AgreementDetailsDialog
-        agreement={selectedAgreement}
-        open={detailsDialogOpen}
-        onOpenChange={setDetailsDialogOpen}
-        onEndAgreement={handleEndAgreement}
       />
     </div>
   );
