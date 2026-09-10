@@ -22,8 +22,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { FileUploader } from '@/components/ui/file-uploader';
-import { Loader2, CreditCard, CheckCircle2, User, Building, Home, DollarSign } from 'lucide-react';
+import { Loader2, CreditCard, CheckCircle2, User, Building, Home, DollarSign, Calendar } from 'lucide-react';
 import { PaymentReceiptDialog } from './payment-receipt-dialog';
+
+const getTodayString = () => {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 const paymentMethods: { value: PaymentMethod; labelBn: string; labelEn: string }[] = [
   { value: 'CASH', labelBn: 'নগদ (Cash)', labelEn: 'Cash' },
@@ -63,6 +71,19 @@ export function CollectPaymentDialog({
       .min(1, isEn ? 'Amount must be at least 1' : 'টাকার পরিমাণ কমপক্ষে ১ হতে হবে')
       .max(remaining, isEn ? `Amount cannot exceed ${remaining}` : `বকেয়া ${remaining} টাকার বেশি নেওয়া যাবে না`),
     paymentMethod: z.string().min(1, isEn ? 'Select payment method' : 'পেমেন্ট মেথড নির্বাচন করুন'),
+    paymentDate: z
+      .string()
+      .min(1, isEn ? 'Select payment date' : 'পেমেন্টের তারিখ নির্বাচন করুন')
+      .refine(
+        (val) => {
+          if (!val) return true;
+          const selected = new Date(val);
+          const today = new Date();
+          today.setHours(23, 59, 59, 999);
+          return selected <= today;
+        },
+        { message: isEn ? 'Payment date cannot be in the future' : 'পেমেন্টের তারিখ ভবিষ্যতের তারিখ হতে পারে না' }
+      ),
     transactionId: z.string().optional(),
     note: z.string().optional(),
   });
@@ -80,6 +101,7 @@ export function CollectPaymentDialog({
     values: {
       amount: remaining,
       paymentMethod: 'CASH',
+      paymentDate: getTodayString(),
       transactionId: '',
       note: '',
     },
@@ -95,6 +117,7 @@ export function CollectPaymentDialog({
           monthlyRentId: rent.id,
           amount: data.amount,
           paymentMethod: data.paymentMethod,
+          paymentDate: data.paymentDate || getTodayString(),
           transactionId: data.transactionId || undefined,
           note: data.note || undefined,
         }
@@ -177,6 +200,23 @@ export function CollectPaymentDialog({
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="paymentDate">{t.paymentDate || (isEn ? 'Payment Date' : 'পেমেন্টের তারিখ')}</Label>
+            <div className="relative">
+              <Calendar className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+              <Input
+                id="paymentDate"
+                type="date"
+                max={getTodayString()}
+                className="pl-10 font-semibold text-sm"
+                {...register('paymentDate')}
+              />
+            </div>
+            {errors.paymentDate && (
+              <p className="text-xs font-medium text-rose-500">{errors.paymentDate.message}</p>
+            )}
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="amount">{isEn ? 'Payment Amount (৳)' : 'পরিশোধিত টাকার পরিমাণ (৳)'}</Label>
             <div className="relative">
