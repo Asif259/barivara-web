@@ -3,6 +3,7 @@ import { useAuthStore } from '../stores/auth-store';
 import { useLanguageStore } from '../stores/language-store';
 import {
   ApiResponse,
+  ApiErrorPayload,
   BulkCreateUnitsPayload,
   BulkCreateUnitsResult,
   CreateUnitInput,
@@ -24,6 +25,18 @@ export const apiClient = axios.create({
   },
   timeout: 15000,
 });
+
+export function getApiErrorMessage(error: unknown, fallback: string): string {
+  if (axios.isAxiosError<ApiErrorPayload>(error)) {
+    return error.response?.data?.message || fallback;
+  }
+
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  return fallback;
+}
 
 // Request Interceptor: Attach Token & Language
 apiClient.interceptors.request.use(
@@ -52,7 +65,7 @@ let failedQueue: Array<{
   reject: (reason?: unknown) => void;
 }> = [];
 
-const processQueue = (error: any, token: string | null = null) => {
+const processQueue = (error: unknown, token: string | null = null) => {
   failedQueue.forEach((prom) => {
     if (error) {
       prom.reject(error);
@@ -68,8 +81,12 @@ apiClient.interceptors.response.use(
     // Return standard data payload if wrapped
     return response;
   },
-  async (error: AxiosError<ApiResponse>) => {
-    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+  async (error: AxiosError<ApiErrorPayload>) => {
+    const originalRequest = error.config as (InternalAxiosRequestConfig & { _retry?: boolean }) | undefined;
+
+    if (!originalRequest) {
+      return Promise.reject(error);
+    }
 
     // If 401 and not already retried
     if (error.response?.status === 401 && !originalRequest._retry) {
@@ -101,10 +118,9 @@ apiClient.interceptors.response.use(
       const refreshToken = useAuthStore.getState().refreshToken;
 
       if (!refreshToken) {
+        processQueue(error);
+        isRefreshing = false;
         useAuthStore.getState().logout();
-        if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
-          window.location.href = '/login';
-        }
         return Promise.reject(error);
       }
 
@@ -127,12 +143,11 @@ apiClient.interceptors.response.use(
           processQueue(null, newAccessToken);
           return apiClient(originalRequest);
         }
+
+        throw new Error('Token refresh response did not contain an access token.');
       } catch (refreshErr) {
         processQueue(refreshErr, null);
         useAuthStore.getState().logout();
-        if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
-          window.location.href = '/login';
-        }
         return Promise.reject(refreshErr);
       } finally {
         isRefreshing = false;

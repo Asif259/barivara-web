@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import {
   UploadCloud,
   FileText,
@@ -14,6 +15,7 @@ import {
 } from 'lucide-react';
 import { Button } from './button';
 import { FileCategory, Media } from '@/lib/types';
+import { getApiErrorMessage } from '@/lib/api';
 import { uploadFileDirectly, getFileDownloadUrl, deleteFileRecord } from '@/lib/file-upload';
 import { useLanguageStore } from '@/stores/language-store';
 import { toast } from 'sonner';
@@ -51,7 +53,7 @@ export function FileUploader({
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [fileId, setFileId] = useState<string | null>(value || null);
+  const [fileId, setFileId] = useState<string | null>(null);
   const [fileInfo, setFileInfo] = useState<{ name: string; size?: number } | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -61,19 +63,13 @@ export function FileUploader({
     ? 'image/jpeg,image/png,image/webp'
     : 'application/pdf,image/jpeg,image/png,image/webp';
 
-  // Sync internal fileId with external value
-  useEffect(() => {
-    setFileId(value || null);
-    if (value) {
-      // Fetch the signed or public URL for preview/download
-      getFileDownloadUrl(value)
-        .then((url) => setPreviewUrl(url))
-        .catch(() => setPreviewUrl(null));
-    } else {
-      setPreviewUrl(null);
-      setFileInfo(null);
-    }
-  }, [value]);
+  const effectiveFileId = value ?? fileId;
+  const { data: remotePreviewUrl } = useQuery({
+    queryKey: ['file-download-url', effectiveFileId],
+    queryFn: () => getFileDownloadUrl(effectiveFileId as string),
+    enabled: !!effectiveFileId,
+  });
+  const displayPreviewUrl = previewUrl || remotePreviewUrl;
 
   const validateFile = (file: File): string | null => {
     const maxSizeBytes = maxSizeMB * 1024 * 1024;
@@ -131,27 +127,17 @@ export function FileUploader({
       setFileId(media.id);
       onChange?.(media.id, media);
 
-      // Fetch the true download URL (signed for private, public for public)
-      try {
-        const remoteUrl = await getFileDownloadUrl(media.id);
-        setPreviewUrl(remoteUrl);
-      } catch {
-        // Keep local preview
-      }
-
       toast.success(
         isEn
           ? 'File uploaded successfully!'
           : 'ফাইল সফলভাবে আপলোড সম্পন্ন হয়েছে!'
       );
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('File upload failed:', err);
       setPreviewUrl(null);
       setFileInfo(null);
       toast.error(
-        err.response?.data?.message ||
-          err.message ||
-          (isEn ? 'Failed to upload file' : 'ফাইল আপলোড ব্যর্থ হয়েছে')
+        getApiErrorMessage(err, isEn ? 'Failed to upload file' : 'ফাইল আপলোড ব্যর্থ হয়েছে')
       );
     } finally {
       setIsUploading(false);
@@ -194,9 +180,9 @@ export function FileUploader({
 
   const handleRemove = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!fileId || disabled || isUploading) return;
+    if (!effectiveFileId || disabled || isUploading) return;
 
-    const currentId = fileId;
+    const currentId = effectiveFileId;
     setFileId(null);
     setPreviewUrl(null);
     setFileInfo(null);
@@ -229,16 +215,16 @@ export function FileUploader({
       />
 
       {/* Active File Preview Card */}
-      {fileId && !isUploading ? (
+      {effectiveFileId && !isUploading ? (
         <div className="relative group rounded-xl border border-slate-200 bg-white p-3 shadow-xs transition-all hover:border-slate-300">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 overflow-hidden">
               {/* Thumbnail / Icon */}
-              {previewUrl && isImageCategory ? (
+              {displayPreviewUrl && isImageCategory ? (
                 <div className="relative h-12 w-12 rounded-lg overflow-hidden bg-slate-100 shrink-0 border border-slate-200">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={previewUrl}
+                    src={displayPreviewUrl}
                     alt={fileInfo?.name || 'Uploaded File'}
                     className="h-full w-full object-cover"
                   />
@@ -258,16 +244,16 @@ export function FileUploader({
                   </p>
                 </div>
                 <p className="text-[11px] text-slate-500 mt-0.5 font-mono">
-                  ID: #{fileId.substring(0, 8).toUpperCase()}
+                  ID: #{effectiveFileId.substring(0, 8).toUpperCase()}
                 </p>
               </div>
             </div>
 
             {/* Actions */}
             <div className="flex items-center gap-1 shrink-0">
-              {previewUrl && (
+              {displayPreviewUrl && (
                 <a
-                  href={previewUrl}
+                  href={displayPreviewUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="p-1.5 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
@@ -350,7 +336,7 @@ export function FileUploader({
         </div>
       )}
 
-      {description && !fileId && (
+      {description && !effectiveFileId && (
         <p className="text-[11px] text-slate-500">{description}</p>
       )}
     </div>

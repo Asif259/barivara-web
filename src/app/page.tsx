@@ -2,32 +2,31 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useLanguageStore, Language } from '@/stores/language-store';
+import { useLanguageHydrated, useLanguageStore, Language } from '@/stores/language-store';
 import { useAuthStore } from '@/stores/auth-store';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Globe, Check, ArrowRight, ShieldCheck, Sparkles, Building2 } from 'lucide-react';
+import { Check, ArrowRight, ShieldCheck, Sparkles } from 'lucide-react';
 import Image from 'next/image';
 
 export default function RootPage() {
   const router = useRouter();
   const { language, hasSelectedLanguage, setLanguage } = useLanguageStore();
+  const languageHydrated = useLanguageHydrated();
   const { isAuthenticated } = useAuthStore();
-  const [mounted, setMounted] = useState(false);
-  const [selectedLang, setSelectedLang] = useState<Language>(language || 'bn');
+  const [draftLanguage, setDraftLanguage] = useState<Language | null>(null);
+  const selectedLang = draftLanguage || language;
 
   useEffect(() => {
-    setMounted(true);
-    if (hasSelectedLanguage) {
+    if (languageHydrated && hasSelectedLanguage) {
       if (isAuthenticated) {
         router.replace('/dashboard');
       } else {
         router.replace('/login');
       }
     }
-  }, [hasSelectedLanguage, isAuthenticated, router]);
+  }, [hasSelectedLanguage, isAuthenticated, languageHydrated, router]);
 
-  if (!mounted) {
+  if (!languageHydrated) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-600 border-t-transparent" />
@@ -82,8 +81,10 @@ export default function RootPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
           {/* Bangla Option */}
-          <div
-            onClick={() => setSelectedLang('bn')}
+          <button
+            type="button"
+            aria-pressed={selectedLang === 'bn'}
+            onClick={() => setDraftLanguage('bn')}
             className={`relative rounded-2xl p-6 cursor-pointer border-2 transition-all duration-200 bg-slate-800/80 backdrop-blur-md hover:bg-slate-800 ${
               selectedLang === 'bn'
                 ? 'border-emerald-500 shadow-xl shadow-emerald-500/20 ring-4 ring-emerald-500/10'
@@ -98,11 +99,13 @@ export default function RootPage() {
             <div className="text-3xl mb-3">🇧🇩</div>
             <h3 className="text-xl font-bold text-white mb-1">বাংলা</h3>
             <p className="text-xs text-slate-400">বাংলাদেশী বাড়িওয়ালা ও ভাড়াটিয়াদের জন্য সম্পূর্ণ বাংলায় ব্যবস্থাপনা</p>
-          </div>
+          </button>
 
           {/* English Option */}
-          <div
-            onClick={() => setSelectedLang('en')}
+          <button
+            type="button"
+            aria-pressed={selectedLang === 'en'}
+            onClick={() => setDraftLanguage('en')}
             className={`relative rounded-2xl p-6 cursor-pointer border-2 transition-all duration-200 bg-slate-800/80 backdrop-blur-md hover:bg-slate-800 ${
               selectedLang === 'en'
                 ? 'border-emerald-500 shadow-xl shadow-emerald-500/20 ring-4 ring-emerald-500/10'
@@ -117,7 +120,7 @@ export default function RootPage() {
             <div className="text-3xl mb-3">🌐</div>
             <h3 className="text-xl font-bold text-white mb-1">English</h3>
             <p className="text-xs text-slate-400">Manage properties, units, and collections in English</p>
-          </div>
+          </button>
         </div>
 
         <Button

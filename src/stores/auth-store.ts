@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { useEffect, useState } from 'react';
 import { User, AuthTokens } from '../lib/types';
 
 interface AuthState {
@@ -62,24 +61,5 @@ export const useAuthStore = create<AuthState>()(
  * Use this to avoid false logouts on page reload.
  */
 export function useAuthHydrated() {
-  const _hasHydrated = useAuthStore((s) => s._hasHydrated);
-  const [hydrated, setHydrated] = useState(_hasHydrated);
-
-  useEffect(() => {
-    // If already hydrated (e.g. navigating between pages), resolve immediately
-    if (_hasHydrated) {
-      setHydrated(true);
-      return;
-    }
-    // Subscribe to the store for when hydration completes
-    const unsub = useAuthStore.subscribe((s) => {
-      if (s._hasHydrated) {
-        setHydrated(true);
-        unsub();
-      }
-    });
-    return unsub;
-  }, [_hasHydrated]);
-
-  return hydrated;
+  return useAuthStore((state) => state._hasHydrated);
 }

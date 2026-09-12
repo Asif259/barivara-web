@@ -1,12 +1,19 @@
 // BariVara Core TypeScript Definitions matching the Backend API
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   message: string;
   data: T;
   meta?: PaginationMeta;
   errorCode?: string;
-  details?: any;
+  details?: unknown;
+}
+
+export interface ApiErrorPayload {
+  success?: false;
+  message?: string;
+  errorCode?: string;
+  details?: unknown;
 }
 
 export interface PaginationMeta {
