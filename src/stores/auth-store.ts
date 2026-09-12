@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { User, AuthTokens } from '../lib/types';
 
-interface AuthState {
+export interface AuthState {
   user: User | null;
   accessToken: string | null;
   refreshToken: string | null;
@@ -49,6 +49,12 @@ export const useAuthStore = create<AuthState>()(
     {
       name: 'barivara-auth',
       storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({
+        user: state.user,
+        accessToken: state.accessToken,
+        refreshToken: state.refreshToken,
+        isAuthenticated: state.isAuthenticated,
+      }),
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);
       },
@@ -63,3 +69,9 @@ export const useAuthStore = create<AuthState>()(
 export function useAuthHydrated() {
   return useAuthStore((state) => state._hasHydrated);
 }
+
+export const useAuthUser = () => useAuthStore((state) => state.user);
+export const useIsAuthenticated = () => useAuthStore((state) => state.isAuthenticated);
+export const useSetAuth = () => useAuthStore((state) => state.setAuth);
+export const useSetUser = () => useAuthStore((state) => state.setUser);
+export const useLogout = () => useAuthStore((state) => state.logout);

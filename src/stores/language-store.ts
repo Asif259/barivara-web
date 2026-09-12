@@ -3,7 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 
 export type Language = 'bn' | 'en';
 
-interface LanguageState {
+export interface LanguageState {
   language: Language;
   hasSelectedLanguage: boolean;
   _hasHydrated: boolean;
@@ -25,6 +25,10 @@ export const useLanguageStore = create<LanguageState>()(
     {
       name: 'barivara-language',
       storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({
+        language: state.language,
+        hasSelectedLanguage: state.hasSelectedLanguage,
+      }),
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);
       },
@@ -35,3 +39,7 @@ export const useLanguageStore = create<LanguageState>()(
 export function useLanguageHydrated() {
   return useLanguageStore((state) => state._hasHydrated);
 }
+
+export const useLanguage = () => useLanguageStore((state) => state.language);
+export const useSetLanguage = () => useLanguageStore((state) => state.setLanguage);
+export const useHasSelectedLanguage = () => useLanguageStore((state) => state.hasSelectedLanguage);
