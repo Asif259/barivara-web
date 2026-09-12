@@ -112,6 +112,37 @@ export function PaymentReceiptDialog({
     retry: false,
   });
 
+  const receiptContainerRef = React.useRef<HTMLDivElement>(null);
+  const [scale, setScale] = React.useState(1);
+  const [receiptHeight, setReceiptHeight] = React.useState(0);
+
+  React.useLayoutEffect(() => {
+    if (!open) return;
+    const container = receiptContainerRef.current;
+    if (!container) return;
+
+    const computeScale = () => {
+      const availableWidth = container.clientWidth;
+      const nextScale = availableWidth > 0 ? Math.min(1, availableWidth / CANONICAL_RECEIPT_WIDTH) : 1;
+      setScale(nextScale);
+    };
+
+    computeScale();
+    const ro = new ResizeObserver(computeScale);
+    ro.observe(container);
+    return () => ro.disconnect();
+  }, [open]);
+
+  React.useLayoutEffect(() => {
+    if (!receiptRef.current) return;
+    const el = receiptRef.current;
+    const updateHeight = () => setReceiptHeight(el.offsetHeight);
+    updateHeight();
+    const ro = new ResizeObserver(updateHeight);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [open, effectivePayment, signatureUrl, language]);
+
   if (!payment || !effectivePayment) return null;
 
   const monthlyRent = effectivePayment.monthlyRent;
@@ -331,19 +362,32 @@ export function PaymentReceiptDialog({
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-lg md:max-w-2xl p-0 bg-white max-h-[92vh] flex flex-col overflow-hidden rounded-xl shadow-2xl border border-stone-300">
-          {/* Scrollable Receipt Body — overflow-auto so fixed-width receipt scrolls on narrow screens */}
-          <div className="overflow-auto flex-1 bg-stone-100/70 p-4 sm:p-7">
-            {/*
-             * CANONICAL RECEIPT ELEMENT
-             * Fixed width at all times so preview === download === WhatsApp image.
-             * No responsive (sm:) classes inside this element.
-             */}
-            <div
-              ref={receiptRef}
-              id="printable-receipt"
-              className="space-y-5 bg-white border border-stone-300 shadow-sm"
-              style={{ width: CANONICAL_RECEIPT_WIDTH, padding: '28px' }}
-            >
+          {/* Scrollable Receipt Body */}
+          <div className="overflow-y-auto overflow-x-hidden flex-1 bg-stone-100/70 p-4 sm:p-7">
+            {/* Dummy element to reliably measure available width independent of children */}
+            <div ref={receiptContainerRef} className="w-full h-0 pointer-events-none" />
+            <div className="w-full flex justify-center">
+              {/* Crop box: visible size = scaled size, so no leftover blank space */}
+              <div
+                className="overflow-hidden"
+                style={{
+                  width: CANONICAL_RECEIPT_WIDTH * scale,
+                  height: receiptHeight ? receiptHeight * scale : undefined,
+                }}
+              >
+                {/* Visual-only scaler — never touches receiptRef itself */}
+                <div style={{ width: CANONICAL_RECEIPT_WIDTH, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
+                  {/*
+                   * CANONICAL RECEIPT ELEMENT
+                   * Fixed width at all times so preview === download === WhatsApp image.
+                   * No responsive (sm:) classes inside this element.
+                   */}
+                  <div
+                    ref={receiptRef}
+                    id="printable-receipt"
+                    className="space-y-5 bg-white border border-stone-300 shadow-sm"
+                    style={{ width: CANONICAL_RECEIPT_WIDTH, padding: '28px' }}
+                  >
               {/* Header */}
               <div className="border-y-[3px] border-emerald-800 py-4">
                 <div className="flex items-start justify-between gap-4">
@@ -544,6 +588,9 @@ export function PaymentReceiptDialog({
                 {isEn
                   ? 'Thank you for your payment. This is an electronic receipt.'
                   : 'ভাড়া প্রদানের জন্য ধন্যবাদ। এটি একটি ইলেকট্রনিক রসিদ।'}
+              </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
