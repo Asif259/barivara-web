@@ -667,12 +667,6 @@ export function PaymentReceiptDialog({
                   )}
                   <span className="truncate max-w-[150px] sm:max-w-[200px]">{getButtonText()}</span>
                 </Button>
-                {/* Tiny explanatory caption for the platform constraint */}
-                <span className="text-[9px] text-slate-500 mt-1.5 block text-center leading-tight max-w-[180px]">
-                  {canShareImageNatively
-                    ? (isEn ? 'Select WhatsApp to attach image' : 'ইমেজসহ পাঠাতে WhatsApp বেছে নিন')
-                    : (isEn ? 'Text-only due to browser limits' : 'ব্রাউজারের সীমাবদ্ধতায় শুধু টেক্সট যাবে')}
-                </span>
               </div>
             </div>
           </DialogFooter>
