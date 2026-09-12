@@ -362,7 +362,7 @@ export function PaymentReceiptDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="lg:max-w-2xl md:max-w-md max-w-sm  p-0 bg-white max-h-[92vh] flex flex-col overflow-hidden rounded-xl shadow-2xl border border-stone-300">
+        <DialogContent className="sm:max-w-2xl p-0 bg-white max-h-[92vh] flex flex-col overflow-hidden rounded-xl shadow-2xl border border-stone-300">
           {/* Scrollable Receipt Body — overflow-auto so fixed-width receipt scrolls on narrow screens */}
           <div className="overflow-auto flex-1 bg-stone-100/70 p-4 sm:p-7">
             {/*
