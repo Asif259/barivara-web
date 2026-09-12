@@ -270,55 +270,53 @@ export function PaymentReceiptDialog({
   };
 
   /**
-   * SECONDARY (optional): "Share Receipt Image"
-   *
-   * Only shown on devices/browsers that support navigator.share({ files }).
-   * Generates the receipt image and invokes the native share sheet so the
-   * user can select any app (including WhatsApp) to share the image to.
-   *
-   * This is intentionally SEPARATE from handleSendToWhatsApp because
-   * the native share sheet cannot target a specific WhatsApp contact.
+   * Combined "Share Receipt" flow:
+   * 1. Try native share sheet (attaches image).
+   * 2. If unsupported or fails (non-abort), fallback to text-only exact-contact wa.me link.
    */
-  const handleShareReceiptImage = async () => {
-    try {
-      setIsSharing(true);
+  const handleSendReceipt = async () => {
+    if (canShareImageNatively) {
+      try {
+        setIsSharing(true);
 
-      const messageText = buildReceiptWhatsAppText({
-        tenantName,
-        unitNumber: unit?.unitNumber || '',
-        month: monthlyRent?.month,
-        year: monthlyRent?.year,
-        amount: effectivePayment.amount,
-        isEn,
-      });
+        const messageText = buildReceiptWhatsAppText({
+          tenantName,
+          unitNumber: unit?.unitNumber || '',
+          month: monthlyRent?.month,
+          year: monthlyRent?.year,
+          amount: effectivePayment.amount,
+          isEn,
+        });
 
-      const { file } = await generateReceiptImage();
+        const { file } = await generateReceiptImage();
 
-      await navigator.share({
-        files: [file],
-        title: isEn ? 'Rent Payment Receipt' : 'ভাড়া পরিশোধের রশিদ',
-        text: messageText,
-      });
+        await navigator.share({
+          files: [file],
+          title: isEn ? 'Rent Payment Receipt' : 'ভাড়া পরিশোধের রশিদ',
+          text: messageText,
+        });
 
-      toast.success(
-        isEn ? 'Receipt image shared!' : 'রশিদ ইমেজ শেয়ার হয়েছে!'
-      );
-    } catch (err: unknown) {
-      if ((err as Error)?.name !== 'AbortError') {
-        console.error('Failed to share receipt image:', err);
-        toast.error(
-          isEn ? 'Failed to share receipt image' : 'রশিদ শেয়ার করতে সমস্যা হয়েছে'
-        );
+        return; // Success
+      } catch (err: unknown) {
+        if ((err as Error)?.name === 'AbortError') return;
+        console.error('Failed to share receipt natively, falling back to text:', err);
+        // fall through to wa.me on failure
+      } finally {
+        setIsSharing(false);
       }
-    } finally {
-      setIsSharing(false);
     }
+    
+    // Fallback: text-only deep link to exact contact
+    handleSendToWhatsApp();
   };
 
   // Button Label
   const getButtonText = () => {
     if (isSharing) {
       return t.sendingReceipt || (isEn ? 'Preparing...' : 'প্রস্তুত হচ্ছে...');
+    }
+    if (canShareImageNatively) {
+      return isEn ? 'Share Receipt' : 'রশিদ শেয়ার করুন';
     }
     if (hasValidPhone && tenantName) {
       return isEn ? `Send to ${tenantName}` : `${tenantName}-কে পাঠান`;
@@ -577,40 +575,37 @@ export function PaymentReceiptDialog({
                 {isEn ? 'Download' : 'ডাউনলোড'}
               </Button>
 
-              {/* Share Image: native share sheet for image (mobile only, when supported) */}
-              {canShareImageNatively && (
+              {/* Primary Action: Share / Send to WhatsApp */}
+              <div className="flex flex-col items-center flex-1 sm:flex-none">
                 <Button
-                  variant="outline"
                   size="sm"
-                  onClick={handleShareReceiptImage}
+                  onClick={handleSendReceipt}
                   disabled={isDownloading || isSharing}
-                  className="gap-1.5 shadow-xs font-medium text-slate-700 hover:text-slate-900 border-stone-300 flex-1 sm:flex-none cursor-pointer"
-                  title={isEn ? 'Share receipt image via native share sheet' : 'শেয়ার শিট দিয়ে রশিদ শেয়ার করুন'}
+                  className="gap-2 shadow-xs font-semibold bg-[#25D366] hover:bg-[#20ba59] text-white border-0 transition-colors w-full cursor-pointer"
+                  title={
+                    canShareImageNatively 
+                      ? (isEn ? 'Share receipt image via native share sheet' : 'শেয়ার শিট দিয়ে রশিদ শেয়ার করুন')
+                      : (hasValidPhone
+                          ? `WhatsApp: ${phoneResult.normalizedPhone}`
+                          : (isEn ? 'No WhatsApp number for this tenant' : 'ভাড়াটিয়ার হোয়াটসঅ্যাপ নম্বর নেই'))
+                  }
                 >
                   {isSharing ? (
-                    <Loader2 className="w-4 h-4 animate-spin text-slate-600" />
+                    <Loader2 className="w-4 h-4 animate-spin shrink-0 text-white" />
+                  ) : canShareImageNatively ? (
+                    <Share2 className="w-4 h-4 shrink-0" />
                   ) : (
-                    <Share2 className="w-4 h-4 text-slate-600" />
+                    <WhatsAppIcon className="w-4 h-4 shrink-0" />
                   )}
-                  {isEn ? 'Share Image' : 'শেয়ার'}
+                  <span className="truncate max-w-[150px] sm:max-w-[200px]">{getButtonText()}</span>
                 </Button>
-              )}
-
-              {/* Send to WhatsApp: opens EXACT tenant chat via wa.me deep-link */}
-              <Button
-                size="sm"
-                onClick={handleSendToWhatsApp}
-                disabled={isDownloading || isSharing}
-                className="gap-2 shadow-xs font-semibold bg-[#25D366] hover:bg-[#20ba59] text-white border-0 transition-colors flex-1 sm:flex-none cursor-pointer"
-                title={
-                  hasValidPhone
-                    ? `WhatsApp: ${phoneResult.normalizedPhone}`
-                    : (isEn ? 'No WhatsApp number for this tenant' : 'ভাড়াটিয়ার হোয়াটসঅ্যাপ নম্বর নেই')
-                }
-              >
-                <WhatsAppIcon className="w-4 h-4 shrink-0" />
-                <span className="truncate max-w-[150px] sm:max-w-[200px]">{getButtonText()}</span>
-              </Button>
+                {/* Tiny explanatory caption for the platform constraint */}
+                <span className="text-[9px] text-slate-500 mt-1.5 block text-center leading-tight max-w-[180px]">
+                  {canShareImageNatively 
+                    ? (isEn ? 'Select WhatsApp to attach image' : 'ইমেজসহ পাঠাতে WhatsApp বেছে নিন')
+                    : (isEn ? 'Text-only due to browser limits' : 'ব্রাউজারের সীমাবদ্ধতায় শুধু টেক্সট যাবে')}
+                </span>
+              </div>
             </div>
           </DialogFooter>
         </DialogContent>
