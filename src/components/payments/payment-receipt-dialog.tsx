@@ -61,7 +61,7 @@ interface PaymentReceiptDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export const CANONICAL_RECEIPT_WIDTH = 750;
+export const CANONICAL_RECEIPT_WIDTH = 600;
 
 export function PaymentReceiptDialog({
   payment,
