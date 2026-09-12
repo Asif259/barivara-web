@@ -155,24 +155,15 @@ export function PaymentReceiptDialog({
       throw new Error('Receipt DOM element not found');
     }
 
-    const targetWidth = CANONICAL_RECEIPT_WIDTH;
-
     const dataUrl = await toPng(receiptRef.current, {
       quality: 1,
       pixelRatio: 2, // Crisp 2x retina export
-      width: targetWidth,
-      style: {
-        width: `${targetWidth}px`,
-        maxWidth: 'none',
-        margin: '0',
-        transform: 'none',
-      },
       backgroundColor: '#ffffff',
       cacheBust: true,
       skipFonts: true, // Prevents SecurityError from cross-origin Google Fonts CSS
     });
 
-    console.log(`[Receipt Export Verification] Canonical Width: ${targetWidth}px, Exported Image generated successfully.`);
+    console.log(`[Receipt Export Verification] Canonical Width: ${CANONICAL_RECEIPT_WIDTH}px, Exported Image generated successfully.`);
 
     const unitNum = unit?.unitNumber || 'Rent';
     const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sept', 'oct', 'nov', 'dec'];
@@ -372,9 +363,19 @@ export function PaymentReceiptDialog({
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-xl p-0 bg-white max-h-[92vh] flex flex-col overflow-hidden rounded-xl shadow-2xl border border-stone-300">
-          {/* Scrollable Receipt Body */}
-          <div className="overflow-y-auto flex-1 bg-stone-100/70 p-4 sm:p-7">
-            <div ref={receiptRef} id="printable-receipt" className="space-y-5 bg-white p-5 sm:p-7 border border-stone-300 shadow-sm">
+          {/* Scrollable Receipt Body — overflow-auto so fixed-width receipt scrolls on narrow screens */}
+          <div className="overflow-auto flex-1 bg-stone-100/70 p-4 sm:p-7">
+            {/*
+             * CANONICAL RECEIPT ELEMENT
+             * Fixed width at all times so preview === download === WhatsApp image.
+             * No responsive (sm:) classes inside this element.
+             */}
+            <div
+              ref={receiptRef}
+              id="printable-receipt"
+              className="space-y-5 bg-white border border-stone-300 shadow-sm"
+              style={{ width: CANONICAL_RECEIPT_WIDTH, padding: '28px' }}
+            >
               {/* Header */}
               <div className="border-y-[3px] border-emerald-800 py-4">
                 <div className="flex items-start justify-between gap-4">
@@ -383,7 +384,7 @@ export function PaymentReceiptDialog({
                       <Image src="/logo.png" alt="BariVara" width={44} height={44} className="w-full h-full object-cover" />
                     </div>
                     <div>
-                      <h2 className="font-serif text-xl sm:text-2xl font-bold text-slate-950 tracking-tight leading-tight">
+                      <h2 className="font-serif text-[22px] font-bold text-slate-950 tracking-tight leading-tight">
                         {property?.name || 'বাড়িভাড়া (BariVara)'}
                       </h2>
                       {property?.address && (
@@ -420,12 +421,8 @@ export function PaymentReceiptDialog({
                     {tenantName || (isEn ? 'Tenant' : 'ভাড়াটিয়া')}
                   </span>
                   <div className="flex items-center gap-1 text-slate-600 text-[11px]">
+                    {/* Phone number only — no WhatsApp badge inside the receipt */}
                     <span>{rawPhone ? toBnNum(rawPhone) : '-'}</span>
-                    {hasValidPhone && (
-                      <span className="inline-flex items-center text-[10px] text-emerald-700 font-medium bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
-                        WhatsApp
-                      </span>
-                    )}
                   </div>
                 </div>
                 <div className="text-right space-y-1 py-3 pl-4">
