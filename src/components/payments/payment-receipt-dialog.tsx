@@ -362,7 +362,7 @@ export function PaymentReceiptDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-xl p-0 bg-white max-h-[92vh] flex flex-col overflow-hidden rounded-xl shadow-2xl border border-stone-300">
+        <DialogContent className="lg:max-w-xl p-0 bg-white max-h-[92vh] flex flex-col overflow-hidden rounded-xl shadow-2xl border border-stone-300">
           {/* Scrollable Receipt Body — overflow-auto so fixed-width receipt scrolls on narrow screens */}
           <div className="overflow-auto flex-1 bg-stone-100/70 p-4 sm:p-7">
             {/*
@@ -529,24 +529,39 @@ export function PaymentReceiptDialog({
                 </div>
               </div>
 
-              {/* Settlement */}
+              {/* Settlement — signature replaces the ✓ circle on the right */}
               <div
-                className="flex items-center justify-between border-l-4 border-emerald-800 bg-emerald-50 px-4 py-3.5"
-                style={{ backgroundColor: '#ecfdf5', borderColor: '#065f46' }}
+                className="flex items-center justify-between bg-emerald-50 px-4 py-3"
+                style={{ backgroundColor: '#ecfdf5' }}
               >
+                {/* Left: amount */}
                 <div>
                   <span className="text-[10px] text-emerald-900 block font-bold uppercase tracking-[0.16em]">
                     {isEn ? 'Amount Paid (Received)' : 'পরিশোধিত টাকার পরিমাণ (প্রাপ্ত)'}
                   </span>
-                  <span className="font-serif text-2xl font-bold text-emerald-950">
+                  <span className="text-2xl font-bold text-emerald-950">
                     {formatCurrency(effectivePayment.amount, language)}
                   </span>
                 </div>
-                <div
-                  className="h-8 w-8 rounded-full bg-emerald-800 text-white flex items-center justify-center"
-                  style={{ backgroundColor: '#065f46', color: '#ffffff' }}
-                >
-                  <CheckCircle2 className="w-5 h-5 text-white stroke-[2.2]" />
+
+                {/* Right: owner signature */}
+                <div className="text-right text-xs text-slate-600 space-y-1 shrink-0">
+                  {signatureUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={signatureUrl}
+                      alt={t.ownerSignature || (isEn ? 'Owner Signature' : 'মালিকের স্বাক্ষর')}
+                      crossOrigin="anonymous"
+                      className="h-7 ml-auto object-contain"
+                      style={{ maxWidth: '9rem' }}
+                    />
+                  ) : null}
+                  <div className="border-t border-stone-400 w-36 ml-auto" />
+                  {effectivePayment.owner?.name && (
+                    <span className="font-medium text-[11px] text-slate-800 block">
+                      {effectivePayment.owner.name}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -555,31 +570,6 @@ export function PaymentReceiptDialog({
                   <span className="font-semibold text-slate-900">{t.note}:</span> {effectivePayment.note}
                 </div>
               )}
-
-              {/* Signatures */}
-              <div className="pt-2 grid grid-cols-1 text-xs text-slate-600">
-                <div className="text-center space-y-1.5">
-                  {signatureUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={signatureUrl}
-                      alt={t.ownerSignature || (isEn ? 'Owner Signature' : 'মালিকের স্বাক্ষর')}
-                      crossOrigin="anonymous"
-                      className="h-8 mx-auto object-contain"
-                      style={{ maxWidth: '11rem' }}
-                    />
-                  ) : null}
-                  <div className="border-t border-stone-500 w-44 mx-auto"></div>
-                  <span className="font-semibold text-[10px] uppercase tracking-[0.12em] text-stone-700 block">
-                    {t.ownerSignature || (isEn ? 'Owner Signature' : 'মালিকের স্বাক্ষর')}
-                  </span>
-                  {effectivePayment.owner?.name && (
-                    <span className="font-medium text-[11px] text-slate-800 block">
-                      {effectivePayment.owner.name}
-                    </span>
-                  )}
-                </div>
-              </div>
 
               {/* Footer Note */}
               <div className="border-t border-stone-200 pt-3 text-center text-[10px] text-slate-500">
