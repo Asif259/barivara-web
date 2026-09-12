@@ -75,7 +75,6 @@ export function PaymentReceiptDialog({
   const [isDownloading, setIsDownloading] = React.useState(false);
   const [isSharing, setIsSharing] = React.useState(false);
 
-  // WhatsApp popup-blocked fallback dialog state
   const [fallbackOpen, setFallbackOpen] = React.useState(false);
   const [fallbackData, setFallbackData] = React.useState<{
     waUrl: string;
@@ -85,13 +84,17 @@ export function PaymentReceiptDialog({
     popupBlocked?: boolean;
   } | null>(null);
 
-  const receiptRef = React.useRef<HTMLDivElement>(null);
-
   // Detect Web Share API file-sharing support on this device (client-side only).
   const [canShareImageNatively, setCanShareImageNatively] = React.useState(false);
   React.useEffect(() => {
     setCanShareImageNatively(canShareFilesCapability());
   }, []);
+
+  const [scale, setScale] = React.useState(1);
+  const [receiptHeight, setReceiptHeight] = React.useState<number | null>(null);
+
+  const receiptRef = React.useRef<HTMLDivElement>(null);
+  const receiptContainerRef = React.useRef<HTMLDivElement>(null);
 
   const { data: paymentDetails } = useQuery({
     queryKey: ['payment-receipt-details', payment?.id],
@@ -112,36 +115,43 @@ export function PaymentReceiptDialog({
     retry: false,
   });
 
-  const receiptContainerRef = React.useRef<HTMLDivElement>(null);
-  const [scale, setScale] = React.useState(1);
-  const [receiptHeight, setReceiptHeight] = React.useState(0);
-
+  // Measure available container width and calculate scale factor for responsive preview
   React.useLayoutEffect(() => {
     if (!open) return;
-    const container = receiptContainerRef.current;
-    if (!container) return;
 
-    const computeScale = () => {
-      const availableWidth = container.clientWidth;
-      const nextScale = availableWidth > 0 ? Math.min(1, availableWidth / CANONICAL_RECEIPT_WIDTH) : 1;
-      setScale(nextScale);
+    const updateDimensions = () => {
+      if (receiptContainerRef.current) {
+        const containerWidth = receiptContainerRef.current.clientWidth;
+        if (containerWidth > 0) {
+          const newScale = Math.min(1, containerWidth / CANONICAL_RECEIPT_WIDTH);
+          setScale(newScale);
+        }
+      }
+      if (receiptRef.current) {
+        setReceiptHeight(receiptRef.current.offsetHeight);
+      }
     };
 
-    computeScale();
-    const ro = new ResizeObserver(computeScale);
-    ro.observe(container);
-    return () => ro.disconnect();
-  }, [open]);
+    updateDimensions();
 
-  React.useLayoutEffect(() => {
-    if (!receiptRef.current) return;
-    const el = receiptRef.current;
-    const updateHeight = () => setReceiptHeight(el.offsetHeight);
-    updateHeight();
-    const ro = new ResizeObserver(updateHeight);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [open, effectivePayment, signatureUrl, language]);
+    const resizeObserver = new ResizeObserver(() => {
+      updateDimensions();
+    });
+
+    if (receiptContainerRef.current) {
+      resizeObserver.observe(receiptContainerRef.current);
+    }
+    if (receiptRef.current) {
+      resizeObserver.observe(receiptRef.current);
+    }
+
+    window.addEventListener('resize', updateDimensions);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', updateDimensions);
+    };
+  }, [open, effectivePayment]);
 
   if (!payment || !effectivePayment) return null;
 
@@ -336,7 +346,7 @@ export function PaymentReceiptDialog({
         setIsSharing(false);
       }
     }
-    
+
     // Fallback: text-only deep link to exact contact
     handleSendToWhatsApp();
   };
@@ -362,21 +372,32 @@ export function PaymentReceiptDialog({
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-lg md:max-w-2xl p-0 bg-white max-h-[92vh] flex flex-col overflow-hidden rounded-xl shadow-2xl border border-stone-300">
-          {/* Scrollable Receipt Body */}
+          {/* Scrollable Receipt Body — overflow-y-auto and overflow-x-hidden to avoid horizontal scrollbar */}
           <div className="overflow-y-auto overflow-x-hidden flex-1 bg-stone-100/70 p-4 sm:p-7">
-            {/* Dummy element to reliably measure available width independent of children */}
+            {/* Invisible measurement anchor to get available container width without being distorted by 600px receipt */}
             <div ref={receiptContainerRef} className="w-full h-0 pointer-events-none" />
-            <div className="w-full flex justify-center">
-              {/* Crop box: visible size = scaled size, so no leftover blank space */}
+
+            {/* Scaled Preview Wrapper & Centering Box */}
+            <div className="flex justify-center w-full min-h-full items-start">
               <div
-                className="overflow-hidden"
+                className="relative shrink-0 transition-all duration-75"
                 style={{
-                  width: CANONICAL_RECEIPT_WIDTH * scale,
-                  height: receiptHeight ? receiptHeight * scale : undefined,
+                  width: Math.min(CANONICAL_RECEIPT_WIDTH, CANONICAL_RECEIPT_WIDTH * scale),
+                  height: receiptHeight ? receiptHeight * scale : 'auto',
+                  overflow: 'hidden',
                 }}
               >
-                {/* Visual-only scaler — never touches receiptRef itself */}
-                <div style={{ width: CANONICAL_RECEIPT_WIDTH, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
+                {/* 
+                 * Scale transformation wrapper.
+                 * Keeps the child element fixed at 600px width while scaling it visually.
+                 */}
+                <div
+                  style={{
+                    width: CANONICAL_RECEIPT_WIDTH,
+                    transform: `scale(${scale})`,
+                    transformOrigin: 'top left',
+                  }}
+                >
                   {/*
                    * CANONICAL RECEIPT ELEMENT
                    * Fixed width at all times so preview === download === WhatsApp image.
@@ -589,11 +610,11 @@ export function PaymentReceiptDialog({
                   ? 'Thank you for your payment. This is an electronic receipt.'
                   : 'ভাড়া প্রদানের জন্য ধন্যবাদ। এটি একটি ইলেকট্রনিক রসিদ।'}
               </div>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
 
           {/* Sticky Action Buttons Footer */}
           <DialogFooter className="p-3.5 px-4 sm:px-6 bg-stone-50 border-t border-stone-300 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2.5 shrink-0">
@@ -630,11 +651,11 @@ export function PaymentReceiptDialog({
                   disabled={isDownloading || isSharing}
                   className="gap-2 shadow-xs font-semibold bg-[#25D366] hover:bg-[#20ba59] text-white border-0 transition-colors w-full cursor-pointer"
                   title={
-                    canShareImageNatively 
+                    canShareImageNatively
                       ? (isEn ? 'Share receipt image via native share sheet' : 'শেয়ার শিট দিয়ে রশিদ শেয়ার করুন')
                       : (hasValidPhone
-                          ? `WhatsApp: ${phoneResult.normalizedPhone}`
-                          : (isEn ? 'No WhatsApp number for this tenant' : 'ভাড়াটিয়ার হোয়াটসঅ্যাপ নম্বর নেই'))
+                        ? `WhatsApp: ${phoneResult.normalizedPhone}`
+                        : (isEn ? 'No WhatsApp number for this tenant' : 'ভাড়াটিয়ার হোয়াটসঅ্যাপ নম্বর নেই'))
                   }
                 >
                   {isSharing ? (
@@ -648,7 +669,7 @@ export function PaymentReceiptDialog({
                 </Button>
                 {/* Tiny explanatory caption for the platform constraint */}
                 <span className="text-[9px] text-slate-500 mt-1.5 block text-center leading-tight max-w-[180px]">
-                  {canShareImageNatively 
+                  {canShareImageNatively
                     ? (isEn ? 'Select WhatsApp to attach image' : 'ইমেজসহ পাঠাতে WhatsApp বেছে নিন')
                     : (isEn ? 'Text-only due to browser limits' : 'ব্রাউজারের সীমাবদ্ধতায় শুধু টেক্সট যাবে')}
                 </span>
