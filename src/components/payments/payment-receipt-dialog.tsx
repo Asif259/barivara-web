@@ -362,7 +362,7 @@ export function PaymentReceiptDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="lg:max-w-xl p-0 bg-white max-h-[92vh] flex flex-col overflow-hidden rounded-xl shadow-2xl border border-stone-300">
+        <DialogContent className="sm:max-w-xl p-0 bg-white max-h-[92vh] flex flex-col overflow-hidden rounded-xl shadow-2xl border border-stone-300">
           {/* Scrollable Receipt Body — overflow-auto so fixed-width receipt scrolls on narrow screens */}
           <div className="overflow-auto flex-1 bg-stone-100/70 p-4 sm:p-7">
             {/*
@@ -556,7 +556,7 @@ export function PaymentReceiptDialog({
                       style={{ maxWidth: '9rem' }}
                     />
                   ) : null}
-                  <div className="border-t border-stone-400 w-36 ml-auto" />
+                  <div className="border-t border-stone-400 w-24 ml-auto" />
                   {effectivePayment.owner?.name && (
                     <span className="font-medium text-[11px] text-slate-800 block">
                       {effectivePayment.owner.name}
