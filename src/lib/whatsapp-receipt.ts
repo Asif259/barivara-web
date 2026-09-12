@@ -70,6 +70,8 @@ export interface ReceiptWhatsAppTextParams {
   month?: number | null;
   year?: number | null;
   amount: number | string;
+  /** Short receipt ID, e.g. "6ED6FEF3" — prepended with # in the message. */
+  receiptId?: string | null;
   isEn: boolean;
 }
 
@@ -97,15 +99,14 @@ export interface ReceiptWhatsAppTextParams {
  * Thank you.
  */
 export function buildReceiptWhatsAppText({
-  tenantName,
-  unitNumber,
   month,
   year,
   amount,
+  receiptId,
   isEn,
 }: ReceiptWhatsAppTextParams): string {
   const bnMonths = [
-    'জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন',
+    'জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন',
     'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর',
   ];
   const enMonths = [
@@ -134,31 +135,22 @@ export function buildReceiptWhatsAppText({
   const formattedAmountBn = formatCurrency(amount, 'bn');
   const formattedAmountEn = formatCurrency(amount, 'en');
 
-  const cleanTenantName = (tenantName || '').trim() || (isEn ? 'Tenant' : 'ভাড়াটিয়া');
-  const cleanUnitNumber = (unitNumber || '').trim() || (isEn ? 'N/A' : '-');
+  const refTag = receiptId ? `#${receiptId}` : '-';
 
   if (isEn) {
     return [
-      'BariVara Payment Receipt',
-      '',
-      `Tenant: ${cleanTenantName}`,
-      `Unit: ${cleanUnitNumber}`,
-      `Month: ${periodEn}`,
-      `Paid: ${formattedAmountEn}`,
-      '',
-      'Thank you.',
+      'Your rent payment receipt.',
+      `Receipt No: ${refTag}`,
+      `Amount Paid: ${formattedAmountEn}`,
+      `Rent Period: ${periodEn}`,
     ].join('\n');
   }
 
   return [
-    'BariVara Payment Receipt',
-    '',
-    `ভাড়াটিয়া: ${cleanTenantName}`,
-    `ফ্ল্যাট: ${cleanUnitNumber}`,
-    `মাস: ${periodBn}`,
-    `পরিশোধ: ${formattedAmountBn}`,
-    '',
-    'ধন্যবাদ।',
+    'আপনার ভাড়ার পেমেন্টের রসিদ।',
+    `রসিদ নং: ${refTag}`,
+    `পরিশোধিত পরিমাণ: ${formattedAmountBn}`,
+    `ভাড়া মাস: ${periodBn}`,
   ].join('\n');
 }
 
@@ -172,6 +164,22 @@ export function getWhatsAppShareUrl(phone: string | null | undefined, text: stri
     return `https://wa.me/${normalizedPhone}?text=${encodedText}`;
   }
   return `https://wa.me/?text=${encodedText}`;
+}
+
+/**
+ * Checks if the current browser supports file-sharing through the Web Share API
+ * without needing an actual file object. Safe to call at render/mount time.
+ */
+export function canShareFilesCapability(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  if (typeof navigator.share !== 'function') return false;
+  if (typeof navigator.canShare !== 'function') return false;
+  try {
+    const testFile = new File(['x'], 'test.png', { type: 'image/png' });
+    return navigator.canShare({ files: [testFile] });
+  } catch {
+    return false;
+  }
 }
 
 /**

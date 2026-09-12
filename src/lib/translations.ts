@@ -6,7 +6,7 @@ export const translations = {
     bangla: 'বাংলা',
     english: 'English',
     continue: 'এগিয়ে যান',
-    
+
     // Auth
     login: 'লগইন',
     register: 'রেজিস্ট্রেশন',
@@ -23,7 +23,7 @@ export const translations = {
     dontHaveAccount: 'নতুন ব্যবহারকারী?',
     registerNow: 'রেজিস্টার করুন',
     loginNow: 'লগইন করুন',
-    
+
     // Navigation
     dashboard: 'ড্যাশবোর্ড',
     properties: 'বাড়ি / প্রপার্টি',
@@ -36,7 +36,7 @@ export const translations = {
     reports: 'প্রতিবেদন',
     reminders: 'রিমাইন্ডার',
     settings: 'সেটিংস',
-    
+
     // Common Actions
     add: 'যুক্ত করুন',
     create: 'তৈরি করুন',
@@ -63,7 +63,7 @@ export const translations = {
     collectionRate: 'আদায়ের হার',
     occupancyRate: 'ভাড়ার হার',
     note: 'মন্তব্য',
-    
+
     // Properties
     propertyName: 'বাড়ির নাম',
     address: 'ঠিকানা',
@@ -75,7 +75,7 @@ export const translations = {
     editProperty: 'বাড়ি সম্পাদনা',
     noPropertiesFound: 'কোনো বাড়ি পাওয়া যায়নি',
     addFirstProperty: 'আপনার প্রথম বাড়িটি যুক্ত করুন',
-    
+
     // Units
     unitNumber: 'ইউনিট / ফ্ল্যাট নম্বর',
     floor: 'তলা',
@@ -98,7 +98,7 @@ export const translations = {
     vacant: 'খালি',
     occupied: 'ভাড়া দেওয়া',
     maintenance: 'মেরামত চলছে',
-    
+
     // Tenants
     tenantName: 'ভাড়াটিয়ার নাম',
     nid: 'এনআইডি (NID) নম্বর',
@@ -108,7 +108,7 @@ export const translations = {
     addNewTenant: 'নতুন ভাড়াটিয়া যোগ করুন',
     editTenant: 'ভাড়াটিয়া সম্পাদনা',
     noTenantsFound: 'কোনো ভাড়াটিয়া পাওয়া যায়নি',
-    
+
     // Agreements
     addNewAgreement: 'নতুন ভাড়া চুক্তি করুন',
     securityDeposit: 'অগ্রিম / সিকিউরিটি ডিপোজিট',
@@ -124,7 +124,7 @@ export const translations = {
     viewExistingAgreement: 'বর্তমান চুক্তি দেখুন',
     previousMonth: 'আগের মাস',
     dueDayDescription: 'প্রতি মাসের ১০ তারিখ',
-    
+
     // Rent & Payments
     generateRent: 'ভাড়া জেনারেট করুন',
     generateMonthlyRent: 'মাসিক বিল তৈরি করুন',
@@ -133,11 +133,11 @@ export const translations = {
     paymentDate: 'পেমেন্টের তারিখ',
     transactionId: 'ট্রানজেকশন আইডি',
     reversePayment: 'পেমেন্ট রিভার্স (বাতিল) করুন',
-    printReceipt: 'রসিদ প্রিন্ট করুন',
-    downloadReceipt: 'রসিদ ডাউনলোড করুন',
+    printReceipt: 'রশিদ প্রিন্ট করুন',
+    downloadReceipt: 'রশিদ ডাউনলোড করুন',
     receipt: 'ভাড়ার মানি রিসিট',
     paymentHistory: 'পেমেন্ট হিস্ট্রি',
-    
+
     // Messages
     operationSuccessful: 'অপারেশন সফল হয়েছে',
     loading: 'লোড হচ্ছে...',
@@ -146,7 +146,7 @@ export const translations = {
     // Settings / Owner Signature
     profileInformation: 'প্রোফাইল তথ্য',
     ownerSignature: 'মালিকের স্বাক্ষর',
-    ownerSignatureDescription: 'ভাড়া আদায়ের রসিদে এই স্বাক্ষরটি ব্যবহার হবে। একবার সেট করার পর পুরোনো রসিদে পরিবর্তন আসবে না।',
+    ownerSignatureDescription: 'ভাড়া আদায়ের রশিদে এই স্বাক্ষরটি ব্যবহার হবে। একবার সেট করার পর পুরোনো রশিদে পরিবর্তন আসবে না।',
     uploadSignature: 'স্বাক্ষর আপলোড করুন',
     replaceSignature: 'স্বাক্ষর পরিবর্তন করুন',
     removeSignature: 'স্বাক্ষর মুছুন',
@@ -162,19 +162,19 @@ export const translations = {
     memberSince: 'যোগদানের তারিখ',
 
     // Receipt WhatsApp Sharing
-    sendReceipt: 'রসিদ পাঠান',
+    sendReceipt: 'রশিদ পাঠান',
     sendViaWhatsapp: 'হোয়াটসঅ্যাপে পাঠান',
     sendInWhatsapp: 'হোয়াটসঅ্যাপে পাঠান',
     chooseWhatsappContact: 'কন্টাক্ট নির্বাচন করুন',
     sendingReceipt: 'প্রস্তুত হচ্ছে...',
-    receiptSharedSuccess: 'রসিদ সফলভাবে শেয়ার করা হয়েছে',
-    receiptDownloadedForWhatsapp: 'রসিদ ইমেজ ডাউনলোড হয়েছে। হোয়াটসঅ্যাপ চ্যাটে রসিদটি যুক্ত করে পাঠিয়ে দিন।',
-    whatsappShareFailed: 'রসিদ শেয়ার করা যায়নি',
+    receiptSharedSuccess: 'রশিদ সফলভাবে শেয়ার করা হয়েছে',
+    receiptDownloadedForWhatsapp: 'রশিদ ইমেজ ডাউনলোড হয়েছে। হোয়াটসঅ্যাপ চ্যাটে রশিদটি যুক্ত করে পাঠিয়ে দিন।',
+    whatsappShareFailed: 'রশিদ শেয়ার করা যায়নি',
     whatsappUnavailable: 'হোয়াটসঅ্যাপ খোলা সম্ভব হয়নি',
-    receiptGenFailed: 'রসিদ ইমেজ তৈরি করতে সমস্যা হয়েছে',
+    receiptGenFailed: 'রশিদ ইমেজ তৈরি করতে সমস্যা হয়েছে',
     shareViaNativeSheet: 'ফাইলসহ শেয়ার করুন',
     desktopWhatsappInstructions: 'ডেস্কটপ থেকে হোয়াটসঅ্যাপে পাঠানোর নিয়ম',
-    step1Downloaded: 'রসিদের ইমেজ ফাইলটি আপনার ডিভাইসে ডাউনলোড হয়েছে।',
+    step1Downloaded: 'রশিদের ইমেজ ফাইলটি আপনার ডিভাইসে ডাউনলোড হয়েছে।',
     step2OpenWhatsapp: 'হোয়াটসঅ্যাপে চ্যাটটি খুলুন এবং ডাউনলোড করা ছবিটি ড্র্যাগ বা অ্যাটাচ করুন।',
     step3PressSend: 'প্রিফিল্ড মেসেজটি দেখে সেন্ড (Send) বাটনে চাপ দিন।',
     openWhatsapp: 'হোয়াটসঅ্যাপ ওপেন করুন',
@@ -190,7 +190,7 @@ export const translations = {
     bangla: 'বাংলা',
     english: 'English',
     continue: 'Continue',
-    
+
     // Auth
     login: 'Login',
     register: 'Register',
@@ -207,7 +207,7 @@ export const translations = {
     dontHaveAccount: 'Don\'t have an account?',
     registerNow: 'Register Now',
     loginNow: 'Login Now',
-    
+
     // Navigation
     dashboard: 'Dashboard',
     properties: 'Properties',
@@ -220,7 +220,7 @@ export const translations = {
     reports: 'Reports',
     reminders: 'Reminders',
     settings: 'Settings',
-    
+
     // Common Actions
     add: 'Add',
     create: 'Create',
@@ -247,7 +247,7 @@ export const translations = {
     collectionRate: 'Collection Rate',
     occupancyRate: 'Occupancy Rate',
     note: 'Note',
-    
+
     // Properties
     propertyName: 'Property Name',
     address: 'Address',
@@ -259,7 +259,7 @@ export const translations = {
     editProperty: 'Edit Property',
     noPropertiesFound: 'No properties found',
     addFirstProperty: 'Add your first property to get started',
-    
+
     // Units
     unitNumber: 'Unit / Flat No.',
     floor: 'Floor',
@@ -282,7 +282,7 @@ export const translations = {
     vacant: 'Vacant',
     occupied: 'Occupied',
     maintenance: 'Maintenance',
-    
+
     // Tenants
     tenantName: 'Tenant Name',
     nid: 'National ID (NID)',
@@ -292,7 +292,7 @@ export const translations = {
     addNewTenant: 'Add New Tenant',
     editTenant: 'Edit Tenant',
     noTenantsFound: 'No tenants found',
-    
+
     // Agreements
     addNewAgreement: 'New Rental Agreement',
     securityDeposit: 'Security Deposit',
@@ -308,7 +308,7 @@ export const translations = {
     viewExistingAgreement: 'View Existing Agreement',
     previousMonth: 'Previous Month',
     dueDayDescription: '10th of each month',
-    
+
     // Rent & Payments
     generateRent: 'Generate Rents',
     generateMonthlyRent: 'Generate Monthly Invoices',
@@ -321,7 +321,7 @@ export const translations = {
     downloadReceipt: 'Download Receipt',
     receipt: 'Rent Money Receipt',
     paymentHistory: 'Payment History',
-    
+
     // Messages
     operationSuccessful: 'Operation successful',
     loading: 'Loading...',

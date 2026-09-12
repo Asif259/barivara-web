@@ -10,7 +10,7 @@ import { formatCurrency, formatBnDate } from '@/lib/utils';
 import { getFileDownloadUrl } from '@/lib/file-upload';
 import {
   buildReceiptWhatsAppText,
-  canShareFiles,
+  canShareFilesCapability,
   getWhatsAppShareUrl,
   validateAndNormalizePhone,
 } from '@/lib/whatsapp-receipt';
@@ -75,21 +75,23 @@ export function PaymentReceiptDialog({
   const [isDownloading, setIsDownloading] = React.useState(false);
   const [isSharing, setIsSharing] = React.useState(false);
 
-  // WhatsApp guidance & fallback dialog state
+  // WhatsApp popup-blocked fallback dialog state
   const [fallbackOpen, setFallbackOpen] = React.useState(false);
   const [fallbackData, setFallbackData] = React.useState<{
-    filename: string;
     waUrl: string;
     messageText: string;
     phone: string;
     tenantName: string;
-    hasPhone: boolean;
-    file: File | null;
     popupBlocked?: boolean;
-    imageCopied?: boolean;
   } | null>(null);
 
   const receiptRef = React.useRef<HTMLDivElement>(null);
+
+  // Detect Web Share API file-sharing support on this device (client-side only).
+  const [canShareImageNatively, setCanShareImageNatively] = React.useState(false);
+  React.useEffect(() => {
+    setCanShareImageNatively(canShareFilesCapability());
+  }, []);
 
   const { data: paymentDetails } = useQuery({
     queryKey: ['payment-receipt-details', payment?.id],
@@ -197,149 +199,117 @@ export function PaymentReceiptDialog({
       toast.success(isEn ? 'Receipt image downloaded successfully!' : 'মানি রিসিট ইমেজ ডাউনলোড হয়েছে!');
     } catch (error) {
       console.error('Failed to export receipt image:', error);
-      toast.error(t.receiptGenFailed || (isEn ? 'Failed to download receipt image' : 'রসিদ ইমেজ ডাউনলোড ব্যর্থ হয়েছে'));
+      toast.error(t.receiptGenFailed || (isEn ? 'Failed to download receipt image' : 'রশিদ ইমেজ ডাউনলোড ব্যর্থ হয়েছে'));
     } finally {
       setIsDownloading(false);
     }
   };
 
   /**
-   * Handles "Send in WhatsApp" flow:
+   * PRIMARY: "Send to WhatsApp"
    *
-   * 1. Generates receipt image file & localized message text.
-   * 2. If Web Share API with files is supported (Mobile iOS/Android):
-   *    ALWAYS uses navigator.share({ files: [file], text })!
-   *    This ensures the image IS attached to the message in WhatsApp.
-   * 3. On desktop / unsupported browsers:
-   *    Copies image directly to system clipboard (for Ctrl+V / Cmd+V instant paste in WhatsApp Web),
-   *    auto-downloads the file, opens WhatsApp Web, and presents guidance dialog.
+   * Opens the EXACT tenant WhatsApp chat via wa.me deep-link.
+   * NO navigator.share() — no Android "Send to..." sheet.
+   * Works the same on mobile and desktop.
+   *
+   * Mobile: WhatsApp app opens to the specific tenant chat.
+   * Desktop: WhatsApp Web opens to the specific tenant chat.
+   *
+   * NOTE: This does NOT attach the receipt image. The browser cannot
+   * reliably attach a locally generated image AND open a specific
+   * WhatsApp chat simultaneously. Use the "Share Image" button for
+   * image sharing via the native share sheet.
    */
-  const handleSendReceipt = async () => {
+  const handleSendToWhatsApp = () => {
+    if (!hasValidPhone) {
+      toast.error(
+        isEn
+          ? 'Tenant does not have a WhatsApp number.'
+          : 'ভাড়াটিয়ার কোনো হোয়াটসঅ্যাপ নম্বর নেই।'
+      );
+      return;
+    }
+
+    const messageText = buildReceiptWhatsAppText({
+      tenantName,
+      unitNumber: unit?.unitNumber || '',
+      month: monthlyRent?.month,
+      year: monthlyRent?.year,
+      amount: effectivePayment.amount,
+      isEn,
+    });
+
+    const waUrl = getWhatsAppShareUrl(phoneResult.normalizedPhone, messageText);
+
+    let opened: Window | null = null;
+    try {
+      opened = window.open(waUrl, '_blank', 'noopener,noreferrer');
+    } catch (e) {
+      console.warn('[WhatsApp] window.open failed:', e);
+    }
+
+    const popupBlocked = !opened || opened.closed || typeof opened.closed === 'undefined';
+
+    if (popupBlocked) {
+      // Popup was blocked — show fallback dialog with manual "Open WhatsApp" button
+      setFallbackData({
+        waUrl,
+        messageText,
+        phone: phoneResult.normalizedPhone,
+        tenantName: tenantName || (isEn ? 'Tenant' : 'ভাড়াটিয়া'),
+        popupBlocked: true,
+      });
+      setFallbackOpen(true);
+    } else {
+      toast.success(
+        isEn
+          ? `WhatsApp chat opened for ${tenantName || phoneResult.normalizedPhone}`
+          : `${tenantName || phoneResult.normalizedPhone}-এর হোয়াটসঅ্যাপ চ্যাট খোলা হয়েছে`
+      );
+    }
+  };
+
+  /**
+   * SECONDARY (optional): "Share Receipt Image"
+   *
+   * Only shown on devices/browsers that support navigator.share({ files }).
+   * Generates the receipt image and invokes the native share sheet so the
+   * user can select any app (including WhatsApp) to share the image to.
+   *
+   * This is intentionally SEPARATE from handleSendToWhatsApp because
+   * the native share sheet cannot target a specific WhatsApp contact.
+   */
+  const handleShareReceiptImage = async () => {
     try {
       setIsSharing(true);
 
-      const unitNumber = unit?.unitNumber || '';
-      const month = monthlyRent?.month;
-      const year = monthlyRent?.year;
-      const amount = effectivePayment.amount;
-
       const messageText = buildReceiptWhatsAppText({
         tenantName,
-        unitNumber,
-        month,
-        year,
-        amount,
+        unitNumber: unit?.unitNumber || '',
+        month: monthlyRent?.month,
+        year: monthlyRent?.year,
+        amount: effectivePayment.amount,
         isEn,
       });
 
-      const { dataUrl, blob, file, filename } = await generateReceiptImage();
+      const { file } = await generateReceiptImage();
 
-      // ─── STEP 1: Web Share API with Files (Mobile Devices) ─────────────────────
-      // On mobile browsers, navigator.share({ files: [file] }) is the ONLY browser
-      // mechanism that actually attaches the image file directly to WhatsApp.
-      // Regardless of whether a phone number is available, file sharing attaches the image!
-      if (canShareFiles(file)) {
-        try {
-          await navigator.share({
-            files: [file],
-            title: isEn ? 'BariVara Payment Receipt' : 'বাড়িভাড়া পেমেন্ট রসিদ',
-            text: messageText,
-          });
-          toast.success(
-            t.receiptSharedSuccess || (isEn ? 'Receipt shared successfully!' : 'রসিদ সফলভাবে শেয়ার করা হয়েছে!')
-          );
-          return;
-        } catch (shareErr: unknown) {
-          if ((shareErr as Error)?.name === 'AbortError') {
-            // User dismissed the native share sheet
-            return;
-          }
-          console.warn('Native share error, switching to desktop fallback:', shareErr);
-        }
-      }
-
-      // ─── STEP 2: Desktop / Unsupported Browser Flow ────────────────────────────
-      // Desktop browsers cannot attach files via URL or Web Share.
-      // We:
-      // a) Copy the PNG image directly to system clipboard (user can paste with Ctrl+V in WhatsApp Web!)
-      // b) Auto-download the receipt image file
-      // c) Open WhatsApp Web (to the tenant's number if available, or general wa.me if not)
-      // d) Show guidance modal explaining how to paste / attach the image.
-
-      // 1. Auto-download receipt image file
-      const link = document.createElement('a');
-      link.download = filename;
-      link.href = dataUrl;
-      link.click();
-
-      // 2. Copy image blob directly to clipboard (supported on modern desktop Chrome, Edge, Safari, Firefox)
-      let imageCopied = false;
-      if (typeof navigator !== 'undefined' && navigator.clipboard?.write && typeof ClipboardItem !== 'undefined') {
-        try {
-          await navigator.clipboard.write([
-            new ClipboardItem({
-              'image/png': blob,
-            }),
-          ]);
-          imageCopied = true;
-        } catch (clipErr) {
-          console.warn('Could not copy image to clipboard:', clipErr);
-        }
-      }
-
-      // If image copy failed, copy message text
-      if (!imageCopied && typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
-        navigator.clipboard.writeText(messageText).catch(() => {});
-      }
-
-      // 3. Open WhatsApp URL
-      const targetPhone = hasValidPhone ? phoneResult.normalizedPhone : '';
-      const waUrl = getWhatsAppShareUrl(targetPhone, messageText);
-      let openedWindow: Window | null = null;
-      try {
-        openedWindow = window.open(waUrl, '_blank', 'noopener,noreferrer');
-      } catch (e) {
-        console.warn('window.open failed:', e);
-      }
-
-      const isPopupBlocked = !openedWindow || openedWindow.closed || typeof openedWindow.closed === 'undefined';
-
-      // 4. Open guidance modal
-      setFallbackData({
-        filename,
-        waUrl,
-        messageText,
-        phone: targetPhone,
-        tenantName: tenantName || (isEn ? 'Tenant' : 'ভাড়াটিয়া'),
-        hasPhone: hasValidPhone,
-        file,
-        popupBlocked: isPopupBlocked,
-        imageCopied,
+      await navigator.share({
+        files: [file],
+        title: isEn ? 'Rent Payment Receipt' : 'ভাড়া পরিশোধের রশিদ',
+        text: messageText,
       });
-      setFallbackOpen(true);
 
-      if (imageCopied) {
-        toast.success(
-          isEn
-            ? 'Receipt image copied to clipboard & downloaded! Paste (Ctrl+V) in WhatsApp to attach.'
-            : 'রসিদ ইমেজ ক্লিপবোর্ডে কপি ও ডাউনলোড হয়েছে! হোয়াটসঅ্যাপে পেস্ট (Ctrl+V) করে সংযুক্ত করুন।',
-          { duration: 6000 }
-        );
-      } else {
-        toast.success(
-          t.receiptDownloadedForWhatsapp ||
-            (isEn
-              ? 'Receipt image downloaded! Please attach it in WhatsApp.'
-              : 'রসিদ ইমেজ ডাউনলোড হয়েছে! হোয়াটসঅ্যাপ চ্যাটে রসিদটি যুক্ত করে পাঠিয়ে দিন।'),
-          { duration: 5000 }
+      toast.success(
+        isEn ? 'Receipt image shared!' : 'রশিদ ইমেজ শেয়ার হয়েছে!'
+      );
+    } catch (err: unknown) {
+      if ((err as Error)?.name !== 'AbortError') {
+        console.error('Failed to share receipt image:', err);
+        toast.error(
+          isEn ? 'Failed to share receipt image' : 'রশিদ শেয়ার করতে সমস্যা হয়েছে'
         );
       }
-    } catch (error) {
-      console.error('Failed to prepare receipt for WhatsApp:', error);
-      toast.error(
-        t.receiptGenFailed ||
-          (isEn ? 'Failed to prepare receipt for sharing' : 'রসিদ শেয়ার করতে সমস্যা হয়েছে')
-      );
     } finally {
       setIsSharing(false);
     }
@@ -403,7 +373,7 @@ export function PaymentReceiptDialog({
                       {isEn ? 'PAID / সম্পন্ন' : 'পরিশোধিত'}
                     </span>
                     <p className="text-[10px] text-slate-500 mt-2 font-mono">
-                      {isEn ? 'Receipt No.' : 'রসিদ নং'} #{effectivePayment.id.substring(0, 8).toUpperCase()}
+                      {isEn ? 'Receipt No.' : 'রশিদ নং'} #{effectivePayment.id.substring(0, 8).toUpperCase()}
                     </p>
                   </div>
                 </div>
@@ -575,7 +545,7 @@ export function PaymentReceiptDialog({
               <div className="border-t border-stone-200 pt-3 text-center text-[10px] text-slate-500">
                 {isEn
                   ? 'Thank you for your payment. This is an electronic receipt.'
-                  : 'ভাড়া প্রদানের জন্য ধন্যবাদ। এটি একটি ইলেকট্রনিক রসিদ।'}
+                  : 'ভাড়া প্রদানের জন্য ধন্যবাদ। এটি একটি ইলেকট্রনিক রসিদ।'}
               </div>
             </div>
           </div>
@@ -590,7 +560,8 @@ export function PaymentReceiptDialog({
             >
               {t.cancel}
             </Button>
-            <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
+              {/* Download: generates and saves the receipt image */}
               <Button
                 variant="outline"
                 size="sm"
@@ -605,22 +576,39 @@ export function PaymentReceiptDialog({
                 )}
                 {isEn ? 'Download' : 'ডাউনলোড'}
               </Button>
+
+              {/* Share Image: native share sheet for image (mobile only, when supported) */}
+              {canShareImageNatively && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleShareReceiptImage}
+                  disabled={isDownloading || isSharing}
+                  className="gap-1.5 shadow-xs font-medium text-slate-700 hover:text-slate-900 border-stone-300 flex-1 sm:flex-none cursor-pointer"
+                  title={isEn ? 'Share receipt image via native share sheet' : 'শেয়ার শিট দিয়ে রশিদ শেয়ার করুন'}
+                >
+                  {isSharing ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-slate-600" />
+                  ) : (
+                    <Share2 className="w-4 h-4 text-slate-600" />
+                  )}
+                  {isEn ? 'Share Image' : 'শেয়ার'}
+                </Button>
+              )}
+
+              {/* Send to WhatsApp: opens EXACT tenant chat via wa.me deep-link */}
               <Button
                 size="sm"
-                onClick={handleSendReceipt}
+                onClick={handleSendToWhatsApp}
                 disabled={isDownloading || isSharing}
                 className="gap-2 shadow-xs font-semibold bg-[#25D366] hover:bg-[#20ba59] text-white border-0 transition-colors flex-1 sm:flex-none cursor-pointer"
                 title={
                   hasValidPhone
                     ? `WhatsApp: ${phoneResult.normalizedPhone}`
-                    : (isEn ? 'Choose WhatsApp Contact' : 'হোয়াটসঅ্যাপে কন্টাক্ট নির্বাচন করুন')
+                    : (isEn ? 'No WhatsApp number for this tenant' : 'ভাড়াটিয়ার হোয়াটসঅ্যাপ নম্বর নেই')
                 }
               >
-                {isSharing ? (
-                  <Loader2 className="w-4 h-4 animate-spin text-white" />
-                ) : (
-                  <WhatsAppIcon className="w-4 h-4 shrink-0" />
-                )}
+                <WhatsAppIcon className="w-4 h-4 shrink-0" />
                 <span className="truncate max-w-[150px] sm:max-w-[200px]">{getButtonText()}</span>
               </Button>
             </div>
@@ -642,20 +630,24 @@ export function PaymentReceiptDialog({
 interface WhatsAppShareFallbackProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /**
+   * Only populated when a popup was blocked on desktop.
+   * The fallback dialog shows a manual "Open WhatsApp" button.
+   */
   data: {
-    filename: string;
     waUrl: string;
     messageText: string;
     phone: string;
     tenantName: string;
-    hasPhone: boolean;
-    file: File | null;
     popupBlocked?: boolean;
-    imageCopied?: boolean;
   } | null;
   isEn: boolean;
 }
 
+/**
+ * Shown only when window.open() is blocked by the browser.
+ * Provides a manual "Open WhatsApp" button and shows the prefilled message.
+ */
 function WhatsAppShareFallbackDialog({
   open,
   onOpenChange,
@@ -663,7 +655,6 @@ function WhatsAppShareFallbackDialog({
   isEn,
 }: WhatsAppShareFallbackProps) {
   const [copiedText, setCopiedText] = React.useState(false);
-  const [copiedImage, setCopiedImage] = React.useState(false);
 
   if (!data) return null;
 
@@ -671,30 +662,7 @@ function WhatsAppShareFallbackDialog({
     if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
       navigator.clipboard.writeText(data.messageText);
       setCopiedText(true);
-      toast.success(isEn ? 'Message text copied!' : 'মেসেজ টেক্সট কপি হয়েছে!');
       setTimeout(() => setCopiedText(false), 2500);
-    }
-  };
-
-  const handleCopyImage = async () => {
-    if (!data.file) return;
-    try {
-      if (typeof navigator !== 'undefined' && navigator.clipboard?.write && typeof ClipboardItem !== 'undefined') {
-        await navigator.clipboard.write([
-          new ClipboardItem({
-            'image/png': data.file,
-          }),
-        ]);
-        setCopiedImage(true);
-        toast.success(
-          isEn
-            ? 'Receipt image copied! Paste (Ctrl+V) in WhatsApp.'
-            : 'রসিদ ইমেজ কপি হয়েছে! হোয়াটসঅ্যাপে পেস্ট (Ctrl+V) করুন।'
-        );
-        setTimeout(() => setCopiedImage(false), 2500);
-      }
-    } catch {
-      toast.error(isEn ? 'Could not copy image to clipboard' : 'ছবি ক্লিপবোর্ডে কপি করা যায়নি');
     }
   };
 
@@ -702,28 +670,9 @@ function WhatsAppShareFallbackDialog({
     window.open(data.waUrl, '_blank', 'noopener,noreferrer');
   };
 
-  const handleNativeShare = async () => {
-    if (!data.file) return;
-    try {
-      await navigator.share({
-        files: [data.file],
-        title: isEn ? 'BariVara Payment Receipt' : 'বাড়িভাড়া পেমেন্ট রসিদ',
-        text: data.messageText,
-      });
-      toast.success(isEn ? 'Receipt shared successfully!' : 'রসিদ সফলভাবে শেয়ার করা হয়েছে!');
-      onOpenChange(false);
-    } catch (err: unknown) {
-      if ((err as Error)?.name !== 'AbortError') {
-        toast.error(isEn ? 'Failed to open share sheet' : 'শেয়ার শিট ওপেন করতে সমস্যা হয়েছে');
-      }
-    }
-  };
-
-  const showNativeShareOption = data.file ? canShareFiles(data.file) : false;
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md p-5 bg-white rounded-2xl shadow-2xl border border-slate-200">
+      <DialogContent className="sm:max-w-sm p-5 bg-white rounded-2xl shadow-2xl border border-slate-200">
         <DialogHeader className="space-y-1.5 pb-1">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-full bg-[#25D366]/15 flex items-center justify-center text-[#25D366] shrink-0">
@@ -731,130 +680,36 @@ function WhatsAppShareFallbackDialog({
             </div>
             <div>
               <DialogTitle className="text-base font-bold text-slate-900 leading-tight">
-                {data.hasPhone
-                  ? (isEn ? `Send to ${data.tenantName}` : `${data.tenantName}-কে হোয়াটসঅ্যাপে পাঠান`)
-                  : (isEn ? 'Send via WhatsApp' : 'হোয়াটসঅ্যাপে রসিদ পাঠান')}
+                {isEn ? `Send to ${data.tenantName}` : `${data.tenantName}-কে পাঠান`}
               </DialogTitle>
               <DialogDescription className="text-xs text-slate-500">
-                {data.hasPhone
-                  ? (isEn ? `Chat prepared for ${data.phone}` : `${data.phone} নম্বরে সরাসরি চ্যাট প্রস্তুত করা হয়েছে`)
-                  : (isEn ? 'Select a recipient contact in WhatsApp' : 'হোয়াটসঅ্যাপে কন্টাক্ট নির্বাচন করুন')}
+                {isEn ? `WhatsApp: ${data.phone}` : `নম্বর: ${data.phone}`}
               </DialogDescription>
             </div>
           </div>
         </DialogHeader>
 
-        {/* Pop-up blocked warning alert */}
+        {/* Popup blocked warning */}
         {data.popupBlocked && (
           <div className="flex items-start gap-2 p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-xs">
             <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
             <div className="space-y-1">
               <span className="font-semibold block">
-                {isEn ? 'Pop-up window was blocked' : 'ব্রাউজারে নতুন ট্যাব ব্লক করা হয়েছে'}
+                {isEn ? 'Pop-up blocked by browser' : 'ব্রাউজার পপ-আপ ব্লক করেছে'}
               </span>
               <p className="text-[11px] text-amber-800">
                 {isEn
-                  ? 'Your browser prevented opening WhatsApp automatically. Click "Open WhatsApp" below.'
-                  : 'স্বয়ংক্রিয়ভাবে হোয়াটসঅ্যাপ ট্যাব খুলতে পারেনি। নিচের "হোয়াটসঅ্যাপ খুলুন" বাটনে চাপ দিন।'}
+                  ? 'Click "Open WhatsApp" below to open the exact tenant chat.'
+                  : 'নিচের "হোয়াটসঅ্যাপ খুলুন" বাটনে চাপ দিয়ে সরাসরি চ্যাট খুলুন।'}
               </p>
             </div>
           </div>
         )}
 
-        {/* Image Copied Banner */}
-        {data.imageCopied && (
-          <div className="flex items-start gap-2.5 p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-950 text-xs">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-            <div className="space-y-0.5">
-              <span className="font-semibold block">
-                {isEn ? 'Receipt image copied to clipboard!' : 'রসিদ ইমেজ ক্লিপবোর্ডে কপি হয়েছে!'}
-              </span>
-              <p className="text-[11px] text-emerald-800">
-                {isEn
-                  ? 'In WhatsApp Web, press Ctrl+V (or Cmd+V) to paste the image directly into the chat.'
-                  : 'হোয়াটসঅ্যাপ চ্যাটে গিয়ে Ctrl+V (বা Cmd+V) চাপলেই ছবিটি মেসেজে যুক্ত হয়ে যাবে।'}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* 3 Step Guidance */}
-        <div className="space-y-2 py-1 text-xs">
-          {/* Step 1: Downloaded & Copied */}
-          <div className="flex items-start gap-2.5 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800">
-            <div className="h-5 w-5 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
-              ✓
-            </div>
-            <div className="space-y-0.5 min-w-0 flex-1">
-              <div className="flex items-center justify-between">
-                <span className="font-semibold block text-slate-900">
-                  {isEn ? '1. Receipt Image Ready' : '১. রসিদ ইমেজ প্রস্তুত'}
-                </span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleCopyImage}
-                  className="h-5 px-1.5 text-[10px] text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50 gap-1 cursor-pointer"
-                >
-                  <Copy className="w-3 h-3" />
-                  <span>{copiedImage ? (isEn ? 'Copied!' : 'কপি হয়েছে!') : (isEn ? 'Copy Image' : 'ছবি কপি')}</span>
-                </Button>
-              </div>
-              <p className="text-[11px] text-slate-600 truncate">
-                {isEn ? 'Downloaded as: ' : 'ডাউনলোড হয়েছে: '}
-                <code className="bg-white px-1.5 py-0.5 rounded border border-slate-300 text-slate-800 font-mono text-[10px]">
-                  {data.filename}
-                </code>
-              </p>
-            </div>
-          </div>
-
-          {/* Step 2: Chat opened */}
-          <div className="flex items-start gap-2.5 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800">
-            <div className="h-5 w-5 rounded-full bg-slate-800 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
-              2
-            </div>
-            <div className="space-y-0.5">
-              <span className="font-semibold block text-slate-900">
-                {data.hasPhone
-                  ? (isEn ? `2. WhatsApp Chat Opened (${data.phone})` : `২. হোয়াটসঅ্যাপ চ্যাট ওপেন হয়েছে (${data.phone})`)
-                  : (isEn ? '2. WhatsApp Opened' : '২. হোয়াটসঅ্যাপ ওপেন হয়েছে')}
-              </span>
-              <p className="text-[11px] text-slate-600">
-                {data.hasPhone
-                  ? (isEn
-                      ? 'The conversation is open with the prefilled receipt summary.'
-                      : 'ভাড়াটিয়ার চ্যাটে রসিদের তথ্যসহ মেসেজ প্রস্তুত করা হয়েছে।')
-                  : (isEn
-                      ? 'Select your tenant from your WhatsApp contact list.'
-                      : 'হোয়াটসঅ্যাপে আপনার ভাড়াটিয়াকে কন্টাক্ট লিস্ট থেকে সিলেক্ট করুন।')}
-              </p>
-            </div>
-          </div>
-
-          {/* Step 3: Attach & Send */}
-          <div className="flex items-start gap-2.5 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800">
-            <div className="h-5 w-5 rounded-full bg-slate-800 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
-              3
-            </div>
-            <div className="space-y-0.5">
-              <span className="font-semibold block text-slate-900">
-                {isEn ? '3. Paste / Attach Image & Press Send' : '৩. ছবিটি পেস্ট বা অ্যাটাচ করে Send চাপুন'}
-              </span>
-              <p className="text-[11px] text-slate-600">
-                {isEn
-                  ? 'Press Ctrl+V (Cmd+V) or drag & drop the downloaded receipt image into the chat, then click Send.'
-                  : 'চ্যাট বক্সে Ctrl+V (Cmd+V) চাপুন অথবা ডাউনলোড করা ছবিটি ড্রপ করে Send বাটনে চাপ দিন।'}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Message Preview Box with Copy Button */}
+        {/* Prefilled message preview */}
         <div className="space-y-1">
           <div className="flex items-center justify-between text-[11px] font-medium text-slate-700">
-            <span>{isEn ? 'Prefilled Message Text:' : 'মেসেজের বিবরণ:'}</span>
+            <span>{isEn ? 'Prefilled message:' : 'প্রি-ফিলড মেসেজ:'}</span>
             <Button
               type="button"
               variant="ghost"
@@ -865,40 +720,24 @@ function WhatsAppShareFallbackDialog({
               {copiedText ? (
                 <>
                   <Check className="w-3.5 h-3.5 text-emerald-600" />
-                  <span className="text-emerald-700 font-semibold">{isEn ? 'Copied' : 'কপি হয়েছে'}</span>
+                  <span className="text-emerald-700 font-semibold">{isEn ? 'Copied' : 'কপি হয়েছে'}</span>
                 </>
               ) : (
                 <>
                   <Copy className="w-3.5 h-3.5" />
-                  <span>{isEn ? 'Copy Text' : 'টেক্সট কপি'}</span>
+                  <span>{isEn ? 'Copy' : 'কপি'}</span>
                 </>
               )}
             </Button>
           </div>
-          <pre className="text-[11px] font-sans bg-slate-100 p-2.5 rounded-lg border border-slate-200 whitespace-pre-wrap text-slate-800 leading-relaxed max-h-24 overflow-y-auto">
+          <pre className="text-[11px] font-sans bg-slate-100 p-2.5 rounded-lg border border-slate-200 whitespace-pre-wrap text-slate-800 leading-relaxed">
             {data.messageText}
           </pre>
         </div>
 
-        {/* Optional Native Share Option if available */}
-        {showNativeShareOption && (
-          <div className="pt-1">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleNativeShare}
-              className="w-full gap-2 text-xs border-emerald-300 text-emerald-800 bg-emerald-50/60 hover:bg-emerald-100/70 cursor-pointer"
-            >
-              <Share2 className="w-3.5 h-3.5 text-emerald-700" />
-              {isEn ? 'Share with File Attached (Native Share Sheet)' : 'ফাইলসহ সরাসরি শেয়ার করুন (শেয়ার শিট)'}
-            </Button>
-          </div>
-        )}
-
         <DialogFooter className="pt-2 flex items-center justify-between gap-2">
           <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
-            {isEn ? 'Done' : 'সম্পন্ন'}
+            {isEn ? 'Close' : 'বন্ধ করুন'}
           </Button>
           <Button
             size="sm"
@@ -907,7 +746,7 @@ function WhatsAppShareFallbackDialog({
           >
             <WhatsAppIcon className="w-4 h-4" />
             <ExternalLink className="w-3.5 h-3.5 opacity-80" />
-            {isEn ? 'Open WhatsApp' : 'হোয়াটসঅ্যাপ খুলুন'}
+            {isEn ? 'Open WhatsApp' : 'হোয়াটসঅ্যাপ খুলুন'}
           </Button>
         </DialogFooter>
       </DialogContent>
