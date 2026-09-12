@@ -162,20 +162,26 @@ export default function TenantDetailPage() {
           </CardHeader>
           <CardContent className="space-y-3 text-xs">
             <div>
-              <span className="text-slate-500 block">{t.nid}:</span>
-              <span className="font-semibold text-slate-900 font-mono">{tenant.nid || '-'}</span>
-            </div>
-            <div>
               <span className="text-slate-500 block">{t.permanentAddress}:</span>
               <span className="font-semibold text-slate-900">{tenant.permanentAddress || '-'}</span>
             </div>
-            {tenant.nidImageId && (
+            {tenant.nidFrontImageId && (
               <div className="pt-2 border-t border-slate-100">
                 <FileUploader
-                  category="TENANT_NID"
-                  value={tenant.nidImageId}
+                  category="TENANT_FRONT_NID"
+                  value={tenant.nidFrontImageId}
                   disabled
-                  label={isEn ? 'NID Document' : 'এনআইডি ফাইল'}
+                  label={isEn ? 'NID — Front Side' : 'এনআইডি — সামনের পাশ'}
+                />
+              </div>
+            )}
+            {tenant.nidBackImageId && (
+              <div className="pt-2 border-t border-slate-100">
+                <FileUploader
+                  category="TENANT_BACK_NID"
+                  value={tenant.nidBackImageId}
+                  disabled
+                  label={isEn ? 'NID — Back Side' : 'এনআইডি — পেছনের পাশ'}
                 />
               </div>
             )}

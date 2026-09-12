@@ -149,8 +149,8 @@ export interface Tenant {
   name: string;
   phone: string;
   email?: string | null;
-  nid?: string | null;
-  nidImageId?: string | null;
+  nidFrontImageId?: string | null;
+  nidBackImageId?: string | null;
   permanentAddress?: string | null;
   emergencyContactName?: string | null;
   emergencyContactPhone?: string | null;
@@ -340,7 +340,8 @@ export interface MonthlyReport {
 export type FileCategory =
   | 'PROFILE_IMAGE'
   | 'PROPERTY_IMAGE'
-  | 'TENANT_NID'
+  | 'TENANT_FRONT_NID'
+  | 'TENANT_BACK_NID'
   | 'TENANT_DOCUMENT'
   | 'AGREEMENT_DOCUMENT'
   | 'PAYMENT_RECEIPT'

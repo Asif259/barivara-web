@@ -24,11 +24,11 @@ import { FileUploader } from '@/components/ui/file-uploader';
 import { UserPlus, User, Loader2, Save } from 'lucide-react';
 
 const tenantSchema = z.object({
-  name: z.string().min(2, 'ভাড়াটিয়ার নাম লিখুন'),
+  name: z.string().min(2, 'ভাড়াটিয়ার নাম লিখুন'),
   phone: z.string().optional().or(z.literal('')),
   email: z.union([z.literal(''), z.string().email('সঠিক ইমেইল দিন')]).optional(),
-  nid: z.string().optional(),
-  nidImageId: z.string().optional().nullable(),
+  nidFrontImageId: z.string().optional().nullable(),
+  nidBackImageId: z.string().optional().nullable(),
   permanentAddress: z.string().optional(),
   emergencyContactName: z.string().optional(),
   emergencyContactPhone: z.string().optional(),
@@ -71,8 +71,8 @@ export function TenantFormDialog({
       name: tenant?.name || '',
       phone: tenant?.phone || '',
       email: tenant?.email || '',
-      nid: tenant?.nid || '',
-      nidImageId: tenant?.nidImageId || '',
+      nidFrontImageId: tenant?.nidFrontImageId || '',
+      nidBackImageId: tenant?.nidBackImageId || '',
       permanentAddress: tenant?.permanentAddress || '',
       emergencyContactName: tenant?.emergencyContactName || '',
       emergencyContactPhone: tenant?.emergencyContactPhone || '',
@@ -87,7 +87,6 @@ export function TenantFormDialog({
       ...data,
       phone: data.phone?.trim() || undefined,
       email: data.email?.trim() || undefined,
-      nid: data.nid?.trim() || undefined,
       permanentAddress: data.permanentAddress?.trim() || undefined,
       emergencyContactName: data.emergencyContactName?.trim() || undefined,
       emergencyContactPhone: data.emergencyContactPhone?.trim() || undefined,
@@ -143,17 +142,10 @@ export function TenantFormDialog({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label htmlFor="email">{t.email} ({isEn ? 'Optional' : 'ঐচ্ছিক'})</Label>
-              <Input id="email" type="email" placeholder="kamal@example.com" {...register('email')} />
-              {errors.email && <p className="text-xs text-rose-500">{errors.email.message}</p>}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="nid">{t.nid}</Label>
-              <Input id="nid" placeholder={isEn ? 'National ID Number' : 'এনআইডি নম্বর'} {...register('nid')} />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">{t.email} ({isEn ? 'Optional' : 'ঐচ্ছিক'})</Label>
+            <Input id="email" type="email" placeholder="kamal@example.com" {...register('email')} />
+            {errors.email && <p className="text-xs text-rose-500">{errors.email.message}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -185,16 +177,26 @@ export function TenantFormDialog({
             <Input id="notes" placeholder={isEn ? 'Family members, references...' : 'পরিবারের সদস্য সংখ্যা বা অন্যান্য তথ্য'} {...register('notes')} />
           </div>
 
-          {/* Tenant NID & Document Upload */}
-          <div className="border-t border-slate-100 pt-3">
+          {/* Tenant NID Upload — Front & Back */}
+          <div className="border-t border-slate-100 pt-3 space-y-3">
             <FileUploader
-              category="TENANT_NID"
+              category="TENANT_FRONT_NID"
               entityType="tenant"
               entityId={tenant?.id}
-              value={watch('nidImageId') || tenant?.nidImageId || null}
-              onChange={(id) => setValue('nidImageId', id || '')}
-              label={isEn ? 'Tenant NID Card Photo (Private & Secure)' : 'ভাড়াটিয়ার এনআইডি (NID) কার্ডের ছবি / কপি (সুরক্ষিত)'}
-              description={isEn ? 'Upload front/back copy of National ID card (Max 5MB)' : 'জাতীয় পরিচয়পত্রের কপি আপলোড করুন (সর্বোচ্চ ৫MB)'}
+              value={watch('nidFrontImageId') || tenant?.nidFrontImageId || null}
+              onChange={(id) => setValue('nidFrontImageId', id || '')}
+              label={isEn ? 'NID Card — Front Side (Private & Secure)' : 'এনআইডি কার্ড — সামনের পাশ (সুরক্ষিত)'}
+              description={isEn ? 'Upload front side of National ID card (Max 5MB)' : 'জাতীয় পরিচয়পত্রের সামনের কপি আপলোড করুন (সর্বোচ্চ ৫MB)'}
+              maxSizeMB={5}
+            />
+            <FileUploader
+              category="TENANT_BACK_NID"
+              entityType="tenant"
+              entityId={tenant?.id}
+              value={watch('nidBackImageId') || tenant?.nidBackImageId || null}
+              onChange={(id) => setValue('nidBackImageId', id || '')}
+              label={isEn ? 'NID Card — Back Side (Private & Secure)' : 'এনআইডি কার্ড — পেছনের পাশ (সুরক্ষিত)'}
+              description={isEn ? 'Upload back side of National ID card (Max 5MB)' : 'জাতীয় পরিচয়পত্রের পেছনের কপি আপলোড করুন (সর্বোচ্চ ৫MB)'}
               maxSizeMB={5}
             />
           </div>

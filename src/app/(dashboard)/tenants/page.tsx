@@ -124,7 +124,6 @@ export default function TenantsPage() {
                   <TableHead>{t.phone}</TableHead>
                   <TableHead>{t.email}</TableHead>
                   <TableHead>{t.occupation}</TableHead>
-                  <TableHead>{t.nid}</TableHead>
                   <TableHead>{isEn ? 'Added On' : 'যুক্ত করার তারিখ'}</TableHead>
                   <TableHead className="text-right">{t.actions}</TableHead>
                 </TableRow>
@@ -148,9 +147,6 @@ export default function TenantsPage() {
                     </TableCell>
                     <TableCell data-label={t.occupation} className="text-slate-600 text-xs">
                       {tenant.occupation || '-'}
-                    </TableCell>
-                    <TableCell data-label={t.nid} className="text-slate-500 text-xs font-mono">
-                      {tenant.nid || '-'}
                     </TableCell>
                     <TableCell data-label={isEn ? 'Added On' : 'যুক্ত করার তারিখ'} className="text-slate-500 text-xs">
                       {formatBnDate(tenant.createdAt, language)}
