@@ -83,7 +83,7 @@ export default function PaymentsPage() {
     <div className="space-y-6">
       <PageHeader
         title={t.payments}
-        description={isEn ? 'Audit trail of all rent collections, methods, and receipts' : 'ভাড়া আদায়ের সকল ট্রানজেকশন, রশিদ এবং পেমেন্ট হিস্ট্রি'}
+        description={isEn ? 'Audit trail of all rent collections, methods, and receipts' : 'ভাড়া আদায়ের সকল ট্রানজেকশন, রসিদ এবং পেমেন্ট হিস্ট্রি'}
       />
 
       {/* Filter Bar */}

@@ -27,6 +27,7 @@ import {
   FileText,
   Plus,
   Ban,
+  Edit,
 } from 'lucide-react';
 
 export default function AgreementsPage() {
@@ -36,6 +37,7 @@ export default function AgreementsPage() {
 
   const [agreementDialogOpen, setAgreementDialogOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>('ACTIVE');
+  const [editingAgreement, setEditingAgreement] = useState<RentalAgreement | null>(null);
 
   // Fetch properties to determine if single property
   const { data: properties } = useQuery({
@@ -69,9 +71,15 @@ export default function AgreementsPage() {
       await apiClient.post(`/rental-agreements/${id}/end`);
       toast.success(isEn ? 'Agreement terminated successfully' : 'ভাড়া চুক্তি সমাপ্ত করা হয়েছে');
       refetch();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || (isEn ? 'Failed to end agreement' : 'চুক্তি সমাপ্ত করা সম্ভব হয়নি'));
+    } catch (error: unknown) {
+      const axiosError = error as { response?: { data?: { message?: string } } };
+      toast.error(axiosError.response?.data?.message || (isEn ? 'Failed to end agreement' : 'চুক্তি সমাপ্ত করা সম্ভব হয়নি'));
     }
+  };
+
+  const handleEditAgreement = (agreement: RentalAgreement) => {
+    setEditingAgreement(agreement);
+    setAgreementDialogOpen(true);
   };
 
   return (
@@ -176,8 +184,18 @@ export default function AgreementsPage() {
                         <StatusBadge status={agr.status} lang={language} />
                       </TableCell>
                       <TableCell data-label={t.actions} className="text-center">
-                        {agr.status === 'ACTIVE' && (
-                          <div className="flex items-center justify-end table-actions">
+                        <div className="flex items-center justify-end table-actions gap-1.5">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleEditAgreement(agr)}
+                            className="h-7 px-2 text-xs text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 gap-1 border border-emerald-200"
+                            title={t.edit}
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                            <span>{t.edit}</span>
+                          </Button>
+                          {agr.status === 'ACTIVE' && (
                             <Button
                               size="sm"
                               variant="ghost"
@@ -188,8 +206,8 @@ export default function AgreementsPage() {
                               <Ban className="w-3.5 h-3.5" />
                               <span>{isEn ? 'End' : 'শেষ'}</span>
                             </Button>
-                          </div>
-                        )}
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -213,6 +231,8 @@ export default function AgreementsPage() {
         open={agreementDialogOpen}
         onOpenChange={setAgreementDialogOpen}
         onSuccess={refetch}
+        agreement={editingAgreement}
+        isEditing={!!editingAgreement}
       />
     </div>
   );

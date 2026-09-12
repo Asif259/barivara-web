@@ -240,7 +240,7 @@ export function PaymentReceiptDialog({
       toast.success(isEn ? 'Receipt image downloaded successfully!' : 'মানি রিসিট ইমেজ ডাউনলোড হয়েছে!');
     } catch (error) {
       console.error('Failed to export receipt image:', error);
-      toast.error(t.receiptGenFailed || (isEn ? 'Failed to download receipt image' : 'রশিদ ইমেজ ডাউনলোড ব্যর্থ হয়েছে'));
+      toast.error(t.receiptGenFailed || (isEn ? 'Failed to download receipt image' : 'রসিদ ইমেজ ডাউনলোড ব্যর্থ হয়েছে'));
     } finally {
       setIsDownloading(false);
     }
@@ -333,7 +333,7 @@ export function PaymentReceiptDialog({
 
         await navigator.share({
           files: [file],
-          title: isEn ? 'Rent Payment Receipt' : 'ভাড়া পরিশোধের রশিদ',
+          title: isEn ? 'Rent Payment Receipt' : 'ভাড়া পরিশোধের রসিদ',
           text: messageText,
         });
 
@@ -357,7 +357,7 @@ export function PaymentReceiptDialog({
       return t.sendingReceipt || (isEn ? 'Preparing...' : 'প্রস্তুত হচ্ছে...');
     }
     if (canShareImageNatively) {
-      return isEn ? 'Share Receipt' : 'রশিদ শেয়ার করুন';
+      return isEn ? 'Share Receipt' : 'রসিদ শেয়ার করুন';
     }
     if (hasValidPhone && tenantName) {
       return isEn ? `Send to ${tenantName}` : `${tenantName}-কে পাঠান`;
@@ -409,212 +409,212 @@ export function PaymentReceiptDialog({
                     className="space-y-5 bg-white border border-stone-300 shadow-sm"
                     style={{ width: CANONICAL_RECEIPT_WIDTH, padding: '28px' }}
                   >
-              {/* Header */}
-              <div className="border-y-[3px] border-emerald-800 py-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="h-11 w-11 shrink-0 overflow-hidden rounded">
-                      <Image src="/logo.png" alt="BariVara" width={44} height={44} className="w-full h-full object-cover" />
+                    {/* Header */}
+                    <div className="border-y-[3px] border-emerald-800 py-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <div className="h-11 w-11 shrink-0 overflow-hidden rounded">
+                            <Image src="/logo.png" alt="BariVara" width={44} height={44} className="w-full h-full object-cover" />
+                          </div>
+                          <div>
+                            <h2 className="font-serif text-[22px] font-bold text-slate-950 tracking-tight leading-tight">
+                              {property?.name || 'বাড়িভাড়া (BariVara)'}
+                            </h2>
+                            {property?.address && (
+                              <p className="text-[11px] text-slate-600 leading-tight mt-1">{property.address}</p>
+                            )}
+                            <p className="text-[10px] font-bold text-emerald-800 uppercase tracking-[0.18em] mt-1.5">
+                              {isEn ? 'Official Money Receipt' : 'ভাড়া আদায়ের মানি রিসিট'}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <span
+                            className="inline-block text-[10px] px-2 py-1 bg-emerald-800 text-white font-bold tracking-[0.14em]"
+                            style={{ backgroundColor: '#065f46', color: '#ffffff' }}
+                          >
+                            {isEn ? 'PAID / সম্পন্ন' : 'পরিশোধিত'}
+                          </span>
+                          <p className="text-[10px] text-slate-500 mt-2 font-mono">
+                            {isEn ? 'Receipt No.' : 'রসিদ নং'} #{effectivePayment.id.substring(0, 8).toUpperCase()}
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <h2 className="font-serif text-[22px] font-bold text-slate-950 tracking-tight leading-tight">
-                        {property?.name || 'বাড়িভাড়া (BariVara)'}
-                      </h2>
-                      {property?.address && (
-                        <p className="text-[11px] text-slate-600 leading-tight mt-1">{property.address}</p>
-                      )}
-                      <p className="text-[10px] font-bold text-emerald-800 uppercase tracking-[0.18em] mt-1.5">
-                        {isEn ? 'Official Money Receipt' : 'ভাড়া আদায়ের মানি রিসিট'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <span
-                      className="inline-block text-[10px] px-2 py-1 bg-emerald-800 text-white font-bold tracking-[0.14em]"
-                      style={{ backgroundColor: '#065f46', color: '#ffffff' }}
+
+                    {/* Tenant and unit details */}
+                    <div
+                      className="grid grid-cols-2 divide-x divide-stone-300 border-y border-stone-300 text-xs"
                     >
-                      {isEn ? 'PAID / সম্পন্ন' : 'পরিশোধিত'}
-                    </span>
-                    <p className="text-[10px] text-slate-500 mt-2 font-mono">
-                      {isEn ? 'Receipt No.' : 'রশিদ নং'} #{effectivePayment.id.substring(0, 8).toUpperCase()}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Tenant and unit details */}
-              <div
-                className="grid grid-cols-2 divide-x divide-stone-300 border-y border-stone-300 text-xs"
-              >
-                <div className="space-y-1 py-3 pr-4">
-                  <span className="text-emerald-800 font-bold text-[10px] uppercase tracking-[0.12em] block">
-                    {isEn ? 'Tenant Information:' : 'ভাড়াটিয়ার তথ্য:'}
-                  </span>
-                  <span className="font-semibold text-slate-950 text-sm block">
-                    {tenantName || (isEn ? 'Tenant' : 'ভাড়াটিয়া')}
-                  </span>
-                  <div className="flex items-center gap-1 text-slate-600 text-[11px]">
-                    {/* Phone number only — no WhatsApp badge inside the receipt */}
-                    <span>{rawPhone ? toBnNum(rawPhone) : '-'}</span>
-                  </div>
-                </div>
-                <div className="text-right space-y-1 py-3 pl-4">
-                  <span className="text-emerald-800 font-bold text-[10px] uppercase tracking-[0.12em] block">
-                    {isEn ? 'Unit & Property:' : 'ইউনিট ও বাড়ি:'}
-                  </span>
-                  <span className="font-semibold text-slate-950 text-sm block">
-                    {unit ? `${isEn ? 'Unit' : 'ইউনিট'} ${toBnNum(unit.unitNumber)}` : '-'}
-                  </span>
-                  <span className="text-slate-600 text-[11px] block">
-                    {property?.name}
-                  </span>
-                </div>
-              </div>
-
-              {/* Detailed Breakdown Table */}
-              <div className="border border-stone-300 overflow-hidden text-xs">
-                <div
-                  className="bg-stone-100 px-4 py-2.5 border-b border-stone-300 flex justify-between items-center text-[10px] font-bold text-stone-700 uppercase tracking-[0.16em]"
-                >
-                  <span>{isEn ? 'Description' : 'বিবরণ'}</span>
-                  <span>{isEn ? 'Amount' : 'পরিমাণ'}</span>
-                </div>
-
-                <div className="divide-y divide-stone-200 bg-white">
-                  {/* Rent Period */}
-                  <div className="px-4 py-2.5 flex justify-between text-slate-700">
-                    <span>{isEn ? 'Rent Period' : 'ভাড়ার মাস ও সাল'}:</span>
-                    <span className="font-semibold text-slate-950 font-mono">
-                      {monthlyRent ? `${toBnNum(monthlyRent.month)}/${toBnNum(monthlyRent.year)}` : '-'}
-                    </span>
-                  </div>
-
-                  {monthlyRent && (
-                    <>
-                      <div className="px-4 py-2 flex justify-between text-slate-700">
-                        <span>{isEn ? 'Base Rent' : 'মূল ভাড়া'}:</span>
-                        <span className="font-medium text-slate-900">{formatCurrency(monthlyRent.rent, language)}</span>
+                      <div className="space-y-1 py-3 pr-4">
+                        <span className="text-emerald-800 font-bold text-[10px] uppercase tracking-[0.12em] block">
+                          {isEn ? 'Tenant Information:' : 'ভাড়াটিয়ার তথ্য:'}
+                        </span>
+                        <span className="font-semibold text-slate-950 text-sm block">
+                          {tenantName || (isEn ? 'Tenant' : 'ভাড়াটিয়া')}
+                        </span>
+                        <div className="flex items-center gap-1 text-slate-600 text-[11px]">
+                          {/* Phone number only — no WhatsApp badge inside the receipt */}
+                          <span>{rawPhone ? toBnNum(rawPhone) : '-'}</span>
+                        </div>
                       </div>
+                      <div className="text-right space-y-1 py-3 pl-4">
+                        <span className="text-emerald-800 font-bold text-[10px] uppercase tracking-[0.12em] block">
+                          {isEn ? 'Unit & Property:' : 'ইউনিট ও বাড়ি:'}
+                        </span>
+                        <span className="font-semibold text-slate-950 text-sm block">
+                          {unit ? `${isEn ? 'Unit' : 'ইউনিট'} ${toBnNum(unit.unitNumber)}` : '-'}
+                        </span>
+                        <span className="text-slate-600 text-[11px] block">
+                          {property?.name}
+                        </span>
+                      </div>
+                    </div>
 
-                      {monthlyRent.serviceFee > 0 && (
-                        <div className="px-4 py-2 flex justify-between text-slate-700">
-                          <span>{isEn ? 'Service Fee' : 'সার্ভিস চার্জ'}:</span>
-                          <span className="font-medium text-slate-900">{formatCurrency(monthlyRent.serviceFee, language)}</span>
-                        </div>
-                      )}
-
-                      {monthlyRent.parkingFee > 0 && (
-                        <div className="px-4 py-2 flex justify-between text-slate-700">
-                          <span>{isEn ? 'Parking Fee' : 'পার্কিং চার্জ'}:</span>
-                          <span className="font-medium text-slate-900">{formatCurrency(monthlyRent.parkingFee, language)}</span>
-                        </div>
-                      )}
-
-                      {monthlyRent.extraCharge > 0 && (
-                        <div className="px-4 py-2 flex justify-between text-slate-700">
-                          <span>{isEn ? 'Extra Charge' : 'অন্যান্য চার্জ'}:</span>
-                          <span className="font-medium text-slate-900">{formatCurrency(monthlyRent.extraCharge, language)}</span>
-                        </div>
-                      )}
-
-                      {monthlyRent.discount > 0 && (
-                        <div className="px-4 py-2 flex justify-between text-emerald-800 font-medium">
-                          <span>{isEn ? 'Discount' : 'ছাড়'}:</span>
-                          <span>- {formatCurrency(monthlyRent.discount, language)}</span>
-                        </div>
-                      )}
-
+                    {/* Detailed Breakdown Table */}
+                    <div className="border border-stone-300 overflow-hidden text-xs">
                       <div
-                        className="px-4 py-2.5 flex justify-between font-semibold text-slate-950 bg-stone-100"
+                        className="bg-stone-100 px-4 py-2.5 border-b border-stone-300 flex justify-between items-center text-[10px] font-bold text-stone-700 uppercase tracking-[0.16em]"
                       >
-                        <span>{isEn ? 'Total Monthly Bill' : 'মোট মাসিক বিল'}:</span>
-                        <span>{formatCurrency(monthlyRent.totalAmount, language)}</span>
+                        <span>{isEn ? 'Description' : 'বিবরণ'}</span>
+                        <span>{isEn ? 'Amount' : 'পরিমাণ'}</span>
                       </div>
-                    </>
-                  )}
 
-                  {/* Payment Details */}
-                  <div className="px-4 py-2 flex justify-between text-slate-700">
-                    <span>{isEn ? 'Payment Receiving Date' : 'টাকা গ্রহণের তারিখ'}:</span>
-                    <span className="font-medium text-slate-900">{formatBnDate(effectivePayment.paymentDate, language)}</span>
-                  </div>
+                      <div className="divide-y divide-stone-200 bg-white">
+                        {/* Rent Period */}
+                        <div className="px-4 py-2.5 flex justify-between text-slate-700">
+                          <span>{isEn ? 'Rent Period' : 'ভাড়ার মাস ও সাল'}:</span>
+                          <span className="font-semibold text-slate-950 font-mono">
+                            {monthlyRent ? `${toBnNum(monthlyRent.month)}/${toBnNum(monthlyRent.year)}` : '-'}
+                          </span>
+                        </div>
 
-                  <div className="px-4 py-2 flex justify-between text-slate-700">
-                    <span>{t.paymentMethod}:</span>
-                    <span className="font-medium text-slate-900">{translatePaymentMethod(effectivePayment.paymentMethod)}</span>
-                  </div>
+                        {monthlyRent && (
+                          <>
+                            <div className="px-4 py-2 flex justify-between text-slate-700">
+                              <span>{isEn ? 'Base Rent' : 'মূল ভাড়া'}:</span>
+                              <span className="font-medium text-slate-900">{formatCurrency(monthlyRent.rent, language)}</span>
+                            </div>
 
-                  {effectivePayment.transactionId && (
-                    <div className="px-4 py-2 flex justify-between text-slate-700">
-                      <span>{t.transactionId}:</span>
-                      <span className="font-mono text-slate-900 font-medium">{toBnNum(effectivePayment.transactionId)}</span>
+                            {monthlyRent.serviceFee > 0 && (
+                              <div className="px-4 py-2 flex justify-between text-slate-700">
+                                <span>{isEn ? 'Service Fee' : 'সার্ভিস চার্জ'}:</span>
+                                <span className="font-medium text-slate-900">{formatCurrency(monthlyRent.serviceFee, language)}</span>
+                              </div>
+                            )}
+
+                            {monthlyRent.parkingFee > 0 && (
+                              <div className="px-4 py-2 flex justify-between text-slate-700">
+                                <span>{isEn ? 'Parking Fee' : 'পার্কিং চার্জ'}:</span>
+                                <span className="font-medium text-slate-900">{formatCurrency(monthlyRent.parkingFee, language)}</span>
+                              </div>
+                            )}
+
+                            {monthlyRent.extraCharge > 0 && (
+                              <div className="px-4 py-2 flex justify-between text-slate-700">
+                                <span>{isEn ? 'Extra Charge' : 'অন্যান্য চার্জ'}:</span>
+                                <span className="font-medium text-slate-900">{formatCurrency(monthlyRent.extraCharge, language)}</span>
+                              </div>
+                            )}
+
+                            {monthlyRent.discount > 0 && (
+                              <div className="px-4 py-2 flex justify-between text-emerald-800 font-medium">
+                                <span>{isEn ? 'Discount' : 'ছাড়'}:</span>
+                                <span>- {formatCurrency(monthlyRent.discount, language)}</span>
+                              </div>
+                            )}
+
+                            <div
+                              className="px-4 py-2.5 flex justify-between font-semibold text-slate-950 bg-stone-100"
+                            >
+                              <span>{isEn ? 'Total Monthly Bill' : 'মোট মাসিক বিল'}:</span>
+                              <span>{formatCurrency(monthlyRent.totalAmount, language)}</span>
+                            </div>
+                          </>
+                        )}
+
+                        {/* Payment Details */}
+                        <div className="px-4 py-2 flex justify-between text-slate-700">
+                          <span>{isEn ? 'Payment Receiving Date' : 'টাকা গ্রহণের তারিখ'}:</span>
+                          <span className="font-medium text-slate-900">{formatBnDate(effectivePayment.paymentDate, language)}</span>
+                        </div>
+
+                        <div className="px-4 py-2 flex justify-between text-slate-700">
+                          <span>{t.paymentMethod}:</span>
+                          <span className="font-medium text-slate-900">{translatePaymentMethod(effectivePayment.paymentMethod)}</span>
+                        </div>
+
+                        {effectivePayment.transactionId && (
+                          <div className="px-4 py-2 flex justify-between text-slate-700">
+                            <span>{t.transactionId}:</span>
+                            <span className="font-mono text-slate-900 font-medium">{toBnNum(effectivePayment.transactionId)}</span>
+                          </div>
+                        )}
+
+                        {monthlyRent && (
+                          <div className="px-4 py-2 flex justify-between text-slate-700">
+                            <span>{isEn ? 'Remaining Due' : 'অবশিষ্ট বকেয়া'}:</span>
+                            <span className={`font-bold ${monthlyRent.remainingAmount > 0 ? 'text-amber-600' : 'text-emerald-700'}`}>
+                              {formatCurrency(monthlyRent.remainingAmount, language)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  )}
 
-                  {monthlyRent && (
-                    <div className="px-4 py-2 flex justify-between text-slate-700">
-                      <span>{isEn ? 'Remaining Due' : 'অবশিষ্ট বকেয়া'}:</span>
-                      <span className={`font-bold ${monthlyRent.remainingAmount > 0 ? 'text-amber-600' : 'text-emerald-700'}`}>
-                        {formatCurrency(monthlyRent.remainingAmount, language)}
-                      </span>
+                    {/* Settlement — signature replaces the ✓ circle on the right */}
+                    <div
+                      className="flex items-center justify-between bg-emerald-50 px-4 py-3"
+                      style={{ backgroundColor: '#ecfdf5' }}
+                    >
+                      {/* Left: amount */}
+                      <div>
+                        <span className="text-[10px] text-emerald-900 block font-bold uppercase tracking-[0.16em]">
+                          {isEn ? 'Amount Paid (Received)' : 'পরিশোধিত টাকার পরিমাণ (প্রাপ্ত)'}
+                        </span>
+                        <span className="text-2xl font-bold text-emerald-950">
+                          {formatCurrency(effectivePayment.amount, language)}
+                        </span>
+                      </div>
+
+                      {/* Right: owner signature */}
+                      <div className="text-right text-xs text-slate-600 space-y-1 shrink-0">
+                        {signatureUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={signatureUrl}
+                            alt={t.ownerSignature || (isEn ? 'Owner Signature' : 'মালিকের স্বাক্ষর')}
+                            crossOrigin="anonymous"
+                            className="h-7 ml-auto object-contain"
+                            style={{ maxWidth: '9rem' }}
+                          />
+                        ) : null}
+                        <div className="border-t border-stone-400 w-24 ml-auto" />
+                        {effectivePayment.owner?.name && (
+                          <span className="font-medium text-[11px] text-slate-800 block">
+                            {effectivePayment.owner.name}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  )}
-                </div>
-              </div>
 
-              {/* Settlement — signature replaces the ✓ circle on the right */}
-              <div
-                className="flex items-center justify-between bg-emerald-50 px-4 py-3"
-                style={{ backgroundColor: '#ecfdf5' }}
-              >
-                {/* Left: amount */}
-                <div>
-                  <span className="text-[10px] text-emerald-900 block font-bold uppercase tracking-[0.16em]">
-                    {isEn ? 'Amount Paid (Received)' : 'পরিশোধিত টাকার পরিমাণ (প্রাপ্ত)'}
-                  </span>
-                  <span className="text-2xl font-bold text-emerald-950">
-                    {formatCurrency(effectivePayment.amount, language)}
-                  </span>
-                </div>
+                    {effectivePayment.note && (
+                      <div className="text-xs bg-stone-50 px-3 py-2.5 border-l-2 border-stone-300 text-slate-700">
+                        <span className="font-semibold text-slate-900">{t.note}:</span> {effectivePayment.note}
+                      </div>
+                    )}
 
-                {/* Right: owner signature */}
-                <div className="text-right text-xs text-slate-600 space-y-1 shrink-0">
-                  {signatureUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={signatureUrl}
-                      alt={t.ownerSignature || (isEn ? 'Owner Signature' : 'মালিকের স্বাক্ষর')}
-                      crossOrigin="anonymous"
-                      className="h-7 ml-auto object-contain"
-                      style={{ maxWidth: '9rem' }}
-                    />
-                  ) : null}
-                  <div className="border-t border-stone-400 w-24 ml-auto" />
-                  {effectivePayment.owner?.name && (
-                    <span className="font-medium text-[11px] text-slate-800 block">
-                      {effectivePayment.owner.name}
-                    </span>
-                  )}
+                    {/* Footer Note */}
+                    <div className="border-t border-stone-200 pt-3 text-center text-[10px] text-slate-500">
+                      {isEn
+                        ? 'Thank you for your payment. This is an electronic receipt.'
+                        : 'ভাড়া প্রদানের জন্য ধন্যবাদ। এটি একটি ইলেকট্রনিক রসিদ।'}
+                    </div>
+                  </div>
                 </div>
-              </div>
-
-              {effectivePayment.note && (
-                <div className="text-xs bg-stone-50 px-3 py-2.5 border-l-2 border-stone-300 text-slate-700">
-                  <span className="font-semibold text-slate-900">{t.note}:</span> {effectivePayment.note}
-                </div>
-              )}
-
-              {/* Footer Note */}
-              <div className="border-t border-stone-200 pt-3 text-center text-[10px] text-slate-500">
-                {isEn
-                  ? 'Thank you for your payment. This is an electronic receipt.'
-                  : 'ভাড়া প্রদানের জন্য ধন্যবাদ। এটি একটি ইলেকট্রনিক রসিদ।'}
               </div>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
 
           {/* Sticky Action Buttons Footer */}
           <DialogFooter className="p-3.5 px-4 sm:px-6 bg-stone-50 border-t border-stone-300 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2.5 shrink-0">
@@ -652,7 +652,7 @@ export function PaymentReceiptDialog({
                   className="gap-2 shadow-xs font-semibold bg-[#25D366] hover:bg-[#20ba59] text-white border-0 transition-colors w-full cursor-pointer"
                   title={
                     canShareImageNatively
-                      ? (isEn ? 'Share receipt image via native share sheet' : 'শেয়ার শিট দিয়ে রশিদ শেয়ার করুন')
+                      ? (isEn ? 'Share receipt image via native share sheet' : 'শেয়ার শিট দিয়ে রসিদ শেয়ার করুন')
                       : (hasValidPhone
                         ? `WhatsApp: ${phoneResult.normalizedPhone}`
                         : (isEn ? 'No WhatsApp number for this tenant' : 'ভাড়াটিয়ার হোয়াটসঅ্যাপ নম্বর নেই'))

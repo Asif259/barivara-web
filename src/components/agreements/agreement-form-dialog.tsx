@@ -76,12 +76,16 @@ interface AgreementFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
+  agreement?: RentalAgreement | null;
+  isEditing?: boolean;
 }
 
 export function AgreementFormDialog({
   open,
   onOpenChange,
   onSuccess,
+  agreement,
+  isEditing = false,
 }: AgreementFormDialogProps) {
   const { language } = useLanguageStore();
   const t = useTranslation(language);
@@ -133,25 +137,57 @@ export function AgreementFormDialog({
   });
 
   // Reset form with standard default values whenever dialog opens
+  // In edit mode, populate with existing agreement data
   React.useEffect(() => {
     if (open) {
-      reset(defaultAgreementValues);
-      setSelectedPropertyId('');
+      if (isEditing && agreement) {
+        reset({
+          tenantId: agreement.tenantId,
+          unitId: agreement.unitId,
+          monthlyRent: agreement.monthlyRent,
+          serviceFee: agreement.serviceFee,
+          parkingFee: agreement.parkingFee,
+          extraCharge: agreement.extraCharge,
+          securityDeposit: agreement.securityDeposit,
+          dueDay: agreement.dueDay,
+          startDate: agreement.startDate.split('T')[0],
+          endDate: agreement.endDate ? agreement.endDate.split('T')[0] : '',
+          notes: agreement.notes || '',
+          agreementDocumentId: agreement.agreementDocumentId || '',
+          generateCurrentMonthRent: false,
+        });
+        // Set selected property to fetch units
+        if (agreement.unit?.propertyId) {
+          setSelectedPropertyId(agreement.unit.propertyId);
+        }
+      } else {
+        reset(defaultAgreementValues);
+        setSelectedPropertyId('');
+      }
     }
-  }, [open, reset]);
+  }, [open, isEditing, agreement, reset]);
 
   // Check if selected tenant already has an ACTIVE agreement
+  // Only check in create mode, not edit mode (since we're editing the existing agreement)
   const selectedTenantId = watch('tenantId');
   const { data: tenantActiveAgreements, isLoading: isCheckingTenant } = useQuery({
-    queryKey: ['tenant-active-agreements', selectedTenantId],
+    queryKey: ['tenant-active-agreements', selectedTenantId, isEditing ? agreement?.id : ''],
     queryFn: async () => {
       if (!selectedTenantId) return [];
+      if (isEditing && agreement) {
+        // In edit mode, exclude the current agreement from the check
+        const res = await apiClient.get<ApiResponse<RentalAgreement[]>>(
+          `/rental-agreements?tenantId=${selectedTenantId}&status=ACTIVE&limit=5`
+        );
+        const agreements = res.data?.data || [];
+        return agreements.filter(a => a.id !== agreement.id);
+      }
       const res = await apiClient.get<ApiResponse<RentalAgreement[]>>(
         `/rental-agreements?tenantId=${selectedTenantId}&status=ACTIVE&limit=5`
       );
       return res.data?.data || [];
     },
-    enabled: !!selectedTenantId && open,
+    enabled: !!selectedTenantId && open && !isEditing,
   });
 
   const activeAgreement =
@@ -205,15 +241,41 @@ export function AgreementFormDialog({
         payload.agreementDocumentId = data.agreementDocumentId;
       }
 
-      const res = await apiClient.post<ApiResponse<RentalAgreement>>('/rental-agreements', payload);
-      toast.success(res.data.message || (isEn ? 'Rental agreement created!' : 'ভাড়া চুক্তি সম্পন্ন হয়েছে!'));
+      let res;
+      if (isEditing && agreement) {
+        res = await apiClient.patch<ApiResponse<RentalAgreement>>(
+          `/rental-agreements/${agreement.id}`,
+          payload
+        );
+      } else {
+        res = await apiClient.post<ApiResponse<RentalAgreement>>(
+          '/rental-agreements',
+          payload
+        );
+      }
+      toast.success(
+        res.data.message ||
+          (isEn
+            ? isEditing
+              ? 'Rental agreement updated!'
+              : 'Rental agreement created!'
+            : isEditing
+            ? 'ভাড়া চুক্তি হালনাগাদ করা হয়েছে!'
+            : 'ভাড়া চুক্তি সম্পন্ন হয়েছে!')
+      );
       reset();
       onOpenChange(false);
       if (onSuccess) onSuccess();
     } catch (error: unknown) {
       const errorMsg =
         (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-        (isEn ? 'Failed to create agreement' : 'ভাড়া চুক্তি তৈরি করা সম্ভব হয়নি।');
+        (isEn
+          ? isEditing
+            ? 'Failed to update agreement'
+            : 'Failed to create agreement'
+          : isEditing
+          ? 'চুক্তি হালনাগাদ করা সম্ভব হয়নি।'
+          : 'ভাড়া চুক্তি তৈরি করা সম্ভব হয়নি।');
       toast.error(errorMsg);
     } finally {
       setIsLoading(false);
@@ -226,12 +288,16 @@ export function AgreementFormDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileText className="w-5 h-5 text-emerald-600" />
-            {t.addNewAgreement}
+            {isEditing ? t.editAgreement : t.addNewAgreement}
           </DialogTitle>
           <DialogDescription>
-            {isEn
-              ? 'Assign a tenant to a vacant unit and set recurring monthly charges.'
-              : 'একটি খালি ফ্ল্যাটে ভাড়াটিয়া বরাদ্দ করুন এবং নিয়মিত ভাড়া ও চার্জ নির্ধারণ করুন।'}
+            {isEditing
+              ? (isEn
+                  ? 'Update the rental agreement terms and charges.'
+                  : 'ভাড়া চুক্তির শর্তাবলী ও চার্জ হালনাগাদ করুন।')
+              : (isEn
+                  ? 'Assign a tenant to a vacant unit and set recurring monthly charges.'
+                  : 'একটি খালি ফ্ল্যাটে ভাড়াটিয়া বরাদ্দ করুন এবং নিয়মিত ভাড়া ও চার্জ নির্ধারণ করুন।')}
           </DialogDescription>
         </DialogHeader>
 
@@ -243,6 +309,7 @@ export function AgreementFormDialog({
               id="tenantId"
               className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
               {...register('tenantId')}
+              disabled={isEditing}
             >
               <option value="">{isEn ? '-- Select Tenant --' : '-- ভাড়াটিয়া নির্বাচন করুন --'}</option>
               {tenants?.map((t) => (
@@ -254,7 +321,7 @@ export function AgreementFormDialog({
             {errors.tenantId && <p className="text-xs text-rose-500">{errors.tenantId.message}</p>}
 
             {/* Active Agreement Warning & Information Banner */}
-            {hasActiveAgreement && activeAgreement && (
+            {!isEditing && hasActiveAgreement && activeAgreement && (
               <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl space-y-2.5 text-rose-900">
                 <div className="flex items-start gap-2.5">
                   <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
@@ -305,6 +372,7 @@ export function AgreementFormDialog({
                 value={selectedPropertyId}
                 onChange={(e) => setSelectedPropertyId(e.target.value)}
                 className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                disabled={isEditing}
               >
                 <option value="">{isEn ? '-- Select Property --' : '-- বাড়ি নির্বাচন করুন --'}</option>
                 {properties?.map((p) => (
@@ -321,6 +389,7 @@ export function AgreementFormDialog({
                 id="unitId"
                 onChange={handleUnitSelect}
                 className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                disabled={isEditing}
               >
                 <option value="">{isEn ? '-- Select Unit --' : '-- ইউনিট নির্বাচন করুন --'}</option>
                 {units?.map((u) => (
@@ -404,7 +473,7 @@ export function AgreementFormDialog({
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label htmlFor="startDate">{t.startDate}</Label>
-              <Input id="startDate" type="date" {...register('startDate')} />
+              <Input id="startDate" type="date" {...register('startDate')} disabled={isEditing} />
               {errors.startDate && <p className="text-xs text-rose-500">{errors.startDate.message}</p>}
             </div>
 
@@ -425,17 +494,19 @@ export function AgreementFormDialog({
           </div>
 
           {/* 8. Auto Generate Checkbox */}
-          <div className="flex items-center gap-2 pt-2">
-            <input
-              type="checkbox"
-              id="generateCurrentMonthRent"
-              className="h-4 w-4 rounded-sm border-slate-300 text-emerald-600 focus:ring-emerald-500"
-              {...register('generateCurrentMonthRent')}
-            />
-            <Label htmlFor="generateCurrentMonthRent" className="text-xs text-slate-700 cursor-pointer">
-              {isEn ? 'Generate current month rent invoice immediately' : 'তাত্ক্ষণিকভাবে চলতি মাসের ভাড়ার বিল তৈরি করুন'}
-            </Label>
-          </div>
+          {!isEditing && (
+            <div className="flex items-center gap-2 pt-2">
+              <input
+                type="checkbox"
+                id="generateCurrentMonthRent"
+                className="h-4 w-4 rounded-sm border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                {...register('generateCurrentMonthRent')}
+              />
+              <Label htmlFor="generateCurrentMonthRent" className="text-xs text-slate-700 cursor-pointer">
+                {isEn ? 'Generate current month rent invoice immediately' : 'তাত্ক্ষণিকভাবে চলতি মাসের ভাড়ার বিল তৈরি করুন'}
+              </Label>
+            </div>
+          )}
 
           {/* 9. Agreement Contract Scan Upload */}
           <div className="border-t border-slate-100 pt-3">
@@ -462,7 +533,7 @@ export function AgreementFormDialog({
             <Button
               type="submit"
               variant="gradient"
-              disabled={isLoading || hasActiveAgreement || isCheckingTenant}
+              disabled={isLoading || (!isEditing && hasActiveAgreement) || isCheckingTenant}
               className="gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
@@ -473,7 +544,9 @@ export function AgreementFormDialog({
               ) : (
                 <>
                   <Save className="w-4 h-4" />
-                  {hasActiveAgreement
+                  {isEditing
+                    ? t.save
+                    : hasActiveAgreement
                     ? (isEn ? 'Active Agreement Exists' : 'সক্রিয় চুক্তি রয়েছে')
                     : t.create}
                 </>
