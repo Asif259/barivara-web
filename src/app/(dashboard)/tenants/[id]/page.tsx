@@ -315,6 +315,16 @@ export default function TenantDetailPage() {
                 </div>
               )}
             </div>
+
+            <div className="pt-4 border-t border-slate-100 space-y-1.5">
+              <span className="text-xs text-slate-500 flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+                {t.address}
+              </span>
+              <p className="text-sm font-medium text-slate-900 whitespace-pre-wrap">
+                {tenant.permanentAddress || (isEn ? 'Not provided' : 'প্রদান করা হয়নি')}
+              </p>
+            </div>
           </CardContent>
         </Card>
 
@@ -372,22 +382,8 @@ export default function TenantDetailPage() {
         </Card>
       </div>
 
-      {/* Address & Emergency Contact Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Address */}
-        <Card className="border-slate-200/80">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-emerald-600" />
-              {t.address}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-slate-700 whitespace-pre-wrap">{tenant.permanentAddress || (isEn ? 'Not provided' : 'প্রদান করা হয়নি')}</p>
-          </CardContent>
-        </Card>
-
-        {/* Emergency Contact */}
+      {/* Emergency Contact */}
+      <div className="grid grid-cols-1 gap-6">
         <Card className="border-slate-200/80">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
@@ -472,7 +468,7 @@ export default function TenantDetailPage() {
                               aria-label={`${t.view} — ${agr.unit?.unitNumber ?? ''}`}
                             >
                               <Eye className="w-3.5 h-3.5" />
-                              <span className="hidden xs:inline">{t.view}</span>
+                              <span className="hidden sm:inline">{t.view}</span>
                             </Button>
                             <Button
                               variant="ghost"
@@ -483,7 +479,7 @@ export default function TenantDetailPage() {
                               aria-label={`${t.edit} — ${agr.unit?.unitNumber ?? ''}`}
                             >
                               <Edit className="w-3.5 h-3.5" />
-                              <span className="hidden xs:inline">{t.edit}</span>
+                              <span className="hidden sm:inline">{t.edit}</span>
                             </Button>
                             {agr.status === 'ACTIVE' && (
                               <Button
@@ -500,7 +496,7 @@ export default function TenantDetailPage() {
                                 ) : (
                                   <Ban className="w-3.5 h-3.5" />
                                 )}
-                                <span className="hidden xs:inline">{t.endAgreement}</span>
+                                <span className="hidden sm:inline">{t.endAgreement}</span>
                               </Button>
                             )}
                           </div>

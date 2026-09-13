@@ -12,6 +12,7 @@ import {
   Loader2,
   ExternalLink,
   Trash2,
+  Eye,
 } from 'lucide-react';
 import { Button } from './button';
 import { FileCategory, Media } from '@/lib/types';
@@ -19,6 +20,7 @@ import { getApiErrorMessage } from '@/lib/api';
 import { uploadFileDirectly, getFileDownloadUrl, deleteFileRecord } from '@/lib/file-upload';
 import { useLanguageStore } from '@/stores/language-store';
 import { toast } from 'sonner';
+import { ImagePreviewDialog } from './image-preview-dialog';
 
 export interface FileUploaderProps {
   category: FileCategory;
@@ -56,6 +58,7 @@ export function FileUploader({
   const [fileId, setFileId] = useState<string | null>(null);
   const [fileInfo, setFileInfo] = useState<{ name: string; size?: number } | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isImageCategory = ['PROFILE_IMAGE', 'PROPERTY_IMAGE', 'TENANT_PROFILE_PICTURE', 'TENANT_FRONT_NID', 'TENANT_BACK_NID', 'PAYMENT_RECEIPT', 'OWNER_SIGNATURE'].includes(category);
@@ -251,7 +254,17 @@ export function FileUploader({
 
             {/* Actions */}
             <div className="flex items-center gap-1 shrink-0">
-              {displayPreviewUrl && (
+              {displayPreviewUrl && isImageCategory && (
+                <button
+                  type="button"
+                  onClick={() => setPreviewOpen(true)}
+                  className="p-1.5 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                  title={isEn ? 'Preview' : 'প্রিভিউ'}
+                >
+                  <Eye className="h-4 w-4" />
+                </button>
+              )}
+              {displayPreviewUrl && !isImageCategory && (
                 <a
                   href={displayPreviewUrl}
                   target="_blank"
@@ -339,6 +352,14 @@ export function FileUploader({
       {description && !effectiveFileId && (
         <p className="text-[11px] text-slate-500">{description}</p>
       )}
+
+      {/* Image Preview Dialog */}
+      <ImagePreviewDialog
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        imageUrl={displayPreviewUrl || null}
+        title={fileInfo?.name || (isEn ? 'File Preview' : 'ফাইল প্রিভিউ')}
+      />
     </div>
   );
 }

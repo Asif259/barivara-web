@@ -24,6 +24,8 @@ import {
   TableCell,
 } from '@/components/ui/table';
 import { TenantFormDialog } from '@/components/tenants/tenant-form-dialog';
+import { ImagePreviewDialog } from '@/components/ui/image-preview-dialog';
+import { getFileDownloadUrl } from '@/lib/file-upload';
 import {
   Users,
   UserPlus,
@@ -44,6 +46,17 @@ export default function TenantsPage() {
   const [search, setSearch] = useState('');
   const [tenantDialogOpen, setTenantDialogOpen] = useState(false);
   const [editingTenant, setEditingTenant] = useState<Tenant | null>(null);
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
+  const [previewTitle, setPreviewTitle] = useState<string>('');
+  const [previewOpen, setPreviewOpen] = useState(false);
+
+  const openPreview = (url: string | null, title: string) => {
+    if (url) {
+      setPreviewImageUrl(url);
+      setPreviewTitle(title);
+      setPreviewOpen(true);
+    }
+  };
 
   const {
     data: tenants,
@@ -56,6 +69,29 @@ export default function TenantsPage() {
       const res = await apiClient.get<ApiResponse<Tenant[]>>(`/tenants?limit=50${searchParam}`);
       return res.data?.data || [];
     },
+  });
+
+  // Fetch profile picture URLs for all tenants
+  const { data: profilePictureUrls } = useQuery({
+    queryKey: ['tenant-profile-pictures', tenants?.map(t => t.profilePictureId).filter(Boolean)],
+    queryFn: async () => {
+      if (!tenants) return {};
+      const ids = tenants.map(t => t.profilePictureId).filter(Boolean) as string[];
+      if (ids.length === 0) return {};
+      
+      const urls = await Promise.all(
+        ids.map(async (id) => {
+          try {
+            const url = await getFileDownloadUrl(id);
+            return { id, url };
+          } catch {
+            return { id, url: null };
+          }
+        })
+      );
+      return Object.fromEntries(urls.map(u => [u.id, u.url]));
+    },
+    enabled: !!tenants && tenants.some(t => t.profilePictureId),
   });
 
   const handleCreate = () => {
@@ -129,16 +165,29 @@ export default function TenantsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {tenants.map((tenant) => (
-                  <TableRow key={tenant.id}>
-                    <TableCell data-label={t.tenantName} className="font-bold text-slate-900">
-                      <div className="flex items-center gap-2.5">
-                        <div className="h-8 w-8 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center text-xs font-bold shrink-0">
-                          {tenant.name.charAt(0).toUpperCase()}
+{tenants.map((tenant) => (
+                    <TableRow key={tenant.id}>
+                      <TableCell data-label={t.tenantName} className="font-bold text-slate-900">
+                        <div className="flex items-center gap-2.5">
+                          <button
+                            onClick={() => openPreview(profilePictureUrls?.[tenant.profilePictureId || ''] || null, tenant.name)}
+                            className="h-8 w-8 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center text-xs font-bold shrink-0 overflow-hidden border border-emerald-200 hover:border-emerald-300 transition-colors cursor-pointer"
+                            aria-label={isEn ? 'View profile picture' : 'প্রোফাইল ছবি দেখুন'}
+                            disabled={!tenant.profilePictureId}
+                          >
+                            {tenant.profilePictureId && profilePictureUrls?.[tenant.profilePictureId] ? (
+                              <img
+                                src={profilePictureUrls[tenant.profilePictureId]!}
+                                alt={tenant.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              tenant.name.charAt(0).toUpperCase()
+                            )}
+                          </button>
+                          <span>{tenant.name}</span>
                         </div>
-                        <span>{tenant.name}</span>
-                      </div>
-                    </TableCell>
+                      </TableCell>
                     <TableCell data-label={t.phone} className="font-medium text-slate-700">
                       {tenant.phone}
                     </TableCell>
@@ -199,6 +248,14 @@ export default function TenantsPage() {
         open={tenantDialogOpen}
         onOpenChange={setTenantDialogOpen}
         onSuccess={refetch}
+      />
+
+      {/* Image Preview Dialog */}
+      <ImagePreviewDialog
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        imageUrl={previewImageUrl}
+        title={previewTitle}
       />
     </div>
   );
