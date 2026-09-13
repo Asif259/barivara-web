@@ -144,7 +144,7 @@ export default function AgreementsPage() {
                     <TableHead className="w-[100px]">{t.securityDeposit}</TableHead>
                     <TableHead className="w-[100px]">{t.dueDay}</TableHead>
                     <TableHead className="w-[105px]">{t.startDate}</TableHead>
-                    <TableHead className="w-[105px]">{t.status}</TableHead>
+                    <TableHead className="w-[105px] text-center">{t.status}</TableHead>
                     <TableHead className="w-[100px] text-center">{t.actions}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -189,22 +189,19 @@ export default function AgreementsPage() {
                             size="sm"
                             variant="ghost"
                             onClick={() => handleEditAgreement(agr)}
-                            className="h-7 px-2 text-xs text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 gap-1 border border-emerald-200"
-                            title={t.edit}
+                            className="h-8 w-8 p-0 text-slate-500 hover:text-slate-900"
                           >
                             <Edit className="w-3.5 h-3.5" />
-                            <span>{t.edit}</span>
                           </Button>
                           {agr.status === 'ACTIVE' && (
                             <Button
                               size="sm"
                               variant="ghost"
                               onClick={() => handleEndAgreement(agr.id, agr.tenant?.name || 'tenant')}
-                              className="h-7 px-2 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 gap-1 border border-rose-200"
+                              className="h-7 px-2 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50"
                               title={t.endAgreement}
                             >
                               <Ban className="w-3.5 h-3.5" />
-                              <span>{isEn ? 'End' : 'শেষ'}</span>
                             </Button>
                           )}
                         </div>

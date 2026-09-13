@@ -125,7 +125,7 @@ export function BulkUnitFormDialog({ propertyId, units: existingUnits, open, onO
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2"><Layers className="h-5 w-5 text-emerald-600" />{isEn ? 'Add Units by Floor' : 'তলা অনুযায়ী ইউনিট যোগ করুন'}</DialogTitle>
-          <DialogDescription>{isEn ? 'Set common defaults, then review and edit each generated unit number.' : 'একই তথ্য দিয়ে ইউনিট তৈরি করুন, তারপর প্রতিটি নম্বর যাচাই বা সম্পাদনা করুন।'}</DialogDescription>
+          <DialogDescription>{isEn ? 'Set common defaults, then review and edit each generated unit number.' : 'একই তথ্য দিয়ে ইউনিট তৈরি করুন, তারপর প্রতিটি নম্বর যাচাই বা এডিট করুন।'}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-5">

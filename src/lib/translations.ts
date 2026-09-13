@@ -40,7 +40,7 @@ export const translations = {
     // Common Actions
     add: 'যুক্ত করুন',
     create: 'তৈরি করুন',
-    edit: 'সম্পাদনা',
+    edit: 'এডিট',
     delete: 'মুছে ফেলুন',
     save: 'সংরক্ষণ',
     cancel: 'বাতিল',

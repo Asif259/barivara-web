@@ -163,7 +163,7 @@ export function ExpenseFormDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Wallet className="w-5 h-5 text-emerald-600" />
-            {isEditing ? (isEn ? 'Edit Expense' : 'খরচ সম্পাদনা') : (isEn ? 'Record Property Expense' : 'নতুন খরচ যুক্ত করুন')}
+            {isEditing ? (isEn ? 'Edit Expense' : 'খরচ এডিট করুন') : (isEn ? 'Record Property Expense' : 'নতুন খরচ যুক্ত করুন')}
           </DialogTitle>
           <DialogDescription>
             {isEn ? 'Track electricity, maintenance, and building costs.' : 'বাড়ির বিদ্যুৎ, গ্যাস বা রক্ষণাবেক্ষণ খরচ লিপিবদ্ধ করুন।'}
