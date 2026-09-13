@@ -58,7 +58,7 @@ export function FileUploader({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const isImageCategory = ['PROFILE_IMAGE', 'PROPERTY_IMAGE', 'TENANT_FRONT_NID', 'TENANT_BACK_NID', 'PAYMENT_RECEIPT', 'OWNER_SIGNATURE'].includes(category);
+  const isImageCategory = ['PROFILE_IMAGE', 'PROPERTY_IMAGE', 'TENANT_PROFILE_PICTURE', 'TENANT_FRONT_NID', 'TENANT_BACK_NID', 'PAYMENT_RECEIPT', 'OWNER_SIGNATURE'].includes(category);
   const defaultAccept = isImageCategory
     ? 'image/jpeg,image/png,image/webp'
     : 'application/pdf,image/jpeg,image/png,image/webp';
