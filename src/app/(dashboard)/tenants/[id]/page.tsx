@@ -47,6 +47,7 @@ import {
 /**
  * Shared thumbnail for a document/photo field on the tenant profile.
  * Renders an empty-state placeholder when no URL is available yet.
+ * Uses object-contain on a light background so NID documents aren't cropped.
  */
 function DocumentThumbnail({
   url,
@@ -64,17 +65,17 @@ function DocumentThumbnail({
   onView: () => void;
 }) {
   return (
-    <div className="space-y-2">
+    <div className="space-y-1.5">
       <span className="text-xs text-slate-500 block font-medium">{label}</span>
       {url ? (
         <button
           onClick={onView}
-          className="relative h-28 w-full rounded-xl overflow-hidden border border-slate-200 bg-slate-50 hover:border-emerald-300 transition-colors cursor-pointer"
+          className="group relative h-24 w-full rounded-xl overflow-hidden border border-slate-200 bg-slate-100 hover:border-emerald-300 transition-colors cursor-pointer"
           aria-label={alt}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={url} alt={alt} className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-2">
+          <img src={url} alt={alt} className="w-full h-full object-contain p-1.5" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
             <span className="text-white text-xs font-medium flex items-center gap-1">
               <Eye className="w-3 h-3" />
               {viewLabel}
@@ -82,11 +83,28 @@ function DocumentThumbnail({
           </div>
         </button>
       ) : (
-        <div className="h-28 w-full rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/50 flex flex-col items-center justify-center text-slate-400">
-          <ImageIcon className="w-8 h-8 mb-1" />
+        <div className="h-24 w-full rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/50 flex flex-col items-center justify-center text-slate-400">
+          <ImageIcon className="w-6 h-6 mb-1" />
           <span className="text-xs">{emptyLabel}</span>
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * Shown when a document ID exists on the tenant but its signed URL
+ * failed to load (e.g. fetch error, expired/broken link) — distinct from
+ * "no document uploaded" so it doesn't look like the file never existed.
+ */
+function DocumentThumbnailError({ label, isEn }: { label: string; isEn: boolean }) {
+  return (
+    <div className="space-y-1.5">
+      <span className="text-xs text-slate-500 block font-medium">{label}</span>
+      <div className="h-24 w-full rounded-xl border border-dashed border-amber-300 bg-amber-50 flex flex-col items-center justify-center text-amber-700">
+        <AlertTriangle className="w-5 h-5 mb-1" />
+        <span className="text-xs font-medium">{isEn ? 'Preview unavailable' : 'প্রিভিউ দেখানো যাচ্ছে না'}</span>
+      </div>
     </div>
   );
 }
@@ -215,21 +233,20 @@ export default function TenantDetailPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex items-center gap-3">
         <Link href="/tenants">
-          <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl sm:h-auto sm:w-auto sm:px-4 sm:gap-2">
+          <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl shrink-0">
             <ArrowLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">{isEn ? 'Back' : 'ফিরুন'}</span>
           </Button>
         </Link>
 
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full">
+        <div className="flex flex-1 flex-col sm:flex-row sm:items-center gap-4 min-w-0">
           {/* Profile Picture */}
-          <div className="relative flex-shrink-0">
+          <div className="relative shrink-0">
             {profilePictureUrl ? (
               <button
                 onClick={() => openPreview(profilePictureUrl, t.profilePicture)}
-                className="h-24 w-24 sm:h-28 sm:w-28 rounded-2xl overflow-hidden border-2 border-emerald-200 bg-slate-100 hover:border-emerald-300 transition-colors cursor-pointer"
+                className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl overflow-hidden border-2 border-emerald-200 bg-slate-100 hover:border-emerald-300 transition-colors cursor-pointer"
                 aria-label={isEn ? 'View profile picture' : 'প্রোফাইল ছবি দেখুন'}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -240,7 +257,7 @@ export default function TenantDetailPage() {
                 />
               </button>
             ) : (
-              <div className="h-24 w-24 sm:h-28 sm:w-28 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-3xl sm:text-4xl border-2 border-emerald-200">
+              <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-2xl sm:text-3xl border-2 border-emerald-200">
                 {tenant.name.charAt(0).toUpperCase()}
               </div>
             )}
@@ -248,8 +265,8 @@ export default function TenantDetailPage() {
 
           {/* Tenant Info */}
           <div className="flex-1 min-w-0">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 truncate">{tenant.name}</h1>
-            <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-slate-600">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 truncate">{tenant.name}</h1>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-sm text-slate-600">
               <span className="flex items-center gap-1">
                 <Phone className="w-3.5 h-3.5" />
                 {tenant.phone}
@@ -274,7 +291,7 @@ export default function TenantDetailPage() {
             variant="outline"
             size="sm"
             onClick={() => setEditDialogOpen(true)}
-            className="gap-1.5 flex-shrink-0"
+            className="gap-1.5 shrink-0 self-start sm:self-center"
           >
             <Edit className="w-3.5 h-3.5" />
             {t.editTenant}
@@ -283,7 +300,7 @@ export default function TenantDetailPage() {
       </div>
 
       {/* Information Sections */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
         {/* Personal & Contact Information */}
         <Card className="border-slate-200/80 md:col-span-2">
           <CardHeader className="pb-3">
@@ -292,31 +309,31 @@ export default function TenantDetailPage() {
               {t.personalContact}
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
+              <div className="space-y-1">
                 <span className="text-xs text-slate-500 block">{t.tenantName}</span>
                 <span className="font-medium text-slate-900 block">{tenant.name}</span>
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-1">
                 <span className="text-xs text-slate-500 block">{t.phone}</span>
                 <span className="font-medium text-slate-900 block">{tenant.phone}</span>
               </div>
               {tenant.email && (
-                <div className="space-y-1.5">
+                <div className="space-y-1">
                   <span className="text-xs text-slate-500 block">{t.email}</span>
                   <span className="font-medium text-slate-900 block">{tenant.email}</span>
                 </div>
               )}
               {tenant.occupation && (
-                <div className="space-y-1.5">
+                <div className="space-y-1">
                   <span className="text-xs text-slate-500 block">{t.occupation}</span>
                   <span className="font-medium text-slate-900 block">{tenant.occupation}</span>
                 </div>
               )}
             </div>
 
-            <div className="pt-4 border-t border-slate-100 space-y-1.5">
+            <div className="pt-3 border-t border-slate-100 space-y-1">
               <span className="text-xs text-slate-500 flex items-center gap-1.5">
                 <MapPin className="w-3.5 h-3.5 text-emerald-600" />
                 {t.address}
@@ -336,7 +353,7 @@ export default function TenantDetailPage() {
               {t.documents}
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3">
             <DocumentThumbnail
               url={profilePictureUrl}
               label={t.profilePicture}
@@ -346,35 +363,43 @@ export default function TenantDetailPage() {
               onView={() => openPreview(profilePictureUrl ?? null, t.profilePicture)}
             />
 
-            {tenant.nidFrontImageId && nidFrontUrl && (
-              <div className="pt-3 border-t border-slate-100">
-                <DocumentThumbnail
-                  url={nidFrontUrl}
-                  label={t.nidFront}
-                  alt={`${tenant.name} ${t.nidFront}`}
-                  emptyLabel={isEn ? 'No NID front image' : 'এনআইডি সামনের ছবি নেই'}
-                  viewLabel={t.view}
-                  onView={() => openPreview(nidFrontUrl ?? null, t.nidFront)}
-                />
+            {tenant.nidFrontImageId && (
+              <div className="pt-2 border-t border-slate-100">
+                {nidFrontUrl ? (
+                  <DocumentThumbnail
+                    url={nidFrontUrl}
+                    label={t.nidFront}
+                    alt={`${tenant.name} ${t.nidFront}`}
+                    emptyLabel={isEn ? 'No NID front image' : 'এনআইডি সামনের ছবি নেই'}
+                    viewLabel={t.view}
+                    onView={() => openPreview(nidFrontUrl ?? null, t.nidFront)}
+                  />
+                ) : (
+                  <DocumentThumbnailError label={t.nidFront} isEn={isEn} />
+                )}
               </div>
             )}
 
-            {tenant.nidBackImageId && nidBackUrl && (
-              <div className="pt-3 border-t border-slate-100">
-                <DocumentThumbnail
-                  url={nidBackUrl}
-                  label={t.nidBack}
-                  alt={`${tenant.name} ${t.nidBack}`}
-                  emptyLabel={isEn ? 'No NID back image' : 'এনআইডি পেছনের ছবি নেই'}
-                  viewLabel={t.view}
-                  onView={() => openPreview(nidBackUrl ?? null, t.nidBack)}
-                />
+            {tenant.nidBackImageId && (
+              <div className="pt-2 border-t border-slate-100">
+                {nidBackUrl ? (
+                  <DocumentThumbnail
+                    url={nidBackUrl}
+                    label={t.nidBack}
+                    alt={`${tenant.name} ${t.nidBack}`}
+                    emptyLabel={isEn ? 'No NID back image' : 'এনআইডি পেছনের ছবি নেই'}
+                    viewLabel={t.view}
+                    onView={() => openPreview(nidBackUrl ?? null, t.nidBack)}
+                  />
+                ) : (
+                  <DocumentThumbnailError label={t.nidBack} isEn={isEn} />
+                )}
               </div>
             )}
 
             {!tenant.profilePictureId && !tenant.nidFrontImageId && !tenant.nidBackImageId && (
-              <div className="text-center py-6 text-slate-500">
-                <FileText className="w-10 h-10 mx-auto mb-2 text-slate-300" />
+              <div className="text-center py-4 text-slate-500">
+                <FileText className="w-8 h-8 mx-auto mb-2 text-slate-300" />
                 <p className="text-sm">{isEn ? 'No documents uploaded' : 'কোনো ডকুমেন্ট আপলোড করা হয়নি'}</p>
               </div>
             )}
@@ -383,26 +408,26 @@ export default function TenantDetailPage() {
       </div>
 
       {/* Emergency Contact */}
-      <div className="grid grid-cols-1 gap-6">
-        <Card className="border-slate-200/80">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-              <Shield className="w-4 h-4 text-emerald-600" />
-              {t.emergencyContactSection}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div>
+      <Card className="border-slate-200/80">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+            <Shield className="w-4 h-4 text-emerald-600" />
+            {t.emergencyContactSection}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
+            <div className="space-y-1">
               <span className="text-xs text-slate-500 block">{isEn ? 'Contact Person' : 'ব্যক্তির নাম'}</span>
               <span className="font-medium text-slate-900 block">{tenant.emergencyContactName || (isEn ? 'Not provided' : 'প্রদান করা হয়নি')}</span>
             </div>
-            <div>
+            <div className="space-y-1">
               <span className="text-xs text-slate-500 block">{isEn ? 'Emergency Phone' : 'জরুরি ফোন'}</span>
               <span className="font-medium text-slate-900 block">{tenant.emergencyContactPhone || (isEn ? 'Not provided' : 'প্রদান করা হয়নি')}</span>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Rental Agreements */}
       <Card className="border-slate-200/80 shadow-xs">
@@ -508,7 +533,7 @@ export default function TenantDetailPage() {
               </table>
             </div>
           ) : (
-            <p className="text-sm text-slate-500 py-8 text-center">
+            <p className="text-sm text-slate-500 py-5 text-center">
               {isEn ? 'No rental agreements found for this tenant.' : 'এই ভাড়াটিয়ার কোনো সক্রিয় বা পূর্বের চুক্তি পাওয়া যায়নি।'}
             </p>
           )}
