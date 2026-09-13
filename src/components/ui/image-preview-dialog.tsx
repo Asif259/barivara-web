@@ -6,7 +6,7 @@ import {
   DialogContent,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { X, Loader2, ImageOff } from 'lucide-react';
+import { Loader2, ImageOff } from 'lucide-react';
 import { useLanguageStore } from '@/stores/language-store';
 import { useTranslation } from '@/lib/translations';
 
@@ -65,33 +65,9 @@ export function ImagePreviewDialog({
         "
       >
         {/* Header */}
-        <div className="flex items-center justify-between gap-4 px-4 py-3 border-b border-slate-200 shrink-0">
           <DialogTitle className="text-base sm:text-lg font-semibold text-slate-900 truncate">
             {title || t.imagePreview}
           </DialogTitle>
-
-          <button
-            type="button"
-            onClick={() => onOpenChange(false)}
-            className="
-              shrink-0
-              w-9 h-9
-              flex items-center justify-center
-              rounded-lg
-              text-slate-500
-              hover:text-slate-900
-              hover:bg-slate-100
-              transition-colors
-              focus:outline-none
-              focus:ring-2
-              focus:ring-emerald-500
-              focus:ring-offset-2
-            "
-            aria-label={isEn ? 'Close preview' : 'প্রিভিউ বন্ধ করুন'}
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
 
         {/* Image Area */}
         <div
