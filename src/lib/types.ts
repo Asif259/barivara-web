@@ -149,6 +149,7 @@ export interface Tenant {
   name: string;
   phone: string;
   email?: string | null;
+  profilePictureId?: string | null;
   nidFrontImageId?: string | null;
   nidBackImageId?: string | null;
   permanentAddress?: string | null;
@@ -340,6 +341,7 @@ export interface MonthlyReport {
 export type FileCategory =
   | 'PROFILE_IMAGE'
   | 'PROPERTY_IMAGE'
+  | 'TENANT_PROFILE_PICTURE'
   | 'TENANT_FRONT_NID'
   | 'TENANT_BACK_NID'
   | 'TENANT_DOCUMENT'

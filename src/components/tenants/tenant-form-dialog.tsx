@@ -24,9 +24,10 @@ import { FileUploader } from '@/components/ui/file-uploader';
 import { UserPlus, User, Loader2, Save } from 'lucide-react';
 
 const tenantSchema = z.object({
-  name: z.string().min(2, 'ভাড়াটিয়ার নাম লিখুন'),
+  name: z.string().min(2, 'ভাড়া টিয়ার নাম লিখুন'),
   phone: z.string().optional().or(z.literal('')),
   email: z.union([z.literal(''), z.string().email('সঠিক ইমেইল দিন')]).optional(),
+  profilePictureId: z.string().optional().nullable(),
   nidFrontImageId: z.string().optional().nullable(),
   nidBackImageId: z.string().optional().nullable(),
   permanentAddress: z.string().optional(),
@@ -73,6 +74,7 @@ export function TenantFormDialog({
       email: tenant?.email || '',
       nidFrontImageId: tenant?.nidFrontImageId || '',
       nidBackImageId: tenant?.nidBackImageId || '',
+      profilePictureId: tenant?.profilePictureId || '',
       permanentAddress: tenant?.permanentAddress || '',
       emergencyContactName: tenant?.emergencyContactName || '',
       emergencyContactPhone: tenant?.emergencyContactPhone || '',
@@ -179,6 +181,21 @@ export function TenantFormDialog({
 
           {/* Tenant NID Upload — Front & Back */}
           <div className="border-t border-slate-100 pt-3 space-y-3">
+            <FileUploader
+              category="TENANT_PROFILE_PICTURE"
+              entityType="tenant"
+              entityId={tenant?.id}
+              value={watch('profilePictureId') || tenant?.profilePictureId || null}
+              onChange={(id) => setValue('profilePictureId', id || '')}
+              label={isEn ? 'Profile Picture' : 'প্রোফাইল ছবি'}
+              description={
+                isEn
+                  ? 'Upload tenant profile picture (Max 5MB)'
+                  : 'ভাড়াটিয়ার প্রোফাইল ছবি আপলোড করুন (সর্বোচ্চ ৫MB)'
+              }
+              maxSizeMB={5}
+            />
+
             <FileUploader
               category="TENANT_FRONT_NID"
               entityType="tenant"
