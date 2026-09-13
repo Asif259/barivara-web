@@ -107,9 +107,10 @@ export function TenantFormDialog({
       reset();
       onOpenChange(false);
       if (onSuccess) onSuccess();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const axiosError = error as { response?: { data?: { message?: string } } };
       const errorMsg =
-        error.response?.data?.message || (isEn ? 'Failed to save tenant' : 'ভাড়াটিয়ার তথ্য সংরক্ষণ ব্যর্থ হয়েছে।');
+        axiosError.response?.data?.message || (isEn ? 'Failed to save tenant' : 'ভাড়াটিয়ার তথ্য সংরক্ষণ ব্যর্থ হয়েছে।');
       toast.error(errorMsg);
     } finally {
       setIsLoading(false);
@@ -179,44 +180,45 @@ export function TenantFormDialog({
             <Input id="notes" placeholder={isEn ? 'Family members, references...' : 'পরিবারের সদস্য সংখ্যা বা অন্যান্য তথ্য'} {...register('notes')} />
           </div>
 
-          {/* Tenant NID Upload — Front & Back */}
-          <div className="border-t border-slate-100 pt-3 space-y-3">
-            <FileUploader
-              category="TENANT_PROFILE_PICTURE"
-              entityType="tenant"
-              entityId={tenant?.id}
-              value={watch('profilePictureId') || tenant?.profilePictureId || null}
-              onChange={(id) => setValue('profilePictureId', id || '')}
-              label={isEn ? 'Profile Picture' : 'প্রোফাইল ছবি'}
-              description={
-                isEn
-                  ? 'Upload tenant profile picture (Max 5MB)'
-                  : 'ভাড়াটিয়ার প্রোফাইল ছবি আপলোড করুন (সর্বোচ্চ ৫MB)'
-              }
-              maxSizeMB={5}
-            />
+{/* Tenant NID Upload — Front & Back */}
+           <div className="border-t border-slate-100 pt-3 space-y-3">
+             <FileUploader
+               category="TENANT_PROFILE_PICTURE"
+               entityType="tenant"
+               entityId={tenant?.id}
+               value={watch('profilePictureId') || tenant?.profilePictureId || null}
+               onChange={(id) => setValue('profilePictureId', id || '')}
+               label={isEn ? 'Profile Picture' : 'প্রোফাইল ছবি'}
+               description={
+                 isEn
+                   ? 'Upload tenant profile picture (Max 5MB)'
+                   : 'ভাড়াটিয়ার প্রোফাইল ছবি আপলোড করুন (সর্বোচ্চ ৫MB)'
+               }
+               maxSizeMB={5}
+               mode="replace"
+             />
 
-            <FileUploader
-              category="TENANT_FRONT_NID"
-              entityType="tenant"
-              entityId={tenant?.id}
-              value={watch('nidFrontImageId') || tenant?.nidFrontImageId || null}
-              onChange={(id) => setValue('nidFrontImageId', id || '')}
-              label={isEn ? 'NID Card — Front Side (Private & Secure)' : 'এনআইডি কার্ড — সামনের পাশ (সুরক্ষিত)'}
-              description={isEn ? 'Upload front side of National ID card (Max 5MB)' : 'জাতীয় পরিচয়পত্রের সামনের কপি আপলোড করুন (সর্বোচ্চ ৫MB)'}
-              maxSizeMB={5}
-            />
-            <FileUploader
-              category="TENANT_BACK_NID"
-              entityType="tenant"
-              entityId={tenant?.id}
-              value={watch('nidBackImageId') || tenant?.nidBackImageId || null}
-              onChange={(id) => setValue('nidBackImageId', id || '')}
-              label={isEn ? 'NID Card — Back Side (Private & Secure)' : 'এনআইডি কার্ড — পেছনের পাশ (সুরক্ষিত)'}
-              description={isEn ? 'Upload back side of National ID card (Max 5MB)' : 'জাতীয় পরিচয়পত্রের পেছনের কপি আপলোড করুন (সর্বোচ্চ ৫MB)'}
-              maxSizeMB={5}
-            />
-          </div>
+             <FileUploader
+               category="TENANT_FRONT_NID"
+               entityType="tenant"
+               entityId={tenant?.id}
+               value={watch('nidFrontImageId') || tenant?.nidFrontImageId || null}
+               onChange={(id) => setValue('nidFrontImageId', id || '')}
+               label={isEn ? 'NID Card — Front Side (Private & Secure)' : 'এনআইডি কার্ড — সামনের পাশ (সুরক্ষিত)'}
+               description={isEn ? 'Upload front side of National ID card (Max 5MB)' : 'জাতীয় পরিচয়পত্রের সামনের কপি আপলোড করুন (সর্বোচ্চ ৫MB)'}
+               maxSizeMB={5}
+             />
+             <FileUploader
+               category="TENANT_BACK_NID"
+               entityType="tenant"
+               entityId={tenant?.id}
+               value={watch('nidBackImageId') || tenant?.nidBackImageId || null}
+               onChange={(id) => setValue('nidBackImageId', id || '')}
+               label={isEn ? 'NID Card — Back Side (Private & Secure)' : 'এনআইডি কার্ড — পেছনের পাশ (সুরক্ষিত)'}
+               description={isEn ? 'Upload back side of National ID card (Max 5MB)' : 'জাতীয় পরিচয়পত্রের পেছনের কপি আপলোড করুন (সর্বোচ্চ ৫MB)'}
+               maxSizeMB={5}
+             />
+           </div>
 
           <DialogFooter className="pt-2">
             <Button

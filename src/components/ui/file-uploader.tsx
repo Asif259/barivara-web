@@ -19,6 +19,7 @@ import { FileCategory, Media } from '@/lib/types';
 import { getApiErrorMessage } from '@/lib/api';
 import { uploadFileDirectly, getFileDownloadUrl, deleteFileRecord } from '@/lib/file-upload';
 import { useLanguageStore } from '@/stores/language-store';
+import { useTranslation } from '@/lib/translations';
 import { toast } from 'sonner';
 import { ImagePreviewDialog } from './image-preview-dialog';
 
@@ -34,6 +35,8 @@ export interface FileUploaderProps {
   description?: string;
   disabled?: boolean;
   className?: string;
+  /** Mode for handling existing files: 'replace' opens file picker, 'remove' deletes the file */
+  mode?: 'replace' | 'remove';
 }
 
 export function FileUploader({
@@ -48,8 +51,10 @@ export function FileUploader({
   description,
   disabled = false,
   className = '',
+  mode = 'remove',
 }: FileUploaderProps) {
   const { language } = useLanguageStore();
+  const t = useTranslation(language);
   const isEn = language === 'en';
 
   const [isDragging, setIsDragging] = useState(false);
@@ -185,6 +190,12 @@ export function FileUploader({
     e.stopPropagation();
     if (!effectiveFileId || disabled || isUploading) return;
 
+    // In replace mode, open the file picker instead of deleting
+    if (mode === 'replace') {
+      fileInputRef.current?.click();
+      return;
+    }
+
     const currentId = effectiveFileId;
     setFileId(null);
     setPreviewUrl(null);
@@ -252,7 +263,7 @@ export function FileUploader({
               </div>
             </div>
 
-            {/* Actions */}
+{/* Actions */}
             <div className="flex items-center gap-1 shrink-0">
               {displayPreviewUrl && isImageCategory && (
                 <button
@@ -279,10 +290,14 @@ export function FileUploader({
                 <button
                   type="button"
                   onClick={handleRemove}
-                  className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-                  title={isEn ? 'Remove File' : 'ফাইল মুছুন'}
+                  className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                  title={mode === 'replace' ? t.replace : (isEn ? 'Remove File' : 'ফাইল মুছুন')}
                 >
-                  <Trash2 className="h-4 w-4" />
+                  {mode === 'replace' ? (
+                    <UploadCloud className="h-4 w-4" />
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
                 </button>
               )}
             </div>
