@@ -10,50 +10,122 @@ import { useTranslation } from '@/lib/translations';
 import { Tenant, ApiResponse } from '@/lib/types';
 import { formatCurrency, formatBnDate } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { StatusBadge } from '@/components/ui/status-badge';
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
-} from '@/components/ui/table';
 import { TenantFormDialog } from '@/components/tenants/tenant-form-dialog';
-import { FileUploader } from '@/components/ui/file-uploader';
+import { ImagePreviewDialog } from '@/components/ui/image-preview-dialog';
+import { getFileDownloadUrl } from '@/lib/file-upload';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import { toast } from 'sonner';
 import {
   ArrowLeft,
   User,
   Phone,
   Mail,
-  CreditCard,
   MapPin,
   Briefcase,
   Shield,
   Edit,
   FileText,
-  Home,
   CheckCircle2,
+  Eye,
+  Ban,
+  Loader2,
+  AlertTriangle,
+  Image as ImageIcon,
 } from 'lucide-react';
+
+/**
+ * Shared thumbnail for a document/photo field on the tenant profile.
+ * Renders an empty-state placeholder when no URL is available yet.
+ */
+function DocumentThumbnail({
+  url,
+  label,
+  alt,
+  emptyLabel,
+  viewLabel,
+  onView,
+}: {
+  url: string | null | undefined;
+  label: string;
+  alt: string;
+  emptyLabel: string;
+  viewLabel: string;
+  onView: () => void;
+}) {
+  return (
+    <div className="space-y-2">
+      <span className="text-xs text-slate-500 block font-medium">{label}</span>
+      {url ? (
+        <button
+          onClick={onView}
+          className="relative h-28 w-full rounded-xl overflow-hidden border border-slate-200 bg-slate-50 hover:border-emerald-300 transition-colors cursor-pointer"
+          aria-label={alt}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={url} alt={alt} className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-2">
+            <span className="text-white text-xs font-medium flex items-center gap-1">
+              <Eye className="w-3 h-3" />
+              {viewLabel}
+            </span>
+          </div>
+        </button>
+      ) : (
+        <div className="h-28 w-full rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/50 flex flex-col items-center justify-center text-slate-400">
+          <ImageIcon className="w-8 h-8 mb-1" />
+          <span className="text-xs">{emptyLabel}</span>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function TenantDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const tenantId = params?.id as string;
+
+  // Next.js dynamic route params can theoretically be string | string[] | undefined.
+  // Normalize defensively instead of an unchecked `as string` cast.
+  const rawTenantId = params?.id;
+  const tenantId = Array.isArray(rawTenantId) ? rawTenantId[0] : rawTenantId;
 
   const { language } = useLanguageStore();
   const t = useTranslation(language);
   const isEn = language === 'en';
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
+  const [previewTitle, setPreviewTitle] = useState<string>('');
+  const [previewOpen, setPreviewOpen] = useState(false);
 
-  // 1. Fetch Tenant Profile & Statements
+  // End-agreement confirmation + per-row busy state
+  const [confirmEndAgreementId, setConfirmEndAgreementId] = useState<string | null>(null);
+  const [endingAgreementId, setEndingAgreementId] = useState<string | null>(null);
+
+  const openPreview = (url: string | null, title: string) => {
+    if (url) {
+      setPreviewImageUrl(url);
+      setPreviewTitle(title);
+      setPreviewOpen(true);
+    }
+  };
+
+  // 1. Fetch Tenant Profile
   const {
     data: tenant,
     isLoading,
+    isError,
     refetch,
   } = useQuery({
     queryKey: ['tenant-details', tenantId],
@@ -64,15 +136,44 @@ export default function TenantDetailPage() {
     enabled: !!tenantId,
   });
 
-  // 2. Fetch Tenant Financial Statement
-  const { data: statementData } = useQuery({
-    queryKey: ['tenant-statement', tenantId],
-    queryFn: async () => {
-      const res = await apiClient.get<ApiResponse<any>>(`/reports/tenants/${tenantId}/statement`);
-      return res.data?.data;
-    },
-    enabled: !!tenantId,
+  // 2. Fetch document URLs.
+  // IMPORTANT: these hooks must run unconditionally (same order every render),
+  // so they're declared before any early `return` and gated with `enabled`
+  // instead of being skipped via a conditional return above them.
+  const { data: profilePictureUrl } = useQuery({
+    queryKey: ['file-download-url', tenant?.profilePictureId],
+    queryFn: () => getFileDownloadUrl(tenant!.profilePictureId!),
+    enabled: !!tenant?.profilePictureId,
   });
+
+  const { data: nidFrontUrl } = useQuery({
+    queryKey: ['file-download-url', tenant?.nidFrontImageId],
+    queryFn: () => getFileDownloadUrl(tenant!.nidFrontImageId!),
+    enabled: !!tenant?.nidFrontImageId,
+  });
+
+  const { data: nidBackUrl } = useQuery({
+    queryKey: ['file-download-url', tenant?.nidBackImageId],
+    queryFn: () => getFileDownloadUrl(tenant!.nidBackImageId!),
+    enabled: !!tenant?.nidBackImageId,
+  });
+
+  const handleEndAgreement = async (agreementId: string) => {
+    try {
+      setEndingAgreementId(agreementId);
+      await apiClient.post(`/rental-agreements/${agreementId}/end`);
+      toast.success(isEn ? 'Agreement ended successfully.' : 'চুক্তি সফলভাবে সমাপ্ত হয়েছে।');
+      await refetch();
+    } catch (error) {
+      console.error('Failed to end agreement:', error);
+      toast.error(
+        isEn ? 'Failed to end agreement. Please try again.' : 'চুক্তি সমাপ্ত করা যায়নি। আবার চেষ্টা করুন।'
+      );
+    } finally {
+      setEndingAgreementId(null);
+      setConfirmEndAgreementId(null);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -84,12 +185,28 @@ export default function TenantDetailPage() {
     );
   }
 
+  if (isError) {
+    return (
+      <EmptyState
+        icon={AlertTriangle}
+        title={isEn ? 'Something went wrong' : 'কিছু একটা ভুল হয়েছে'}
+        description={
+          isEn
+            ? "We couldn't load this tenant's details. Please try again."
+            : 'এই ভাড়াটিয়ার তথ্য লোড করা যায়নি। আবার চেষ্টা করুন।'
+        }
+        actionLabel={isEn ? 'Retry' : 'আবার চেষ্টা করুন'}
+        onAction={() => refetch()}
+      />
+    );
+  }
+
   if (!tenant) {
     return (
       <EmptyState
         icon={User}
         title={t.noTenantsFound}
-        actionLabel={isEn ? 'Back to Tenants' : 'সকল ভাড়াটিয়াদের তালিকায় ফিরুন'}
+        actionLabel={isEn ? 'Back to Tenants' : 'সকল ভাড়াটিয়াদের তালিকায় ফিরুন'}
         onAction={() => router.push('/tenants')}
       />
     );
@@ -97,94 +214,176 @@ export default function TenantDetailPage() {
 
   return (
     <div className="space-y-6">
-      {/* Top Bar */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <Link href="/tenants">
-            <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          </Link>
-          <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-lg">
-              {tenant.name.charAt(0).toUpperCase()}
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-slate-900">{tenant.name}</h1>
-              <p className="text-xs text-slate-500">{tenant.phone} {tenant.email ? `&bull; ${tenant.email}` : ''}</p>
+        <Link href="/tenants">
+          <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl sm:h-auto sm:w-auto sm:px-4 sm:gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            <span className="hidden sm:inline">{isEn ? 'Back' : 'ফিরুন'}</span>
+          </Button>
+        </Link>
+
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full">
+          {/* Profile Picture */}
+          <div className="relative flex-shrink-0">
+            {profilePictureUrl ? (
+              <button
+                onClick={() => openPreview(profilePictureUrl, t.profilePicture)}
+                className="h-24 w-24 sm:h-28 sm:w-28 rounded-2xl overflow-hidden border-2 border-emerald-200 bg-slate-100 hover:border-emerald-300 transition-colors cursor-pointer"
+                aria-label={isEn ? 'View profile picture' : 'প্রোফাইল ছবি দেখুন'}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={profilePictureUrl}
+                  alt={`${tenant.name} ${t.profilePicture}`}
+                  className="w-full h-full object-cover"
+                />
+              </button>
+            ) : (
+              <div className="h-24 w-24 sm:h-28 sm:w-28 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-3xl sm:text-4xl border-2 border-emerald-200">
+                {tenant.name.charAt(0).toUpperCase()}
+              </div>
+            )}
+          </div>
+
+          {/* Tenant Info */}
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 truncate">{tenant.name}</h1>
+            <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-slate-600">
+              <span className="flex items-center gap-1">
+                <Phone className="w-3.5 h-3.5" />
+                {tenant.phone}
+              </span>
+              {tenant.email && (
+                <span className="flex items-center gap-1">
+                  <Mail className="w-3.5 h-3.5" />
+                  {tenant.email}
+                </span>
+              )}
+              {tenant.occupation && (
+                <span className="flex items-center gap-1">
+                  <Briefcase className="w-3.5 h-3.5" />
+                  {tenant.occupation}
+                </span>
+              )}
             </div>
           </div>
-        </div>
 
-        <Button variant="outline" size="sm" onClick={() => setEditDialogOpen(true)} className="gap-1.5">
-          <Edit className="w-3.5 h-3.5" />
-          {t.editTenant}
-        </Button>
+          {/* Edit Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setEditDialogOpen(true)}
+            className="gap-1.5 flex-shrink-0"
+          >
+            <Edit className="w-3.5 h-3.5" />
+            {t.editTenant}
+          </Button>
+        </div>
       </div>
 
-      {/* Tenant Profile Information Cards */}
+      {/* Information Sections */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Contact Info */}
+        {/* Personal & Contact Information */}
+        <Card className="border-slate-200/80 md:col-span-2">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+              <User className="w-4 h-4 text-emerald-600" />
+              {t.personalContact}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <span className="text-xs text-slate-500 block">{t.tenantName}</span>
+                <span className="font-medium text-slate-900 block">{tenant.name}</span>
+              </div>
+              <div className="space-y-1.5">
+                <span className="text-xs text-slate-500 block">{t.phone}</span>
+                <span className="font-medium text-slate-900 block">{tenant.phone}</span>
+              </div>
+              {tenant.email && (
+                <div className="space-y-1.5">
+                  <span className="text-xs text-slate-500 block">{t.email}</span>
+                  <span className="font-medium text-slate-900 block">{tenant.email}</span>
+                </div>
+              )}
+              {tenant.occupation && (
+                <div className="space-y-1.5">
+                  <span className="text-xs text-slate-500 block">{t.occupation}</span>
+                  <span className="font-medium text-slate-900 block">{tenant.occupation}</span>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Documents */}
         <Card className="border-slate-200/80">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-              <Phone className="w-4 h-4 text-emerald-600" />
-              {isEn ? 'Contact Info' : 'যোগাযোগের তথ্য'}
+              <FileText className="w-4 h-4 text-emerald-600" />
+              {t.documents}
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3 text-xs">
-            <div>
-              <span className="text-slate-500 block">{t.phone}:</span>
-              <span className="font-semibold text-slate-900">{tenant.phone}</span>
-            </div>
-            {tenant.email && (
-              <div>
-                <span className="text-slate-500 block">{t.email}:</span>
-                <span className="font-semibold text-slate-900">{tenant.email}</span>
+          <CardContent className="space-y-4">
+            <DocumentThumbnail
+              url={profilePictureUrl}
+              label={t.profilePicture}
+              alt={`${tenant.name} ${t.profilePicture}`}
+              emptyLabel={isEn ? 'No profile picture' : 'প্রোফাইল ছবি নেই'}
+              viewLabel={t.view}
+              onView={() => openPreview(profilePictureUrl ?? null, t.profilePicture)}
+            />
+
+            {tenant.nidFrontImageId && nidFrontUrl && (
+              <div className="pt-3 border-t border-slate-100">
+                <DocumentThumbnail
+                  url={nidFrontUrl}
+                  label={t.nidFront}
+                  alt={`${tenant.name} ${t.nidFront}`}
+                  emptyLabel={isEn ? 'No NID front image' : 'এনআইডি সামনের ছবি নেই'}
+                  viewLabel={t.view}
+                  onView={() => openPreview(nidFrontUrl ?? null, t.nidFront)}
+                />
               </div>
             )}
-            {tenant.occupation && (
-              <div>
-                <span className="text-slate-500 block">{t.occupation}:</span>
-                <span className="font-semibold text-slate-900">{tenant.occupation}</span>
+
+            {tenant.nidBackImageId && nidBackUrl && (
+              <div className="pt-3 border-t border-slate-100">
+                <DocumentThumbnail
+                  url={nidBackUrl}
+                  label={t.nidBack}
+                  alt={`${tenant.name} ${t.nidBack}`}
+                  emptyLabel={isEn ? 'No NID back image' : 'এনআইডি পেছনের ছবি নেই'}
+                  viewLabel={t.view}
+                  onView={() => openPreview(nidBackUrl ?? null, t.nidBack)}
+                />
+              </div>
+            )}
+
+            {!tenant.profilePictureId && !tenant.nidFrontImageId && !tenant.nidBackImageId && (
+              <div className="text-center py-6 text-slate-500">
+                <FileText className="w-10 h-10 mx-auto mb-2 text-slate-300" />
+                <p className="text-sm">{isEn ? 'No documents uploaded' : 'কোনো ডকুমেন্ট আপলোড করা হয়নি'}</p>
               </div>
             )}
           </CardContent>
         </Card>
+      </div>
 
-        {/* Identification & Address */}
+      {/* Address & Emergency Contact Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Address */}
         <Card className="border-slate-200/80">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-              <CreditCard className="w-4 h-4 text-emerald-600" />
-              {isEn ? 'Identification & Address' : 'এনআইডি ও ঠিকানা'}
+              <MapPin className="w-4 h-4 text-emerald-600" />
+              {t.address}
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3 text-xs">
-            <div>
-              <span className="text-slate-500 block">{t.permanentAddress}:</span>
-              <span className="font-semibold text-slate-900">{tenant.permanentAddress || '-'}</span>
-            </div>
-            {tenant.nidFrontImageId && (
-              <div className="pt-2 border-t border-slate-100">
-                <FileUploader
-                  category="TENANT_FRONT_NID"
-                  value={tenant.nidFrontImageId}
-                  disabled
-                  label={isEn ? 'NID — Front Side' : 'এনআইডি — সামনের পাশ'}
-                />
-              </div>
-            )}
-            {tenant.nidBackImageId && (
-              <div className="pt-2 border-t border-slate-100">
-                <FileUploader
-                  category="TENANT_BACK_NID"
-                  value={tenant.nidBackImageId}
-                  disabled
-                  label={isEn ? 'NID — Back Side' : 'এনআইডি — পেছনের পাশ'}
-                />
-              </div>
-            )}
+          <CardContent>
+            <p className="text-sm text-slate-700 whitespace-pre-wrap">{tenant.permanentAddress || (isEn ? 'Not provided' : 'প্রদান করা হয়নি')}</p>
           </CardContent>
         </Card>
 
@@ -193,71 +392,128 @@ export default function TenantDetailPage() {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
               <Shield className="w-4 h-4 text-emerald-600" />
-              {isEn ? 'Emergency Contact' : 'জরুরি যোগাযোগ'}
+              {t.emergencyContactSection}
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3 text-xs">
+          <CardContent className="space-y-3">
             <div>
-              <span className="text-slate-500 block">{isEn ? 'Contact Person' : 'ব্যক্তির নাম'}:</span>
-              <span className="font-semibold text-slate-900">{tenant.emergencyContactName || '-'}</span>
+              <span className="text-xs text-slate-500 block">{isEn ? 'Contact Person' : 'ব্যক্তির নাম'}</span>
+              <span className="font-medium text-slate-900 block">{tenant.emergencyContactName || (isEn ? 'Not provided' : 'প্রদান করা হয়নি')}</span>
             </div>
             <div>
-              <span className="text-slate-500 block">{isEn ? 'Emergency Phone' : 'জরুরি ফোন'}:</span>
-              <span className="font-semibold text-slate-900">{tenant.emergencyContactPhone || '-'}</span>
+              <span className="text-xs text-slate-500 block">{isEn ? 'Emergency Phone' : 'জরুরি ফোন'}</span>
+              <span className="font-medium text-slate-900 block">{tenant.emergencyContactPhone || (isEn ? 'Not provided' : 'প্রদান করা হয়নি')}</span>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Agreements Section */}
+      {/* Rental Agreements */}
       <Card className="border-slate-200/80 shadow-xs">
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
             <FileText className="w-5 h-5 text-emerald-600" />
-            {isEn ? 'Rental Agreements' : 'ভাড়া চুক্তিসমূহ'}
+            {isEn ? 'Rental Agreements' : 'ভাড়া চুক্তিসমূহ'}
           </CardTitle>
         </CardHeader>
         <CardContent>
           {tenant.agreements && tenant.agreements.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t.unitNumber}</TableHead>
-                  <TableHead>{t.baseRent}</TableHead>
-                  <TableHead>{t.serviceFee}</TableHead>
-                  <TableHead>{t.securityDeposit}</TableHead>
-                  <TableHead>{t.startDate}</TableHead>
-                  <TableHead>{t.status}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {tenant.agreements.map((agr) => (
-                  <TableRow key={agr.id}>
-                    <TableCell data-label={t.unitNumber} className="font-bold text-slate-900">
-                      {agr.unit?.unitNumber} ({agr.unit?.property?.name})
-                    </TableCell>
-                    <TableCell data-label={t.baseRent} className="font-semibold text-slate-900">
-                      {formatCurrency(agr.monthlyRent, language)}
-                    </TableCell>
-                    <TableCell data-label={t.serviceFee} className="text-slate-600">
-                      {formatCurrency(agr.serviceFee, language)}
-                    </TableCell>
-                    <TableCell data-label={t.securityDeposit} className="text-emerald-700 font-medium">
-                      {formatCurrency(agr.securityDeposit, language)}
-                    </TableCell>
-                    <TableCell data-label={t.startDate} className="text-xs text-slate-600">
-                      {formatBnDate(agr.startDate, language)}
-                    </TableCell>
-                    <TableCell data-label={t.status}>
-                      <StatusBadge status={agr.status} lang={language} />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-slate-100/80 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                    <th className="pb-3 px-4">{t.unitNumber}</th>
+                    <th className="pb-3 px-4">{t.baseRent}</th>
+                    <th className="pb-3 px-4">{t.serviceFee}</th>
+                    <th className="pb-3 px-4">{t.securityDeposit}</th>
+                    <th className="pb-3 px-4">{t.startDate}</th>
+                    <th className="pb-3 px-4">{t.endDate}</th>
+                    <th className="pb-3 px-4">{t.status}</th>
+                    <th className="pb-3 px-4 text-right">{t.actions}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {tenant.agreements.map((agr) => {
+                    const isEndingThisRow = endingAgreementId === agr.id;
+                    return (
+                      <tr key={agr.id} className="hover:bg-slate-50/50">
+                        <td className="py-3 px-4">
+                          <div className="font-semibold text-slate-900">{agr.unit?.unitNumber}</div>
+                          {agr.unit?.property?.name && (
+                            <div className="text-xs text-slate-500 truncate max-w-xs">{agr.unit.property.name}</div>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 font-semibold text-slate-900 whitespace-nowrap">
+                          {formatCurrency(agr.monthlyRent, language)}
+                        </td>
+                        <td className="py-3 px-4 text-slate-600 whitespace-nowrap">
+                          {formatCurrency(agr.serviceFee, language)}
+                        </td>
+                        <td className="py-3 px-4 text-emerald-700 font-medium whitespace-nowrap">
+                          {formatCurrency(agr.securityDeposit, language)}
+                        </td>
+                        <td className="py-3 px-4 text-xs text-slate-600 whitespace-nowrap">
+                          {formatBnDate(agr.startDate, language)}
+                        </td>
+                        <td className="py-3 px-4 text-xs text-slate-600 whitespace-nowrap">
+                          {agr.endDate ? formatBnDate(agr.endDate, language) : '—'}
+                        </td>
+                        <td className="py-3 px-4">
+                          <StatusBadge status={agr.status} lang={language} />
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => router.push(`/agreements/${agr.id}`)}
+                              className="h-8 px-3 text-xs text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 gap-1.5 border border-emerald-200"
+                              title={t.view}
+                              aria-label={`${t.view} — ${agr.unit?.unitNumber ?? ''}`}
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                              <span className="hidden xs:inline">{t.view}</span>
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => router.push(`/agreements/${agr.id}/edit`)}
+                              className="h-8 px-3 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 gap-1.5 border border-blue-200"
+                              title={t.edit}
+                              aria-label={`${t.edit} — ${agr.unit?.unitNumber ?? ''}`}
+                            >
+                              <Edit className="w-3.5 h-3.5" />
+                              <span className="hidden xs:inline">{t.edit}</span>
+                            </Button>
+                            {agr.status === 'ACTIVE' && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setConfirmEndAgreementId(agr.id)}
+                                disabled={isEndingThisRow}
+                                className="h-8 px-3 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 gap-1.5 border border-rose-200"
+                                title={t.endAgreement}
+                                aria-label={`${t.endAgreement} — ${agr.unit?.unitNumber ?? ''}`}
+                              >
+                                {isEndingThisRow ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                  <Ban className="w-3.5 h-3.5" />
+                                )}
+                                <span className="hidden xs:inline">{t.endAgreement}</span>
+                              </Button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           ) : (
-            <p className="text-sm text-slate-500 py-4 text-center">
-              {isEn ? 'No rental agreements found for this tenant.' : 'এই ভাড়াটিয়ার কোনো সক্রিয় বা পূর্বের চুক্তি পাওয়া যায়নি।'}
+            <p className="text-sm text-slate-500 py-8 text-center">
+              {isEn ? 'No rental agreements found for this tenant.' : 'এই ভাড়াটিয়ার কোনো সক্রিয় বা পূর্বের চুক্তি পাওয়া যায়নি।'}
             </p>
           )}
         </CardContent>
@@ -270,6 +526,57 @@ export default function TenantDetailPage() {
         onOpenChange={setEditDialogOpen}
         onSuccess={refetch}
       />
+
+      {/* Image Preview Dialog */}
+      <ImagePreviewDialog
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        imageUrl={previewImageUrl}
+        title={previewTitle}
+      />
+
+      {/* End Agreement Confirmation Dialog (replaces native confirm()) */}
+      <Dialog
+        open={!!confirmEndAgreementId}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen && endingAgreementId === null) {
+            setConfirmEndAgreementId(null);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-rose-700">
+              <Ban className="w-5 h-5" />
+              {t.endAgreement}
+            </DialogTitle>
+            <DialogDescription>
+              {isEn
+                ? `End agreement for ${tenant.name}? This cannot be undone.`
+                : `${tenant.name}-এর চুক্তি সমাপ্ত করবেন? এটি পূর্বাবস্থায় ফেরানো যাবে না।`}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setConfirmEndAgreementId(null)}
+              disabled={endingAgreementId !== null}
+            >
+              {t.cancel}
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => confirmEndAgreementId && handleEndAgreement(confirmEndAgreementId)}
+              disabled={endingAgreementId !== null}
+              className="bg-rose-600 hover:bg-rose-700 text-white gap-2"
+            >
+              {endingAgreementId ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+              {isEn ? 'End Agreement' : 'চুক্তি সমাপ্ত করুন'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
