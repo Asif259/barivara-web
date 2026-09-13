@@ -299,72 +299,62 @@ export default function TenantDetailPage() {
         </div>
       </div>
 
-      {/* Information Sections */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-        {/* Personal & Contact Information */}
-        <Card className="border-slate-200/80 md:col-span-2">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-              <User className="w-4 h-4 text-emerald-600" />
-              {t.personalContact}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
-              <div className="space-y-1">
-                <span className="text-xs text-slate-500 block">{t.tenantName}</span>
-                <span className="font-medium text-slate-900 block">{tenant.name}</span>
-              </div>
-              <div className="space-y-1">
-                <span className="text-xs text-slate-500 block">{t.phone}</span>
-                <span className="font-medium text-slate-900 block">{tenant.phone}</span>
-              </div>
-              {tenant.email && (
-                <div className="space-y-1">
-                  <span className="text-xs text-slate-500 block">{t.email}</span>
-                  <span className="font-medium text-slate-900 block">{tenant.email}</span>
-                </div>
-              )}
-              {tenant.occupation && (
-                <div className="space-y-1">
-                  <span className="text-xs text-slate-500 block">{t.occupation}</span>
-                  <span className="font-medium text-slate-900 block">{tenant.occupation}</span>
-                </div>
-              )}
+      {/* Personal & Contact Information */}
+      <Card className="border-slate-200/80">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+            <User className="w-4 h-4 text-emerald-600" />
+            {t.personalContact}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3">
+            <div className="space-y-1">
+              <span className="text-xs text-slate-500 block">{t.tenantName}</span>
+              <span className="font-medium text-slate-900 block">{tenant.name}</span>
             </div>
-
-            <div className="pt-3 border-t border-slate-100 space-y-1">
-              <span className="text-xs text-slate-500 flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-emerald-600" />
-                {t.address}
-              </span>
-              <p className="text-sm font-medium text-slate-900 whitespace-pre-wrap">
-                {tenant.permanentAddress || (isEn ? 'Not provided' : 'প্রদান করা হয়নি')}
-              </p>
+            <div className="space-y-1">
+              <span className="text-xs text-slate-500 block">{t.phone}</span>
+              <span className="font-medium text-slate-900 block">{tenant.phone}</span>
             </div>
-          </CardContent>
-        </Card>
+            {tenant.email && (
+              <div className="space-y-1">
+                <span className="text-xs text-slate-500 block">{t.email}</span>
+                <span className="font-medium text-slate-900 block">{tenant.email}</span>
+              </div>
+            )}
+            {tenant.occupation && (
+              <div className="space-y-1">
+                <span className="text-xs text-slate-500 block">{t.occupation}</span>
+                <span className="font-medium text-slate-900 block">{tenant.occupation}</span>
+              </div>
+            )}
+          </div>
 
-        {/* Documents */}
-        <Card className="border-slate-200/80">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-              <FileText className="w-4 h-4 text-emerald-600" />
-              {t.documents}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <DocumentThumbnail
-              url={profilePictureUrl}
-              label={t.profilePicture}
-              alt={`${tenant.name} ${t.profilePicture}`}
-              emptyLabel={isEn ? 'No profile picture' : 'প্রোফাইল ছবি নেই'}
-              viewLabel={t.view}
-              onView={() => openPreview(profilePictureUrl ?? null, t.profilePicture)}
-            />
+          <div className="pt-3 border-t border-slate-100 space-y-1">
+            <span className="text-xs text-slate-500 flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+              {t.address}
+            </span>
+            <p className="text-sm font-medium text-slate-900 whitespace-pre-wrap">
+              {tenant.permanentAddress || (isEn ? 'Not provided' : 'প্রদান করা হয়নি')}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
+      {/* Documents — horizontal row */}
+      <Card className="border-slate-200/80">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+            <FileText className="w-4 h-4 text-emerald-600" />
+            {t.documents}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {tenant.nidFrontImageId && (
-              <div className="pt-2 border-t border-slate-100">
+              <div>
                 {nidFrontUrl ? (
                   <DocumentThumbnail
                     url={nidFrontUrl}
@@ -381,7 +371,7 @@ export default function TenantDetailPage() {
             )}
 
             {tenant.nidBackImageId && (
-              <div className="pt-2 border-t border-slate-100">
+              <div>
                 {nidBackUrl ? (
                   <DocumentThumbnail
                     url={nidBackUrl}
@@ -397,15 +387,15 @@ export default function TenantDetailPage() {
               </div>
             )}
 
-            {!tenant.profilePictureId && !tenant.nidFrontImageId && !tenant.nidBackImageId && (
-              <div className="text-center py-4 text-slate-500">
+            {!tenant.nidFrontImageId && !tenant.nidBackImageId && (
+              <div className="col-span-full text-center py-4 text-slate-500">
                 <FileText className="w-8 h-8 mx-auto mb-2 text-slate-300" />
                 <p className="text-sm">{isEn ? 'No documents uploaded' : 'কোনো ডকুমেন্ট আপলোড করা হয়নি'}</p>
               </div>
             )}
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Emergency Contact */}
       <Card className="border-slate-200/80">
