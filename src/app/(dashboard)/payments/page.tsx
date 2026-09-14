@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api';
@@ -8,8 +8,10 @@ import { useLanguageStore } from '@/stores/language-store';
 import { useTranslation } from '@/lib/translations';
 import { Payment, ApiResponse } from '@/lib/types';
 import { formatCurrency, formatBnDate } from '@/lib/utils';
+import { getFileDownloadUrl } from '@/lib/file-upload';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -27,6 +29,7 @@ import {
   CreditCard,
   FileText,
   RotateCcw,
+  Search,
 } from 'lucide-react';
 
 export default function PaymentsPage() {
@@ -35,6 +38,7 @@ export default function PaymentsPage() {
   const isEn = language === 'en';
 
   const [methodFilter, setMethodFilter] = useState<string>('');
+  const [search, setSearch] = useState('');
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
   const [receiptOpen, setReceiptOpen] = useState(false);
 
@@ -50,6 +54,22 @@ export default function PaymentsPage() {
       const res = await apiClient.get<ApiResponse<Payment[]>>(`/payments?limit=100${methodParam}`);
       return res.data?.data || [];
     },
+  });
+
+  const visiblePayments = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return payments || [];
+    return (payments || []).filter((payment) => [payment.monthlyRent?.agreement?.tenant?.name, payment.monthlyRent?.agreement?.tenant?.phone, payment.monthlyRent?.agreement?.unit?.unitNumber, payment.monthlyRent?.agreement?.unit?.property?.name, payment.transactionId].some((value) => value?.toLowerCase().includes(term)));
+  }, [payments, search]);
+
+  const { data: profilePictureUrls } = useQuery({
+    queryKey: ['payment-tenant-profile-pictures', payments?.map((payment) => payment.monthlyRent?.agreement?.tenant?.profilePictureId).filter(Boolean)],
+    queryFn: async () => {
+      const ids = (payments || []).map((payment) => payment.monthlyRent?.agreement?.tenant?.profilePictureId).filter(Boolean) as string[];
+      const urls = await Promise.all(ids.map(async (id) => { try { return { id, url: await getFileDownloadUrl(id) }; } catch { return { id, url: null }; } }));
+      return Object.fromEntries(urls.map((item) => [item.id, item.url]));
+    },
+    enabled: !!payments?.some((payment) => payment.monthlyRent?.agreement?.tenant?.profilePictureId),
   });
 
   const handleViewReceipt = (payment: Payment) => {
@@ -87,7 +107,7 @@ export default function PaymentsPage() {
       />
 
       {/* Filter Bar */}
-      <div className="flex items-center gap-3 bg-white p-4 rounded-2xl border rounded-[10px] border-[#E5E7EB] shadow-none">
+      <div className="flex flex-wrap items-center gap-3 bg-white p-3 rounded-[10px] border border-[#E5E7EB] shadow-none">
         <span className="text-xs font-semibold text-[#6B7280]">{t.paymentMethod}:</span>
         <select
           value={methodFilter}
@@ -104,6 +124,14 @@ export default function PaymentsPage() {
         </select>
       </div>
 
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative w-full sm:max-w-sm">
+          <Search className="absolute left-3.5 top-3 h-4 w-4 text-[#9CA3AF]" />
+          <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={isEn ? 'Search tenant, phone, unit, property, or transaction' : 'ভাড়াটিয়া, ফোন, ইউনিট, বাড়ি বা ট্রানজেকশন খুঁজুন'} className="pl-10" />
+        </div>
+        <p className="text-xs text-[#6B7280]">{visiblePayments.length} {isEn ? 'payments' : 'টি পেমেন্ট'}</p>
+      </div>
+
       {/* Payments Table */}
       <Card className="rounded-[10px] border-[#E5E7EB] shadow-none">
         <CardContent className="p-0">
@@ -113,9 +141,9 @@ export default function PaymentsPage() {
               <Skeleton className="h-10 w-full" />
               <Skeleton className="h-10 w-full" />
             </div>
-          ) : payments && payments.length > 0 ? (
-            <Table className='p-2'>
-              <TableHeader>
+          ) : visiblePayments.length > 0 ? (
+            <Table>
+              <TableHeader className="bg-[#FAFAF9]">
                 <TableRow>
                   <TableHead>{t.date}</TableHead>
                   <TableHead>{t.tenantName}</TableHead>
@@ -128,17 +156,15 @@ export default function PaymentsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {payments.map((payment) => (
+                {visiblePayments.map((payment) => (
                   <TableRow key={payment.id}>
                     <TableCell data-label={t.date} className="text-xs text-[#6B7280] font-medium">
                       {formatBnDate(payment.paymentDate, language)}
                     </TableCell>
-                    <TableCell data-label={t.tenantName} className="font-bold text-[#171717]">
-                      <div className="text-right sm:text-left">
-                        <span>{payment.monthlyRent?.agreement?.tenant?.name || 'Tenant'}</span>
-                        <span className="block text-xs font-normal text-[#6B7280]">
-                          {payment.monthlyRent?.agreement?.tenant?.phone}
-                        </span>
+                    <TableCell data-label={t.tenantName} className="min-w-[250px]">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#CDE4DA] bg-[#E8F3EF] text-sm font-semibold text-[#12664F]">{profilePictureUrls?.[payment.monthlyRent?.agreement?.tenant?.profilePictureId || ''] ? <img src={profilePictureUrls[payment.monthlyRent?.agreement?.tenant?.profilePictureId || '']!} alt="" className="h-full w-full object-cover" /> : (payment.monthlyRent?.agreement?.tenant?.name || 'T').charAt(0).toUpperCase()}</div>
+                        <div className="min-w-0"><p className="truncate font-medium text-[#171717]">{payment.monthlyRent?.agreement?.tenant?.name || 'Tenant'}</p><p className="mt-0.5 text-xs text-[#6B7280]">{payment.monthlyRent?.agreement?.tenant?.phone || (isEn ? 'No phone number' : 'ফোন নম্বর নেই')}</p></div>
                       </div>
                     </TableCell>
                     <TableCell data-label={t.unitNumber}>

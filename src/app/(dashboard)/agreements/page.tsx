@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
+import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api';
@@ -8,8 +9,10 @@ import { useLanguageStore } from '@/stores/language-store';
 import { useTranslation } from '@/lib/translations';
 import { RentalAgreement, Property, ApiResponse } from '@/lib/types';
 import { formatCurrency, formatBnDate } from '@/lib/utils';
+import { getFileDownloadUrl } from '@/lib/file-upload';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -25,9 +28,11 @@ import {
 import { AgreementFormDialog } from '@/components/agreements/agreement-form-dialog';
 import {
   FileText,
+  Search,
   Plus,
   Ban,
   Edit,
+  ExternalLink,
 } from 'lucide-react';
 
 export default function AgreementsPage() {
@@ -37,6 +42,7 @@ export default function AgreementsPage() {
 
   const [agreementDialogOpen, setAgreementDialogOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>('ACTIVE');
+  const [search, setSearch] = useState('');
   const [editingAgreement, setEditingAgreement] = useState<RentalAgreement | null>(null);
 
   // Fetch properties to determine if single property
@@ -61,6 +67,29 @@ export default function AgreementsPage() {
       const res = await apiClient.get<ApiResponse<RentalAgreement[]>>(`/rental-agreements?limit=50${statusParam}`);
       return res.data?.data || [];
     },
+  });
+
+  const visibleAgreements = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return agreements || [];
+    return (agreements || []).filter((agreement) => [
+      agreement.tenant?.name,
+      agreement.tenant?.phone,
+      agreement.unit?.unitNumber,
+      agreement.unit?.property?.name,
+    ].some((value) => value?.toLowerCase().includes(term)));
+  }, [agreements, search]);
+
+  const { data: profilePictureUrls } = useQuery({
+    queryKey: ['agreement-tenant-profile-pictures', agreements?.map((agreement) => agreement.tenant?.profilePictureId).filter(Boolean)],
+    queryFn: async () => {
+      const ids = (agreements || []).map((agreement) => agreement.tenant?.profilePictureId).filter(Boolean) as string[];
+      const urls = await Promise.all(ids.map(async (id) => {
+        try { return { id, url: await getFileDownloadUrl(id) }; } catch { return { id, url: null }; }
+      }));
+      return Object.fromEntries(urls.map((item) => [item.id, item.url]));
+    },
+    enabled: !!agreements?.some((agreement) => agreement.tenant?.profilePictureId),
   });
 
   const handleEndAgreement = async (id: string, tenantName: string) => {
@@ -123,6 +152,14 @@ export default function AgreementsPage() {
         </Button>
       </div>
 
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative w-full sm:max-w-sm">
+          <Search className="absolute left-3.5 top-3 h-4 w-4 text-[#9CA3AF]" />
+          <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={isEn ? 'Search tenant, phone, unit, or property' : 'ভাড়াটিয়া, ফোন, ইউনিট বা বাড়ি খুঁজুন'} className="pl-10" />
+        </div>
+        <p className="text-xs text-[#6B7280]">{visibleAgreements.length} {isEn ? 'agreements' : 'টি চুক্তি'}</p>
+      </div>
+
       {/* Compact, Information-Dense Agreements Table */}
       <Card className="rounded-[10px] border-[#E5E7EB] shadow-none overflow-hidden">
         <CardContent className="p-0">
@@ -132,9 +169,9 @@ export default function AgreementsPage() {
               <Skeleton className="h-10 w-full" />
               <Skeleton className="h-10 w-full" />
             </div>
-          ) : agreements && agreements.length > 0 ? (
+              ) : visibleAgreements.length > 0 ? (
             <div className="overflow-x-auto">
-              <Table className="w-full md:table-fixed md:min-w-[900px] p-2">
+              <Table>
                 <TableHeader className="bg-[#FAFAF9]">
                   <TableRow>
                     <TableHead className="w-[170px]">{t.tenantName}</TableHead>
@@ -149,12 +186,14 @@ export default function AgreementsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {agreements.map((agr) => (
+                  {visibleAgreements.map((agr) => (
                     <TableRow key={agr.id}>
-                      <TableCell data-label={t.tenantName} className="font-bold text-[#171717]">
-                        <div className="text-right sm:text-left">
-                          <span className="block cell-clamp-2" title={agr.tenant?.name || 'Tenant'}>{agr.tenant?.name || 'Tenant'}</span>
-                          <span className="block text-xs font-normal text-[#6B7280]">{agr.tenant?.phone}</span>
+                      <TableCell data-label={t.tenantName} className="min-w-[250px]">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#CDE4DA] bg-[#E8F3EF] text-sm font-semibold text-[#12664F]">
+                            {profilePictureUrls?.[agr.tenant?.profilePictureId || ''] ? <img src={profilePictureUrls[agr.tenant?.profilePictureId || '']!} alt="" className="h-full w-full object-cover" /> : (agr.tenant?.name || 'T').charAt(0).toUpperCase()}
+                          </div>
+                          <div className="min-w-0"><p className="truncate font-medium text-[#171717]">{agr.tenant?.name || 'Tenant'}</p><p className="mt-0.5 text-xs text-[#6B7280]">{agr.tenant?.phone || (isEn ? 'No phone number' : 'ফোন নম্বর নেই')}</p></div>
                         </div>
                       </TableCell>
                       <TableCell data-label={t.unitNumber}>
@@ -183,22 +222,28 @@ export default function AgreementsPage() {
                       <TableCell data-label={t.status}>
                         <StatusBadge status={agr.status} lang={language} />
                       </TableCell>
-                      <TableCell data-label={t.actions} className="text-center">
-                        <div className="flex items-center justify-end table-actions gap-1.5">
+                      <TableCell data-label={t.actions} className="text-right">
+                        <div className="flex items-center justify-end gap-1 table-actions">
+                          <Link href={`/tenants/${agr.tenant?.id}`}>
+                            <Button size="sm" variant="outline" className="h-8 gap-1.5 whitespace-nowrap text-xs">
+                              {isEn ? 'Profile' : 'প্রোফাইল'}<ExternalLink className="h-3.5 w-3.5" />
+                            </Button>
+                          </Link>
                           <Button
-                            size="sm"
+                            size="icon"
                             variant="ghost"
                             onClick={() => handleEditAgreement(agr)}
-                            className="h-8 w-8 p-0 text-[#6B7280] hover:text-[#171717]"
+                            className="h-8 w-8 text-[#6B7280] hover:text-[#171717]"
+                            title={t.edit}
                           >
                             <Edit className="w-3.5 h-3.5" />
                           </Button>
                           {agr.status === 'ACTIVE' && (
                             <Button
-                              size="sm"
+                              size="icon"
                               variant="ghost"
                               onClick={() => handleEndAgreement(agr.id, agr.tenant?.name || 'tenant')}
-                              className="h-7 px-2 text-xs text-[#DC2626] hover:text-[#B91C1C] hover:bg-[#FEF7F7]"
+                              className="h-8 w-8 text-[#DC2626] hover:bg-[#FEF2F2]"
                               title={t.endAgreement}
                             >
                               <Ban className="w-3.5 h-3.5" />

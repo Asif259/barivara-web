@@ -87,7 +87,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
             </div>
             <div>
               <span className="text-base font-semibold text-[#171717] tracking-tight flex items-center gap-1.5">
-                বাড়িভাড়া <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#F0FDF4] text-[#12664F] font-medium">v1</span>
+                {t.appName}
               </span>
               <span className="text-xs text-[#6B7280] block font-normal">Smart Rental Manager</span>
             </div>

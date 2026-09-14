@@ -10,6 +10,7 @@ import { Expense, Property, ApiResponse } from '@/lib/types';
 import { formatCurrency, formatBnDate } from '@/lib/utils';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -27,6 +28,7 @@ import {
   Plus,
   Edit,
   Trash2,
+  Search,
 } from 'lucide-react';
 
 export default function ExpensesPage() {
@@ -36,6 +38,7 @@ export default function ExpensesPage() {
 
   const [categoryFilter, setCategoryFilter] = useState<string>('');
   const [propertyFilter, setPropertyFilter] = useState<string>('');
+  const [search, setSearch] = useState('');
   const [expenseDialogOpen, setExpenseDialogOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
 
@@ -54,11 +57,12 @@ export default function ExpensesPage() {
     isLoading,
     refetch,
   } = useQuery({
-    queryKey: ['expenses-list', categoryFilter, propertyFilter],
+    queryKey: ['expenses-list', categoryFilter, propertyFilter, search],
     queryFn: async () => {
       let url = `/expenses?limit=100`;
       if (categoryFilter) url += `&category=${categoryFilter}`;
       if (propertyFilter) url += `&propertyId=${propertyFilter}`;
+      if (search) url += `&search=${encodeURIComponent(search)}`;
       const res = await apiClient.get<ApiResponse<Expense[]>>(url);
       const raw = res.data?.data;
       // API may return paginated object { items, total } or a plain array
@@ -118,7 +122,7 @@ export default function ExpensesPage() {
             <select
               value={propertyFilter}
               onChange={(e) => setPropertyFilter(e.target.value)}
-              className="h-9 rounded-lg border border-[#E5E7EB] bg-[#FAFAF9] px-3 text-xs font-semibold text-[#374151] outline-none"
+              className="h-9 rounded-lg border border-[#E5E7EB] bg-white px-3 text-xs font-semibold text-[#374151] outline-none"
             >
               <option value="">{isEn ? 'All Properties' : 'সকল বাড়ি'}</option>
               {properties?.map((p) => (
@@ -134,7 +138,7 @@ export default function ExpensesPage() {
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="h-9 rounded-lg border border-[#E5E7EB] bg-[#FAFAF9] px-3 text-xs font-semibold text-[#374151] outline-none"
+              className="h-9 rounded-lg border border-[#E5E7EB] bg-white px-3 text-xs font-semibold text-[#374151] outline-none"
             >
               <option value="">{t.all}</option>
               <option value="ELECTRICITY">Electricity (বিদ্যুৎ)</option>
@@ -157,6 +161,15 @@ export default function ExpensesPage() {
         </div>
       </div>
 
+      {/* Search Bar */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative w-full sm:max-w-sm">
+          <Search className="absolute left-3.5 top-3 h-4 w-4 text-[#9CA3AF]" />
+          <Input placeholder={isEn ? 'Search property, category, description, or voucher' : 'বাড়ি, খাত, বিবরণ বা ভাউচার খুঁজুন'} value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10" />
+        </div>
+        <p className="text-xs text-[#6B7280]">{expenses ? `${expenses.length} ${isEn ? 'expenses' : 'টি খরচ'}` : ''}</p>
+      </div>
+
       {/* Expenses Table */}
       <Card className="rounded-[10px] border-[#E5E7EB] shadow-none">
         <CardContent className="p-0">
@@ -167,8 +180,8 @@ export default function ExpensesPage() {
               <Skeleton className="h-10 w-full" />
             </div>
           ) : expenses && expenses.length > 0 ? (
-            <Table className="p-2">
-              <TableHeader>
+            <Table>
+              <TableHeader className="bg-[#FAFAF9]">
                 <TableRow>
                   <TableHead>{t.date}</TableHead>
                   <TableHead>{t.propertyName}</TableHead>

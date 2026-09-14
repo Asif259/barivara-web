@@ -7,8 +7,10 @@ import { useLanguageStore } from '@/stores/language-store';
 import { useTranslation } from '@/lib/translations';
 import { MonthlyRent, Property, ApiResponse } from '@/lib/types';
 import { formatCurrency, formatBnDate, getDefaultRentPeriod } from '@/lib/utils';
+import { getFileDownloadUrl } from '@/lib/file-upload';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -27,6 +29,7 @@ import {
   Receipt,
   Wallet,
   Sparkles,
+  Search,
 } from 'lucide-react';
 
 export default function MonthlyRentsPage() {
@@ -39,6 +42,7 @@ export default function MonthlyRentsPage() {
   const [selectedMonth, setSelectedMonth] = useState<number>(defaultPeriod.month);
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [propertyFilter, setPropertyFilter] = useState<string>('');
+  const [search, setSearch] = useState('');
 
   const [generateDialogOpen, setGenerateDialogOpen] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
@@ -59,14 +63,25 @@ export default function MonthlyRentsPage() {
     isLoading,
     refetch,
   } = useQuery({
-    queryKey: ['monthly-rents-list', selectedYear, selectedMonth, statusFilter, propertyFilter],
+    queryKey: ['monthly-rents-list', selectedYear, selectedMonth, statusFilter, propertyFilter, search],
     queryFn: async () => {
       let url = `/monthly-rents?year=${selectedYear}&month=${selectedMonth}&limit=100`;
       if (statusFilter) url += `&status=${statusFilter}`;
       if (propertyFilter) url += `&propertyId=${propertyFilter}`;
+      if (search) url += `&search=${encodeURIComponent(search)}`;
       const res = await apiClient.get<ApiResponse<MonthlyRent[]>>(url);
       return res.data?.data || [];
     },
+  });
+
+  const { data: profilePictureUrls } = useQuery({
+    queryKey: ['rent-tenant-profile-pictures', rents?.map((rent) => rent.agreement?.tenant?.profilePictureId).filter(Boolean)],
+    queryFn: async () => {
+      const ids = (rents || []).map((rent) => rent.agreement?.tenant?.profilePictureId).filter(Boolean) as string[];
+      const urls = await Promise.all(ids.map(async (id) => { try { return { id, url: await getFileDownloadUrl(id) }; } catch { return { id, url: null }; } }));
+      return Object.fromEntries(urls.map((item) => [item.id, item.url]));
+    },
+    enabled: !!rents?.some((rent) => rent.agreement?.tenant?.profilePictureId),
   });
 
   const handleOpenPayment = (rent: MonthlyRent) => {
@@ -87,7 +102,7 @@ export default function MonthlyRentsPage() {
         }
       />
 
-      {/* Filter Bar */}
+      {/* Filter Bar - Month/Year/Status/Property selectors */}
       <div className="flex flex-wrap items-center gap-3 bg-white p-3 rounded-[10px] border border-[#E5E7EB] shadow-none">
         {/* Month Selector */}
         <div className="flex items-center gap-2">
@@ -162,6 +177,15 @@ export default function MonthlyRentsPage() {
         </div>
       </div>
 
+      {/* Search Bar */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative w-full sm:max-w-sm">
+          <Search className="absolute left-3.5 top-3 h-4 w-4 text-[#9CA3AF]" />
+          <Input placeholder={isEn ? 'Search tenant, unit, or property' : 'ভাড়াটিয়া, ইউনিট বা বাড়ি খুঁজুন'} value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10" />
+        </div>
+        <p className="text-xs text-[#6B7280]">{rents ? `${rents.length} ${isEn ? 'invoices' : 'টি বিল'}` : ''}</p>
+      </div>
+
       {/* Rents Table */}
       <Card className="rounded-[10px] border-[#E5E7EB] shadow-none">
         <CardContent className="p-0">
@@ -172,10 +196,10 @@ export default function MonthlyRentsPage() {
               <Skeleton className="h-10 w-full" />
             </div>
           ) : rents && rents.length > 0 ? (
-            <Table className='p-2'>
-              <TableHeader>
+            <Table>
+              <TableHeader className="bg-[#FAFAF9]">
                 <TableRow>
-                  <TableHead>{t.tenantName}</TableHead>
+                  <TableHead className="min-w-[250px]">{t.tenantName}</TableHead>
                   <TableHead>{t.unitNumber}</TableHead>
                   <TableHead>{t.baseRent}</TableHead>
                   <TableHead>{t.serviceFee}</TableHead>
@@ -190,19 +214,26 @@ export default function MonthlyRentsPage() {
               <TableBody>
                 {rents.map((rent) => (
                   <TableRow key={rent.id}>
-                    <TableCell data-label={t.tenantName} className="font-bold text-[#171717]">
-                      <div className="text-right sm:text-left">
-                        <span>{rent.agreement?.tenant?.name || 'Tenant'}</span>
-                        <span className="block text-xs font-normal text-[#6B7280]">
-                          {rent.agreement?.tenant?.phone}
-                        </span>
+                    <TableCell data-label={t.tenantName} className="min-w-[250px]">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#CDE4DA] bg-[#E8F3EF] text-sm font-semibold text-[#12664F]">
+                          {profilePictureUrls?.[rent.agreement?.tenant?.profilePictureId || ''] ? (
+                            <img src={profilePictureUrls[rent.agreement?.tenant?.profilePictureId || '']!} alt="" className="h-full w-full object-cover" />
+                          ) : (
+                            (rent.agreement?.tenant?.name || 'T').charAt(0).toUpperCase()
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="truncate font-medium text-[#171717]">{rent.agreement?.tenant?.name || 'Tenant'}</p>
+                          <p className="mt-0.5 text-xs text-[#6B7280]">{rent.agreement?.tenant?.phone || (isEn ? 'No phone number' : 'ফোন নম্বর নেই')}</p>
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell data-label={t.unitNumber}>
                       <div className="text-right sm:text-left">
                         <span className="font-semibold text-[#374151]">{rent.agreement?.unit?.unitNumber}</span>
                         {(!propertyFilter && (properties?.length || 0) > 1) && rent.agreement?.unit?.property?.name && (
-                          <span className="block text-xs text-[#6B7280]">{rent.agreement.unit.property.name}</span>
+                          <span className="block text-xs text-[#6B7280] cell-clamp-2" title={rent.agreement.unit.property.name}>{rent.agreement.unit.property.name}</span>
                         )}
                       </div>
                     </TableCell>
