@@ -1,25 +1,23 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api';
 import { useLanguageStore } from '@/stores/language-store';
 import { useTranslation } from '@/lib/translations';
 import { Tenant, ApiResponse } from '@/lib/types';
-import { formatBnDate } from '@/lib/utils';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { Table, TableHeader, TableBody, TableRow, TableHead } from '@/components/ui/table';
 import { TenantFormDialog } from '@/components/tenants/tenant-form-dialog';
 import { ImagePreviewDialog } from '@/components/ui/image-preview-dialog';
-import { getFileDownloadUrl } from '@/lib/file-upload';
-import { Users, UserPlus, Search, Phone, Mail, Edit, Trash2, ExternalLink, Briefcase } from 'lucide-react';
+import { TenantRow } from '@/components/ui/tenant-row';
+import { Users, UserPlus, Search } from 'lucide-react';
 
 export default function TenantsPage() {
   const { language } = useLanguageStore();
@@ -47,26 +45,6 @@ export default function TenantsPage() {
       const res = await apiClient.get<ApiResponse<Tenant[]>>(`/tenants?limit=50${searchParam}`);
       return res.data?.data || [];
     },
-  });
-
-  // Preserve signed URL resolution through the existing media architecture.
-  const { data: profilePictureUrls } = useQuery({
-    queryKey: ['tenant-profile-pictures', tenants?.map(t => t.profilePictureId).filter(Boolean)],
-    queryFn: async () => {
-      if (!tenants) return {};
-      const ids = tenants.map(t => t.profilePictureId).filter(Boolean) as string[];
-      if (ids.length === 0) return {};
-      const urls = await Promise.all(ids.map(async (id) => {
-        try {
-          const url = await getFileDownloadUrl(id);
-          return { id, url };
-        } catch {
-          return { id, url: null };
-        }
-      }));
-      return Object.fromEntries(urls.map(u => [u.id, u.url]));
-    },
-    enabled: !!tenants && tenants.some(t => t.profilePictureId),
   });
 
   const handleCreate = () => {
@@ -121,35 +99,21 @@ export default function TenantsPage() {
                   <TableHead className="min-w-[170px]">{t.phone}</TableHead>
                   <TableHead className="min-w-[220px]">{t.email}</TableHead>
                   <TableHead className="min-w-[150px]">{t.occupation}</TableHead>
-                  <TableHead className="w-[140px]">{isEn ? 'Added On' : 'যুক্ত করার তারিখ'}</TableHead>
+                  <TableHead className="w-[140px]">{isEn ? 'Added On' : 'যোগে করার তারিখ'}</TableHead>
                   <TableHead className="w-[190px] text-right">{t.actions}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {tenants.map((tenant) => {
-                  const imageUrl = profilePictureUrls?.[tenant.profilePictureId || ''] || null;
-                  return (
-                    <TableRow key={tenant.id}>
-                      <TableCell data-label={t.tenantName} className="min-w-[250px]">
-                        <div className="flex items-center gap-3">
-                          <button onClick={() => openPreview(imageUrl, tenant.name)} disabled={!imageUrl} className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#CDE4DA] bg-[#E8F3EF] text-sm font-semibold text-[#12664F] disabled:cursor-default" aria-label={isEn ? 'View profile picture' : 'প্রোফাইল ছবি দেখুন'}>
-                            {imageUrl ? (
-                              // Signed media URLs are resolved at runtime and cannot use Next image optimization.
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img src={imageUrl} alt={tenant.name} className="h-full w-full object-cover" />
-                            ) : tenant.name.charAt(0).toUpperCase()}
-                          </button>
-                          <div className="min-w-0"><p className="truncate font-medium text-[#171717]">{tenant.name}</p><p className="mt-0.5 text-xs text-[#6B7280]">{tenant.phone || (isEn ? 'No phone number' : 'ফোন নম্বর নেই')}</p></div>
-                        </div>
-                      </TableCell>
-                      <TableCell data-label={t.phone} className="font-medium text-[#374151]"><span className="inline-flex items-center gap-2"><Phone className="h-3.5 w-3.5 text-[#9CA3AF]" />{tenant.phone || '-'}</span></TableCell>
-                      <TableCell data-label={t.email} className="text-sm text-[#6B7280]"><span className="inline-flex items-center gap-2"><Mail className="h-3.5 w-3.5 text-[#9CA3AF]" />{tenant.email || '-'}</span></TableCell>
-                      <TableCell data-label={t.occupation} className="text-sm text-[#6B7280]"><span className="inline-flex items-center gap-2"><Briefcase className="h-3.5 w-3.5 text-[#9CA3AF]" />{tenant.occupation || '-'}</span></TableCell>
-                      <TableCell data-label={isEn ? 'Added On' : 'যুক্ত করার তারিখ'} className="text-xs text-[#6B7280]">{formatBnDate(tenant.createdAt, language)}</TableCell>
-                      <TableCell data-label={t.actions} className="text-right"><div className="flex items-center justify-end gap-1"><Link href={`/tenants/${tenant.id}`}><Button size="sm" variant="outline" className="h-8 gap-1.5 whitespace-nowrap text-xs">{isEn ? 'Profile' : 'প্রোফাইল'}<ExternalLink className="h-3.5 w-3.5" /></Button></Link><Button size="icon" variant="ghost" onClick={() => handleEdit(tenant)} className="h-8 w-8 text-[#6B7280] hover:text-[#171717]" title={t.edit}><Edit className="h-3.5 w-3.5" /></Button><Button size="icon" variant="ghost" onClick={() => handleDelete(tenant.id, tenant.name)} className="h-8 w-8 text-[#DC2626] hover:bg-[#FEF2F2]" title={t.delete}><Trash2 className="h-3.5 w-3.5" /></Button></div></TableCell>
-                    </TableRow>
-                  );
-                })}
+                {tenants.map((tenant) => (
+                  <TenantRow
+                    key={tenant.id}
+                    tenant={tenant}
+                    language={language}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onPreview={openPreview}
+                  />
+                ))}
               </TableBody>
             </Table>
           ) : (

@@ -9,7 +9,6 @@ import { useLanguageStore } from '@/stores/language-store';
 import { useTranslation } from '@/lib/translations';
 import { RentalAgreement, Property, ApiResponse } from '@/lib/types';
 import { formatCurrency, formatBnDate } from '@/lib/utils';
-import { getFileDownloadUrl } from '@/lib/file-upload';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +25,7 @@ import {
   TableCell,
 } from '@/components/ui/table';
 import { AgreementFormDialog } from '@/components/agreements/agreement-form-dialog';
+import { TenantAvatar } from '@/components/ui/tenant-avatar';
 import {
   FileText,
   Search,
@@ -79,18 +79,6 @@ export default function AgreementsPage() {
       agreement.unit?.property?.name,
     ].some((value) => value?.toLowerCase().includes(term)));
   }, [agreements, search]);
-
-  const { data: profilePictureUrls } = useQuery({
-    queryKey: ['agreement-tenant-profile-pictures', agreements?.map((agreement) => agreement.tenant?.profilePictureId).filter(Boolean)],
-    queryFn: async () => {
-      const ids = (agreements || []).map((agreement) => agreement.tenant?.profilePictureId).filter(Boolean) as string[];
-      const urls = await Promise.all(ids.map(async (id) => {
-        try { return { id, url: await getFileDownloadUrl(id) }; } catch { return { id, url: null }; }
-      }));
-      return Object.fromEntries(urls.map((item) => [item.id, item.url]));
-    },
-    enabled: !!agreements?.some((agreement) => agreement.tenant?.profilePictureId),
-  });
 
   const handleEndAgreement = async (id: string, tenantName: string) => {
     if (!confirm(isEn ? `Are you sure you want to end the agreement for ${tenantName}? The unit will be marked VACANT.` : `আপনি কি ${tenantName}-এর চুক্তি সমাপ্ত করতে চান? ফ্ল্যাটটি পুনরায় খালি (VACANT) হিসেবে চিহ্নিত হবে।`)) {
@@ -169,7 +157,7 @@ export default function AgreementsPage() {
               <Skeleton className="h-10 w-full" />
               <Skeleton className="h-10 w-full" />
             </div>
-              ) : visibleAgreements.length > 0 ? (
+            ) : visibleAgreements.length > 0 ? (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader className="bg-[#FAFAF9]">
@@ -190,10 +178,17 @@ export default function AgreementsPage() {
                     <TableRow key={agr.id}>
                       <TableCell data-label={t.tenantName} className="min-w-[250px]">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#CDE4DA] bg-[#E8F3EF] text-sm font-semibold text-[#12664F]">
-                            {profilePictureUrls?.[agr.tenant?.profilePictureId || ''] ? <img src={profilePictureUrls[agr.tenant?.profilePictureId || '']!} alt="" className="h-full w-full object-cover" /> : (agr.tenant?.name || 'T').charAt(0).toUpperCase()}
+                          <TenantAvatar
+                            profilePictureId={agr.tenant?.profilePictureId}
+                            name={agr.tenant?.name || 'Tenant'}
+                            size="md"
+                            onClick={() => agr.tenant?.id && window.open(`/tenants/${agr.tenant.id}`, '_blank')}
+                            ariaLabel={isEn ? 'View tenant profile' : 'ভাড়াটিয়ার প্রোফাইল দেখুন'}
+                          />
+                          <div className="min-w-0">
+                            <p className="truncate font-medium text-[#171717]">{agr.tenant?.name || 'Tenant'}</p>
+                            <p className="mt-0.5 text-xs text-[#6B7280]">{agr.tenant?.phone || (isEn ? 'No phone number' : 'ফোন নম্বর নেই')}</p>
                           </div>
-                          <div className="min-w-0"><p className="truncate font-medium text-[#171717]">{agr.tenant?.name || 'Tenant'}</p><p className="mt-0.5 text-xs text-[#6B7280]">{agr.tenant?.phone || (isEn ? 'No phone number' : 'ফোন নম্বর নেই')}</p></div>
                         </div>
                       </TableCell>
                       <TableCell data-label={t.unitNumber}>

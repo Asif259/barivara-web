@@ -8,7 +8,6 @@ import { useLanguageStore } from '@/stores/language-store';
 import { useTranslation } from '@/lib/translations';
 import { Payment, ApiResponse } from '@/lib/types';
 import { formatCurrency, formatBnDate } from '@/lib/utils';
-import { getFileDownloadUrl } from '@/lib/file-upload';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,6 +24,7 @@ import {
   TableCell,
 } from '@/components/ui/table';
 import { PaymentReceiptDialog } from '@/components/payments/payment-receipt-dialog';
+import { TenantAvatar } from '@/components/ui/tenant-avatar';
 import {
   CreditCard,
   FileText,
@@ -61,16 +61,6 @@ export default function PaymentsPage() {
     if (!term) return payments || [];
     return (payments || []).filter((payment) => [payment.monthlyRent?.agreement?.tenant?.name, payment.monthlyRent?.agreement?.tenant?.phone, payment.monthlyRent?.agreement?.unit?.unitNumber, payment.monthlyRent?.agreement?.unit?.property?.name, payment.transactionId].some((value) => value?.toLowerCase().includes(term)));
   }, [payments, search]);
-
-  const { data: profilePictureUrls } = useQuery({
-    queryKey: ['payment-tenant-profile-pictures', payments?.map((payment) => payment.monthlyRent?.agreement?.tenant?.profilePictureId).filter(Boolean)],
-    queryFn: async () => {
-      const ids = (payments || []).map((payment) => payment.monthlyRent?.agreement?.tenant?.profilePictureId).filter(Boolean) as string[];
-      const urls = await Promise.all(ids.map(async (id) => { try { return { id, url: await getFileDownloadUrl(id) }; } catch { return { id, url: null }; } }));
-      return Object.fromEntries(urls.map((item) => [item.id, item.url]));
-    },
-    enabled: !!payments?.some((payment) => payment.monthlyRent?.agreement?.tenant?.profilePictureId),
-  });
 
   const handleViewReceipt = (payment: Payment) => {
     setSelectedPayment(payment);
@@ -163,7 +153,13 @@ export default function PaymentsPage() {
                     </TableCell>
                     <TableCell data-label={t.tenantName} className="min-w-[250px]">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#CDE4DA] bg-[#E8F3EF] text-sm font-semibold text-[#12664F]">{profilePictureUrls?.[payment.monthlyRent?.agreement?.tenant?.profilePictureId || ''] ? <img src={profilePictureUrls[payment.monthlyRent?.agreement?.tenant?.profilePictureId || '']!} alt="" className="h-full w-full object-cover" /> : (payment.monthlyRent?.agreement?.tenant?.name || 'T').charAt(0).toUpperCase()}</div>
+                        <TenantAvatar
+                          profilePictureId={payment.monthlyRent?.agreement?.tenant?.profilePictureId}
+                          name={payment.monthlyRent?.agreement?.tenant?.name || 'Tenant'}
+                          size="md"
+                          onClick={() => payment.monthlyRent?.agreement?.tenant?.id && window.open(`/tenants/${payment.monthlyRent.agreement.tenant.id}`, '_blank')}
+                          ariaLabel={isEn ? 'View tenant profile' : 'ভাড়াটিয়ার প্রোফাইল দেখুন'}
+                        />
                         <div className="min-w-0"><p className="truncate font-medium text-[#171717]">{payment.monthlyRent?.agreement?.tenant?.name || 'Tenant'}</p><p className="mt-0.5 text-xs text-[#6B7280]">{payment.monthlyRent?.agreement?.tenant?.phone || (isEn ? 'No phone number' : 'ফোন নম্বর নেই')}</p></div>
                       </div>
                     </TableCell>
@@ -177,7 +173,7 @@ export default function PaymentsPage() {
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell data-label={t.amount} className="font-bold text-[#12664F] text-sm">
+                    <TableCell data-label={t.amount} className="font-semibold text-[#12664F] text-sm">
                       {formatCurrency(payment.amount, language)}
                     </TableCell>
                     <TableCell data-label={t.paymentMethod} className="text-xs font-semibold text-[#374151]">

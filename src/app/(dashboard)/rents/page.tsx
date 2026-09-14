@@ -7,7 +7,6 @@ import { useLanguageStore } from '@/stores/language-store';
 import { useTranslation } from '@/lib/translations';
 import { MonthlyRent, Property, ApiResponse } from '@/lib/types';
 import { formatCurrency, formatBnDate, getDefaultRentPeriod } from '@/lib/utils';
-import { getFileDownloadUrl } from '@/lib/file-upload';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,6 +24,7 @@ import {
 } from '@/components/ui/table';
 import { CollectPaymentDialog } from '@/components/payments/collect-payment-dialog';
 import { GenerateRentDialog } from '@/components/rents/generate-rent-dialog';
+import { TenantAvatar } from '@/components/ui/tenant-avatar';
 import {
   Receipt,
   Wallet,
@@ -72,16 +72,6 @@ export default function MonthlyRentsPage() {
       const res = await apiClient.get<ApiResponse<MonthlyRent[]>>(url);
       return res.data?.data || [];
     },
-  });
-
-  const { data: profilePictureUrls } = useQuery({
-    queryKey: ['rent-tenant-profile-pictures', rents?.map((rent) => rent.agreement?.tenant?.profilePictureId).filter(Boolean)],
-    queryFn: async () => {
-      const ids = (rents || []).map((rent) => rent.agreement?.tenant?.profilePictureId).filter(Boolean) as string[];
-      const urls = await Promise.all(ids.map(async (id) => { try { return { id, url: await getFileDownloadUrl(id) }; } catch { return { id, url: null }; } }));
-      return Object.fromEntries(urls.map((item) => [item.id, item.url]));
-    },
-    enabled: !!rents?.some((rent) => rent.agreement?.tenant?.profilePictureId),
   });
 
   const handleOpenPayment = (rent: MonthlyRent) => {
@@ -216,13 +206,13 @@ export default function MonthlyRentsPage() {
                   <TableRow key={rent.id}>
                     <TableCell data-label={t.tenantName} className="min-w-[250px]">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#CDE4DA] bg-[#E8F3EF] text-sm font-semibold text-[#12664F]">
-                          {profilePictureUrls?.[rent.agreement?.tenant?.profilePictureId || ''] ? (
-                            <img src={profilePictureUrls[rent.agreement?.tenant?.profilePictureId || '']!} alt="" className="h-full w-full object-cover" />
-                          ) : (
-                            (rent.agreement?.tenant?.name || 'T').charAt(0).toUpperCase()
-                          )}
-                        </div>
+                        <TenantAvatar
+                          profilePictureId={rent.agreement?.tenant?.profilePictureId}
+                          name={rent.agreement?.tenant?.name || 'Tenant'}
+                          size="md"
+                          onClick={() => rent.agreement?.tenant?.id && window.open(`/tenants/${rent.agreement.tenant.id}`, '_blank')}
+                          ariaLabel={isEn ? 'View tenant profile' : 'ভাড়াটিয়ার প্রোফাইল দেখুন'}
+                        />
                         <div className="min-w-0">
                           <p className="truncate font-medium text-[#171717]">{rent.agreement?.tenant?.name || 'Tenant'}</p>
                           <p className="mt-0.5 text-xs text-[#6B7280]">{rent.agreement?.tenant?.phone || (isEn ? 'No phone number' : 'ফোন নম্বর নেই')}</p>
@@ -243,13 +233,13 @@ export default function MonthlyRentsPage() {
                     <TableCell data-label={t.serviceFee} className="text-[#6B7280]">
                       {formatCurrency(rent.serviceFee, language)}
                     </TableCell>
-                    <TableCell data-label={t.total} className="font-bold text-[#171717]">
+                    <TableCell data-label={t.total} className="font-semibold text-[#171717]">
                       {formatCurrency(rent.totalAmount, language)}
                     </TableCell>
                     <TableCell data-label={t.paid} className="text-[#12664F] font-semibold">
                       {formatCurrency(rent.paidAmount, language)}
                     </TableCell>
-                    <TableCell data-label={t.remaining} className="text-[#DC2626] font-bold">
+                    <TableCell data-label={t.remaining} className="text-[#DC2626] font-semibold">
                       {formatCurrency(rent.remainingAmount, language)}
                     </TableCell>
                     <TableCell data-label={isEn ? 'Due Date' : 'পরিশোধের শেষ তারিখ'} className="text-xs text-[#6B7280]">
