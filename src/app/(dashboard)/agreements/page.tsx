@@ -83,12 +83,12 @@ export default function AgreementsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 pb-8">
       <PageHeader
         title={t.agreements}
         description={isEn ? 'Manage active and ended tenant leases' : 'ভাড়াটিয়া ও ফ্ল্যাটের সক্রিয় এবং পূর্ববর্তী চুক্তিসমূহ'}
         action={
-          <Button onClick={() => setAgreementDialogOpen(true)} variant="gradient" className="gap-2 shadow-xs">
+          <Button onClick={() => setAgreementDialogOpen(true)} variant="default" className="h-10 gap-2">
             <Plus className="w-4 h-4" />
             {t.addNewAgreement}
           </Button>
@@ -101,7 +101,7 @@ export default function AgreementsPage() {
           size="sm"
           variant={statusFilter === 'ACTIVE' ? 'default' : 'outline'}
           onClick={() => setStatusFilter('ACTIVE')}
-          className="rounded-xl text-xs"
+          className="rounded-lg text-xs"
         >
           {t.activeAgreement}
         </Button>
@@ -109,7 +109,7 @@ export default function AgreementsPage() {
           size="sm"
           variant={statusFilter === 'ENDED' ? 'default' : 'outline'}
           onClick={() => setStatusFilter('ENDED')}
-          className="rounded-xl text-xs"
+          className="rounded-lg text-xs"
         >
           {t.endedAgreement}
         </Button>
@@ -117,14 +117,14 @@ export default function AgreementsPage() {
           size="sm"
           variant={statusFilter === '' ? 'default' : 'outline'}
           onClick={() => setStatusFilter('')}
-          className="rounded-xl text-xs"
+          className="rounded-lg text-xs"
         >
           {t.all}
         </Button>
       </div>
 
       {/* Compact, Information-Dense Agreements Table */}
-      <Card className="border-slate-200/80 shadow-xs overflow-hidden">
+      <Card className="rounded-[10px] border-[#E5E7EB] shadow-none overflow-hidden">
         <CardContent className="p-0">
           {isLoading ? (
             <div className="p-6 space-y-3">
@@ -135,7 +135,7 @@ export default function AgreementsPage() {
           ) : agreements && agreements.length > 0 ? (
             <div className="overflow-x-auto">
               <Table className="w-full md:table-fixed md:min-w-[900px] p-2">
-                <TableHeader className="bg-slate-100/80">
+                <TableHeader className="bg-[#FAFAF9]">
                   <TableRow>
                     <TableHead className="w-[170px]">{t.tenantName}</TableHead>
                     <TableHead className="w-[95px]">{t.unitNumber}</TableHead>
@@ -151,33 +151,33 @@ export default function AgreementsPage() {
                 <TableBody>
                   {agreements.map((agr) => (
                     <TableRow key={agr.id}>
-                      <TableCell data-label={t.tenantName} className="font-bold text-slate-900">
+                      <TableCell data-label={t.tenantName} className="font-bold text-[#171717]">
                         <div className="text-right sm:text-left">
                           <span className="block cell-clamp-2" title={agr.tenant?.name || 'Tenant'}>{agr.tenant?.name || 'Tenant'}</span>
-                          <span className="block text-xs font-normal text-slate-500">{agr.tenant?.phone}</span>
+                          <span className="block text-xs font-normal text-[#6B7280]">{agr.tenant?.phone}</span>
                         </div>
                       </TableCell>
                       <TableCell data-label={t.unitNumber}>
                         <div className="text-right sm:text-left">
-                          <span className="font-semibold text-slate-800">{agr.unit?.unitNumber}</span>
+                          <span className="font-semibold text-[#374151]">{agr.unit?.unitNumber}</span>
                           {!isSingleProperty && agr.unit?.property?.name && (
-                            <span className="block text-xs text-slate-500 cell-clamp-2" title={agr.unit.property.name}>{agr.unit.property.name}</span>
+                            <span className="block text-xs text-[#6B7280] cell-clamp-2" title={agr.unit.property.name}>{agr.unit.property.name}</span>
                           )}
                         </div>
                       </TableCell>
-                      <TableCell data-label={t.baseRent} className="font-medium text-slate-900 whitespace-nowrap">
+                      <TableCell data-label={t.baseRent} className="font-medium text-[#171717] whitespace-nowrap">
                         {formatCurrency(agr.monthlyRent, language)}
                       </TableCell>
-                      <TableCell data-label={t.serviceFee} className="text-slate-600 whitespace-nowrap">
+                      <TableCell data-label={t.serviceFee} className="text-[#6B7280] whitespace-nowrap">
                         {formatCurrency(agr.serviceFee, language)}
                       </TableCell>
-                      <TableCell data-label={t.securityDeposit} className="text-emerald-700 font-medium whitespace-nowrap">
+                      <TableCell data-label={t.securityDeposit} className="text-[#12664F] font-medium whitespace-nowrap">
                         {formatCurrency(agr.securityDeposit, language)}
                       </TableCell>
-                      <TableCell data-label={t.dueDay} className="text-slate-700 font-medium text-xs whitespace-nowrap">
+                      <TableCell data-label={t.dueDay} className="text-[#374151] font-medium text-xs whitespace-nowrap">
                         {isEn ? `Day ${agr.dueDay}` : `প্রতি মাসের ${agr.dueDay} তারিখ`}
                       </TableCell>
-                      <TableCell data-label={t.startDate} className="text-xs text-slate-500 whitespace-nowrap">
+                      <TableCell data-label={t.startDate} className="text-xs text-[#6B7280] whitespace-nowrap">
                         {formatBnDate(agr.startDate, language)}
                       </TableCell>
                       <TableCell data-label={t.status}>
@@ -189,7 +189,7 @@ export default function AgreementsPage() {
                             size="sm"
                             variant="ghost"
                             onClick={() => handleEditAgreement(agr)}
-                            className="h-8 w-8 p-0 text-slate-500 hover:text-slate-900"
+                            className="h-8 w-8 p-0 text-[#6B7280] hover:text-[#171717]"
                           >
                             <Edit className="w-3.5 h-3.5" />
                           </Button>
@@ -198,7 +198,7 @@ export default function AgreementsPage() {
                               size="sm"
                               variant="ghost"
                               onClick={() => handleEndAgreement(agr.id, agr.tenant?.name || 'tenant')}
-                              className="h-7 px-2 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+                              className="h-7 px-2 text-xs text-[#DC2626] hover:text-[#B91C1C] hover:bg-[#FEF7F7]"
                               title={t.endAgreement}
                             >
                               <Ban className="w-3.5 h-3.5" />

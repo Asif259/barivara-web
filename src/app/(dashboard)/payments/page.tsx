@@ -27,9 +27,6 @@ import {
   CreditCard,
   FileText,
   RotateCcw,
-  CheckCircle2,
-  Calendar,
-  DollarSign,
 } from 'lucide-react';
 
 export default function PaymentsPage() {
@@ -71,28 +68,31 @@ export default function PaymentsPage() {
       return;
     }
     try {
-      const res = await apiClient.post<ApiResponse<any>>(`/payments/${id}/reverse`);
+      const res = await apiClient.post<ApiResponse<unknown>>(`/payments/${id}/reverse`);
       toast.success(res.data.message || (isEn ? 'Payment reversed successfully' : 'পেমেন্ট সফলভাবে রিভার্স করা হয়েছে'));
       refetch();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || (isEn ? 'Failed to reverse payment' : 'পেমেন্ট বাতিল সম্ভব হয়নি'));
+    } catch (error: unknown) {
+      const message = typeof error === 'object' && error !== null && 'response' in error
+        ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
+        : undefined;
+      toast.error(message || (isEn ? 'Failed to reverse payment' : 'পেমেন্ট বাতিল সম্ভব হয়নি'));
     }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 pb-8">
       <PageHeader
         title={t.payments}
         description={isEn ? 'Audit trail of all rent collections, methods, and receipts' : 'ভাড়া আদায়ের সকল ট্রানজেকশন, রসিদ এবং পেমেন্ট হিস্ট্রি'}
       />
 
       {/* Filter Bar */}
-      <div className="flex items-center gap-3 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
-        <span className="text-xs font-semibold text-slate-500">{t.paymentMethod}:</span>
+      <div className="flex items-center gap-3 bg-white p-4 rounded-2xl border rounded-[10px] border-[#E5E7EB] shadow-none">
+        <span className="text-xs font-semibold text-[#6B7280]">{t.paymentMethod}:</span>
         <select
           value={methodFilter}
           onChange={(e) => setMethodFilter(e.target.value)}
-          className="h-9 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-800 outline-none"
+          className="h-9 rounded-lg border border-[#E5E7EB] bg-white px-3 text-xs font-semibold text-[#374151] outline-none"
         >
           <option value="">{t.all}</option>
           <option value="CASH">Cash (নগদ)</option>
@@ -105,7 +105,7 @@ export default function PaymentsPage() {
       </div>
 
       {/* Payments Table */}
-      <Card className="border-slate-200/80 shadow-xs">
+      <Card className="rounded-[10px] border-[#E5E7EB] shadow-none">
         <CardContent className="p-0">
           {isLoading ? (
             <div className="p-6 space-y-3">
@@ -130,36 +130,36 @@ export default function PaymentsPage() {
               <TableBody>
                 {payments.map((payment) => (
                   <TableRow key={payment.id}>
-                    <TableCell data-label={t.date} className="text-xs text-slate-600 font-medium">
+                    <TableCell data-label={t.date} className="text-xs text-[#6B7280] font-medium">
                       {formatBnDate(payment.paymentDate, language)}
                     </TableCell>
-                    <TableCell data-label={t.tenantName} className="font-bold text-slate-900">
+                    <TableCell data-label={t.tenantName} className="font-bold text-[#171717]">
                       <div className="text-right sm:text-left">
                         <span>{payment.monthlyRent?.agreement?.tenant?.name || 'Tenant'}</span>
-                        <span className="block text-xs font-normal text-slate-500">
+                        <span className="block text-xs font-normal text-[#6B7280]">
                           {payment.monthlyRent?.agreement?.tenant?.phone}
                         </span>
                       </div>
                     </TableCell>
                     <TableCell data-label={t.unitNumber}>
                       <div className="text-right sm:text-left">
-                        <span className="font-medium text-slate-800">
+                        <span className="font-medium text-[#374151]">
                           {payment.monthlyRent?.agreement?.unit?.unitNumber}
                         </span>
-                        <span className="block text-xs text-slate-500">
+                        <span className="block text-xs text-[#6B7280]">
                           {payment.monthlyRent?.agreement?.unit?.property?.name}
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell data-label={t.amount} className="font-bold text-emerald-600 text-sm">
+                    <TableCell data-label={t.amount} className="font-bold text-[#12664F] text-sm">
                       {formatCurrency(payment.amount, language)}
                     </TableCell>
-                    <TableCell data-label={t.paymentMethod} className="text-xs font-semibold text-slate-700">
-                      <span className="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200">
+                    <TableCell data-label={t.paymentMethod} className="text-xs font-semibold text-[#374151]">
+                      <span className="px-2 py-0.5 rounded-md bg-[#FAFAF9] border border-[#E5E7EB]">
                         {payment.paymentMethod}
                       </span>
                     </TableCell>
-                    <TableCell data-label={t.transactionId} className="font-mono text-xs text-slate-500">
+                    <TableCell data-label={t.transactionId} className="font-mono text-xs text-[#6B7280]">
                       {payment.transactionId || '-'}
                     </TableCell>
                     <TableCell data-label={t.status}>
@@ -171,9 +171,9 @@ export default function PaymentsPage() {
                           size="sm"
                           variant="outline"
                           onClick={() => handleViewReceipt(payment)}
-                          className="h-8 gap-1.5 text-xs px-2.5 rounded-xl text-slate-700 hover:text-emerald-700 hover:bg-emerald-50"
+                          className="h-8 gap-1.5 text-xs px-2.5 rounded-lg text-[#374151] hover:text-[#12664F] hover:bg-[#F3FAF5]"
                         >
-                          <FileText className="w-3.5 h-3.5 text-emerald-600" />
+                          <FileText className="w-3.5 h-3.5 text-[#12664F]" />
                           <span>{t.receipt || (isEn ? 'Receipt' : 'মানি রিসিট')}</span>
                         </Button>
 
@@ -182,7 +182,7 @@ export default function PaymentsPage() {
                             size="sm"
                             variant="ghost"
                             onClick={() => handleReversePayment(payment.id, payment.amount)}
-                            className="h-8 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 gap-1"
+                            className="h-8 text-xs text-[#DC2626] hover:text-[#B91C1C] hover:bg-[#FEF7F7] gap-1"
                             title={t.reversePayment}
                           >
                             <RotateCcw className="w-3.5 h-3.5" />

@@ -11,31 +11,15 @@ import { useTranslation } from '@/lib/translations';
 import { Unit } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { StatusBadge } from '@/components/ui/status-badge';
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
-} from '@/components/ui/table';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { UnitFormDialog } from '@/components/units/unit-form-dialog';
 import { BulkUnitFormDialog } from '@/components/units/bulk-unit-form-dialog';
 import { PropertyFormDialog } from '@/components/properties/property-form-dialog';
-import {
-  Building2,
-  ArrowLeft,
-  Plus,
-  Home,
-  MapPin,
-  Edit,
-  Trash2,
-  Layers,
-} from 'lucide-react';
+import { Building2, ArrowLeft, Plus, Home, MapPin, Edit, Trash2, Layers } from 'lucide-react';
 
 export default function PropertyDetailPage() {
   const params = useParams();
@@ -131,10 +115,10 @@ export default function PropertyDetailPage() {
 
   if (isPropLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 pb-8">
         <Skeleton className="h-10 w-48" />
-        <Skeleton className="h-44 w-full rounded-2xl" />
-        <Skeleton className="h-80 w-full rounded-2xl" />
+        <Skeleton className="h-32 w-full rounded-[10px]" />
+        <Skeleton className="h-80 w-full rounded-[10px]" />
       </div>
     );
   }
@@ -151,199 +135,100 @@ export default function PropertyDetailPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Top Back & Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+    <div className="space-y-8 pb-8">
+      <div className="flex flex-col gap-5 border-b border-[#E5E7EB] pb-6 lg:flex-row lg:items-end lg:justify-between">
+        <div className="flex items-start gap-3">
           <Link href="/properties">
-            <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl">
+            <Button variant="outline" size="icon" className="mt-1 h-9 w-9 shrink-0" title={isEn ? 'Back to properties' : 'সকল বাড়িতে ফিরে যান'}>
               <ArrowLeft className="h-4 w-4" />
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">{property.name}</h1>
-            <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
-              <MapPin className="w-3.5 h-3.5 text-slate-400" />
-              {property.address} {property.city ? `, ${property.city}` : ''}
-            </p>
+            <p className="mb-2 text-xs font-medium uppercase tracking-[0.14em] text-[#6B7280]">{isEn ? 'Property' : 'বাড়ি'}</p>
+            <h1 className="text-[30px] font-semibold leading-tight tracking-tight text-[#171717]">{property.name}</h1>
+            <p className="mt-2 flex items-center gap-1.5 text-sm text-[#6B7280]"><MapPin className="h-4 w-4 text-[#9CA3AF]" />{property.address}{property.city ? `, ${property.city}` : ''}</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm" onClick={() => setPropertyEditOpen(true)} className="gap-1.5">
-            <Edit className="w-3.5 h-3.5" />
-            {t.edit}
-          </Button>
-          <Button onClick={handleAddUnit} variant="gradient" size="sm" className="gap-1.5 shadow-xs">
-            <Plus className="w-4 h-4" />
-            {t.addNewUnit}
-          </Button>
-          <Button onClick={() => setBulkUnitDialogOpen(true)} variant="outline" size="sm" className="gap-1.5">
-            <Layers className="w-4 h-4" />
-            {t.addUnitsByFloor}
-          </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" onClick={() => setPropertyEditOpen(true)} className="gap-1.5 h-10"><Edit className="h-3.5 w-3.5" />{t.edit}</Button>
+          <Button onClick={handleAddUnit} size="sm" className="gap-1.5 h-10"><Plus className="h-4 w-4" />{t.addNewUnit}</Button>
+          <Button onClick={() => setBulkUnitDialogOpen(true)} variant="outline" size="sm" className="gap-1.5 h-10"><Layers className="h-4 w-4" />{t.addUnitsByFloor}</Button>
         </div>
       </div>
 
-      {/* Property Overview Stats Strip */}
       {summary && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <Card className="p-4 border-slate-200/80">
-            <p className="text-xs font-medium text-slate-500">{t.total} {t.units}</p>
-            <h3 className="text-2xl font-bold text-slate-900 mt-1">{summary.totalUnits}</h3>
-            <p className="text-xs text-slate-500 mt-0.5">
-              {summary.occupiedUnits} {t.occupied} &bull; {summary.vacantUnits} {t.vacant}
-            </p>
-          </Card>
-          <Card className="p-4 border-slate-200/80">
-            <p className="text-xs font-medium text-slate-500">{t.activeAgreement}</p>
-            <h3 className="text-2xl font-bold text-slate-900 mt-1">{summary.activeTenants}</h3>
-            <p className="text-xs text-slate-500 mt-0.5">{t.tenants}</p>
-          </Card>
-          <Card className="p-4 border-slate-200/80">
-            <p className="text-xs font-medium text-slate-500">{isEn ? 'Monthly Expected' : 'মাসিক প্রত্যাশিত'}</p>
-            <h3 className="text-2xl font-bold text-slate-900 mt-1">{formatCurrency(summary.currentMonth.expected, language)}</h3>
-            <p className="text-xs text-emerald-600 mt-0.5 font-medium">{t.paid}: {formatCurrency(summary.currentMonth.collected, language)}</p>
-          </Card>
-          <Card className="p-4 border-slate-200/80">
-            <p className="text-xs font-medium text-slate-500">{t.collectionRate}</p>
-            <h3 className="text-2xl font-bold text-emerald-600 mt-1">{summary.currentMonth.collectionRate}%</h3>
-            <p className="text-xs text-rose-600 mt-0.5 font-medium">{t.remaining}: {formatCurrency(summary.currentMonth.outstanding, language)}</p>
-          </Card>
+        <div className="grid grid-cols-2 divide-x divide-y divide-[#E5E7EB] rounded-[10px] border border-[#E5E7EB] bg-white sm:grid-cols-4 sm:divide-y-0">
+          <SummaryMetric label={`${t.total} ${t.units}`} value={summary.totalUnits} detail={`${summary.occupiedUnits} ${t.occupied} · ${summary.vacantUnits} ${t.vacant}`} />
+          <SummaryMetric label={t.activeAgreement} value={summary.activeTenants} detail={t.tenants} />
+          <SummaryMetric label={isEn ? 'Monthly expected' : 'মাসিক প্রত্যাশিত'} value={formatCurrency(summary.currentMonth.expected, language)} detail={`${t.paid}: ${formatCurrency(summary.currentMonth.collected, language)}`} accent />
+          <SummaryMetric label={t.collectionRate} value={`${summary.currentMonth.collectionRate}%`} detail={`${t.remaining}: ${formatCurrency(summary.currentMonth.outstanding, language)}`} accent={summary.currentMonth.collectionRate > 0} />
         </div>
       )}
 
-      {/* Units Table Card */}
-      <Card className="border-slate-200/80 shadow-xs">
-        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-4 gap-2">
+      <Card className="rounded-[10px] border-[#E5E7EB] shadow-none">
+        <CardHeader className="flex flex-col gap-3 border-b border-[#F3F4F6] pb-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Home className="w-5 h-5 text-emerald-600" />
-              {isEn ? 'Flats and Units' : 'ফ্ল্যাট ও ইউনিটের তালিকা'}
-            </CardTitle>
+            <div className="flex items-center gap-2"><Home className="h-4 w-4 text-[#307473]" /><CardTitle className="text-[17px]">{isEn ? 'Units' : 'ইউনিট'}</CardTitle></div>
+            <CardDescription className="mt-1">{isEn ? 'Units, occupancy, and rent settings for this property.' : 'এই বাড়ির ইউনিট, দখল এবং ভাড়ার তথ্য।'}</CardDescription>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button onClick={handleAddUnit} variant="outline" size="sm" className="gap-1.5 text-xs"><Plus className="w-3.5 h-3.5" />{t.addNewUnit}</Button>
-            <Button onClick={() => setBulkUnitDialogOpen(true)} variant="outline" size="sm" className="gap-1.5 text-xs"><Layers className="w-3.5 h-3.5" />{t.addByFloor}</Button>
+            <Button onClick={handleAddUnit} variant="outline" size="sm" className="h-9 gap-1.5"><Plus className="h-3.5 w-3.5" />{t.addNewUnit}</Button>
+            <Button onClick={() => setBulkUnitDialogOpen(true)} variant="outline" size="sm" className="h-9 gap-1.5"><Layers className="h-3.5 w-3.5" />{t.addByFloor}</Button>
           </div>
         </CardHeader>
-        <CardContent className='p-0'>
+        <CardContent className="p-0 pt-0">
           {isUnitsLoading ? (
-            <div className="space-y-3">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-            </div>
+            <div className="space-y-3 p-5"><Skeleton className="h-10 w-full" /><Skeleton className="h-10 w-full" /></div>
           ) : units && units.length > 0 ? (
-            <Table className='p-2'>
+            <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t.unitNumber}</TableHead>
-                  <TableHead>{t.floor}</TableHead>
-                  <TableHead>{t.unitType}</TableHead>
-                  <TableHead>{isEn ? 'Rooms' : 'রুম ও বাথ'}</TableHead>
-                  <TableHead>{t.baseRent}</TableHead>
-                  <TableHead>{t.serviceFee}</TableHead>
-                  <TableHead>{t.status}</TableHead>
-                  <TableHead className="text-right">{t.actions}</TableHead>
+                  <TableHead className="min-w-[130px]">{t.unitNumber}</TableHead>
+                  <TableHead className="w-[100px]">{t.floor}</TableHead>
+                  <TableHead className="min-w-[130px]">{t.unitType}</TableHead>
+                  <TableHead className="min-w-[130px]">{isEn ? 'Rooms' : 'রুম ও বাথ'}</TableHead>
+                  <TableHead className="w-[140px]">{t.baseRent}</TableHead>
+                  <TableHead className="w-[140px]">{t.serviceFee}</TableHead>
+                  <TableHead className="w-[130px]">{t.status}</TableHead>
+                  <TableHead className="w-[120px] text-right">{t.actions}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {Object.entries(unitsByFloor)
-                  .sort(([a], [b]) => Number(b) - Number(a))
-                  .flatMap(([floor, floorUnits]) => [
-                    <TableRow key={`floor-${floor}`} className="bg-slate-50 hover:bg-slate-50 table-section-header">
-                      <TableCell colSpan={8} className="py-2 text-sm font-semibold text-slate-700">
-                        <span className="inline-flex items-center gap-2"><Layers className="h-4 w-4 text-emerald-600" />{isEn ? `Floor ${floor}` : `${floor} তলা`}<span className="font-normal text-slate-500">({floorUnits.length} {t.units})</span></span>
-                      </TableCell>
-                    </TableRow>,
-                    ...floorUnits.map((unit) => (
-                  <TableRow key={unit.id}>
-                    <TableCell data-label={t.unitNumber} className="font-bold text-slate-900">
-                      {unit.unitNumber}
+                {Object.entries(unitsByFloor).sort(([a], [b]) => Number(b) - Number(a)).flatMap(([floor, floorUnits]) => [
+                  <TableRow key={`floor-${floor}`} className="bg-[#FAFAF9] hover:bg-[#FAFAF9] table-section-header">
+                    <TableCell colSpan={8} className="py-2.5 text-xs font-medium text-[#6B7280]">
+                      <span className="inline-flex items-center gap-2"><Layers className="h-3.5 w-3.5 text-[#307473]" />{isEn ? `Floor ${floor}` : `${floor} তলা`}<span className="font-normal text-[#9CA3AF]">({floorUnits.length} {t.units})</span></span>
                     </TableCell>
-                    <TableCell data-label={t.floor} className="text-slate-600">
-                      {unit.floor} {isEn ? 'Floor' : 'তলা'}
-                    </TableCell>
-                    <TableCell data-label={t.unitType} className="text-xs font-medium text-slate-600">
-                      {unit.unitType}
-                    </TableCell>
-                    <TableCell data-label={isEn ? 'Rooms' : 'রুম ও বাথ'} className="text-xs text-slate-600">
-                      {unit.bedrooms || 0} Bed &bull; {unit.bathrooms || 0} Bath
-                    </TableCell>
-                    <TableCell data-label={t.baseRent} className="font-semibold text-slate-900">
-                      {formatCurrency(unit.monthlyBaseRent, language)}
-                    </TableCell>
-                    <TableCell data-label={t.serviceFee} className="text-slate-600">
-                      {formatCurrency(unit.defaultServiceFee, language)}
-                    </TableCell>
-                    <TableCell data-label={t.status}>
-                      <StatusBadge status={unit.status} lang={language} />
-                    </TableCell>
-                    <TableCell data-label={t.actions} className="text-right">
-                      <div className="flex items-center justify-end gap-1 table-actions">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleEditUnit(unit)}
-                          className="h-8 w-8 p-0 text-slate-500 hover:text-slate-900"
-                        >
-                          <Edit className="w-3.5 h-3.5" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleDeleteUnit(unit.id, unit.unitNumber)}
-                          className="h-8 w-8 p-0 text-rose-500 hover:text-rose-700 hover:bg-rose-50"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                    )),
-                  ])}
+                  </TableRow>,
+                  ...floorUnits.map((unit) => (
+                    <TableRow key={unit.id}>
+                      <TableCell data-label={t.unitNumber} className="font-medium text-[#171717]">{unit.unitNumber}</TableCell>
+                      <TableCell data-label={t.floor} className="text-[#6B7280]">{unit.floor} {isEn ? 'Floor' : 'তলা'}</TableCell>
+                      <TableCell data-label={t.unitType} className="text-sm text-[#6B7280]">{unit.unitType}</TableCell>
+                      <TableCell data-label={isEn ? 'Rooms' : 'রুম ও বাথ'} className="text-sm text-[#6B7280]">{unit.bedrooms || 0} Bed · {unit.bathrooms || 0} Bath</TableCell>
+                      <TableCell data-label={t.baseRent} className="font-medium text-[#171717]">{formatCurrency(unit.monthlyBaseRent, language)}</TableCell>
+                      <TableCell data-label={t.serviceFee} className="text-[#6B7280]">{formatCurrency(unit.defaultServiceFee, language)}</TableCell>
+                      <TableCell data-label={t.status}><StatusBadge status={unit.status} lang={language} /></TableCell>
+                      <TableCell data-label={t.actions} className="text-right"><div className="flex items-center justify-end gap-1 table-actions"><Button size="icon" variant="ghost" onClick={() => handleEditUnit(unit)} className="h-8 w-8 text-[#6B7280] hover:text-[#171717]" title={t.edit}><Edit className="h-3.5 w-3.5" /></Button><Button size="icon" variant="ghost" onClick={() => handleDeleteUnit(unit.id, unit.unitNumber)} className="h-8 w-8 text-[#DC2626] hover:bg-[#FEF2F2]" title={t.delete}><Trash2 className="h-3.5 w-3.5" /></Button></div></TableCell>
+                    </TableRow>
+                  )),
+                ])}
               </TableBody>
             </Table>
           ) : (
-            <EmptyState
-              icon={Home}
-              title={isEn ? 'No Units Added' : 'কোনো ইউনিট নেই'}
-              description={isEn ? 'Add your first flat or shop to this building' : 'এই বাড়ির জন্য ফ্ল্যাট বা দোকান যুক্ত করুন'}
-              actionLabel={t.addNewUnit}
-              onAction={handleAddUnit}
-            />
+            <div className="p-5"><EmptyState icon={Home} title={isEn ? 'No units added' : 'কোনো ইউনিট নেই'} description={isEn ? 'Add your first flat or shop to this building' : 'এই বাড়ির জন্য ফ্ল্যাট বা দোকান যুক্ত করুন'} actionLabel={t.addNewUnit} onAction={handleAddUnit} /></div>
           )}
         </CardContent>
       </Card>
 
-      {/* Unit Add / Edit Dialog */}
-      <UnitFormDialog
-        propertyId={propertyId}
-        unit={editingUnit}
-        open={unitDialogOpen}
-        onOpenChange={setUnitDialogOpen}
-        onSuccess={() => {
-          refetchUnits();
-          refetchProperty();
-          refetchSummary();
-        }}
-      />
-
-      <BulkUnitFormDialog
-        propertyId={propertyId}
-        units={units || []}
-        open={bulkUnitDialogOpen}
-        onOpenChange={setBulkUnitDialogOpen}
-        onSuccess={refreshUnitViews}
-      />
-
-      {/* Property Edit Dialog */}
-      <PropertyFormDialog
-        property={property}
-        open={propertyEditOpen}
-        onOpenChange={setPropertyEditOpen}
-        onSuccess={refetchProperty}
-      />
+      <UnitFormDialog propertyId={propertyId} unit={editingUnit} open={unitDialogOpen} onOpenChange={setUnitDialogOpen} onSuccess={() => { refetchUnits(); refetchProperty(); refetchSummary(); }} />
+      <BulkUnitFormDialog propertyId={propertyId} units={units || []} open={bulkUnitDialogOpen} onOpenChange={setBulkUnitDialogOpen} onSuccess={refreshUnitViews} />
+      <PropertyFormDialog property={property} open={propertyEditOpen} onOpenChange={setPropertyEditOpen} onSuccess={refetchProperty} />
     </div>
   );
+}
+
+function SummaryMetric({ label, value, detail, accent = false }: { label: string; value: string | number; detail: string; accent?: boolean }) {
+  return <div className="min-w-0 p-5"><p className="truncate text-[13px] font-medium text-[#6B7280]">{label}</p><p className={`mt-2 truncate text-xl font-semibold tracking-tight ${accent ? 'text-[#12664F]' : 'text-[#171717]'}`}>{value}</p><p className="mt-1 truncate text-xs text-[#6B7280]">{detail}</p></div>;
 }

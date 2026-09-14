@@ -75,12 +75,12 @@ export default function MonthlyRentsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 pb-8">
       <PageHeader
         title={t.monthlyRents}
         description={isEn ? 'Manage rent invoices, due dates, and collections' : 'মাসিক ভাড়ার বিল, বকেয়া এবং ভাড়া আদায় পরিচালনা করুন'}
         action={
-          <Button onClick={() => setGenerateDialogOpen(true)} variant="gradient" className="gap-2 shadow-xs">
+          <Button onClick={() => setGenerateDialogOpen(true)} variant="default" className="h-10 gap-2">
             <Sparkles className="w-4 h-4" />
             {t.generateMonthlyRent}
           </Button>
@@ -88,14 +88,14 @@ export default function MonthlyRentsPage() {
       />
 
       {/* Filter Bar */}
-      <div className="flex flex-wrap items-center gap-3 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+      <div className="flex flex-wrap items-center gap-3 bg-white p-3 rounded-[10px] border border-[#E5E7EB] shadow-none">
         {/* Month Selector */}
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-slate-500">{isEn ? 'Month:' : 'মাস:'}</span>
+          <span className="text-xs font-semibold text-[#6B7280]">{isEn ? 'Month:' : 'মাস:'}</span>
           <select
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(Number(e.target.value))}
-            className="h-9 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-800 outline-none"
+            className="h-9 rounded-lg border border-[#E5E7EB] bg-white px-3 text-xs font-semibold text-[#374151] outline-none"
           >
             {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
               <option key={m} value={m}>
@@ -107,11 +107,11 @@ export default function MonthlyRentsPage() {
 
         {/* Year Selector */}
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-slate-500">{isEn ? 'Year:' : 'সাল:'}</span>
+          <span className="text-xs font-semibold text-[#6B7280]">{isEn ? 'Year:' : 'সাল:'}</span>
           <select
             value={selectedYear}
             onChange={(e) => setSelectedYear(Number(e.target.value))}
-            className="h-9 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-800 outline-none"
+            className="h-9 rounded-lg border border-[#E5E7EB] bg-white px-3 text-xs font-semibold text-[#374151] outline-none"
           >
             {Array.from(new Set([2024, 2025, 2026, 2027, defaultPeriod.year, selectedYear])).sort((a, b) => a - b).map((y) => (
               <option key={y} value={y}>
@@ -123,18 +123,18 @@ export default function MonthlyRentsPage() {
 
         {/* Default / Previous Month Indicator */}
         {selectedYear === defaultPeriod.year && selectedMonth === defaultPeriod.month && (
-          <span className="text-[11px] bg-emerald-50 text-emerald-700 font-semibold px-2.5 py-1 rounded-full border border-emerald-200">
+          <span className="text-[11px] bg-[#F3FAF5] text-[#12664F] font-semibold px-2.5 py-1 rounded-full border border-[#CDE4DA]">
             {t.previousMonth}
           </span>
         )}
 
         {/* Status Selector */}
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-slate-500">{t.status}:</span>
+          <span className="text-xs font-semibold text-[#6B7280]">{t.status}:</span>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-9 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-800 outline-none"
+            className="h-9 rounded-lg border border-[#E5E7EB] bg-white px-3 text-xs font-semibold text-[#374151] outline-none"
           >
             <option value="">{t.all}</option>
             <option value="PENDING">{isEn ? 'Pending' : 'অপেক্ষমান (Pending)'}</option>
@@ -146,11 +146,11 @@ export default function MonthlyRentsPage() {
 
         {/* Property Selector */}
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-slate-500">{t.properties}:</span>
+          <span className="text-xs font-semibold text-[#6B7280]">{t.properties}:</span>
           <select
             value={propertyFilter}
             onChange={(e) => setPropertyFilter(e.target.value)}
-            className="h-9 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-800 outline-none max-w-[180px]"
+            className="h-9 rounded-lg border border-[#E5E7EB] bg-white px-3 text-xs font-semibold text-[#374151] outline-none max-w-[180px]"
           >
             <option value="">{isEn ? 'All Properties' : 'সকল বাড়ি'}</option>
             {properties?.map((p) => (
@@ -163,7 +163,7 @@ export default function MonthlyRentsPage() {
       </div>
 
       {/* Rents Table */}
-      <Card className="border-slate-200/80 shadow-xs">
+      <Card className="rounded-[10px] border-[#E5E7EB] shadow-none">
         <CardContent className="p-0">
           {isLoading ? (
             <div className="p-6 space-y-3">
@@ -190,38 +190,38 @@ export default function MonthlyRentsPage() {
               <TableBody>
                 {rents.map((rent) => (
                   <TableRow key={rent.id}>
-                    <TableCell data-label={t.tenantName} className="font-bold text-slate-900">
+                    <TableCell data-label={t.tenantName} className="font-bold text-[#171717]">
                       <div className="text-right sm:text-left">
                         <span>{rent.agreement?.tenant?.name || 'Tenant'}</span>
-                        <span className="block text-xs font-normal text-slate-500">
+                        <span className="block text-xs font-normal text-[#6B7280]">
                           {rent.agreement?.tenant?.phone}
                         </span>
                       </div>
                     </TableCell>
                     <TableCell data-label={t.unitNumber}>
                       <div className="text-right sm:text-left">
-                        <span className="font-semibold text-slate-800">{rent.agreement?.unit?.unitNumber}</span>
+                        <span className="font-semibold text-[#374151]">{rent.agreement?.unit?.unitNumber}</span>
                         {(!propertyFilter && (properties?.length || 0) > 1) && rent.agreement?.unit?.property?.name && (
-                          <span className="block text-xs text-slate-500">{rent.agreement.unit.property.name}</span>
+                          <span className="block text-xs text-[#6B7280]">{rent.agreement.unit.property.name}</span>
                         )}
                       </div>
                     </TableCell>
-                    <TableCell data-label={t.baseRent} className="text-slate-700">
+                    <TableCell data-label={t.baseRent} className="text-[#374151]">
                       {formatCurrency(rent.rent, language)}
                     </TableCell>
-                    <TableCell data-label={t.serviceFee} className="text-slate-600">
+                    <TableCell data-label={t.serviceFee} className="text-[#6B7280]">
                       {formatCurrency(rent.serviceFee, language)}
                     </TableCell>
-                    <TableCell data-label={t.total} className="font-bold text-slate-900">
+                    <TableCell data-label={t.total} className="font-bold text-[#171717]">
                       {formatCurrency(rent.totalAmount, language)}
                     </TableCell>
-                    <TableCell data-label={t.paid} className="text-emerald-600 font-semibold">
+                    <TableCell data-label={t.paid} className="text-[#12664F] font-semibold">
                       {formatCurrency(rent.paidAmount, language)}
                     </TableCell>
-                    <TableCell data-label={t.remaining} className="text-rose-600 font-bold">
+                    <TableCell data-label={t.remaining} className="text-[#DC2626] font-bold">
                       {formatCurrency(rent.remainingAmount, language)}
                     </TableCell>
-                    <TableCell data-label={isEn ? 'Due Date' : 'পরিশোধের শেষ তারিখ'} className="text-xs text-slate-500">
+                    <TableCell data-label={isEn ? 'Due Date' : 'পরিশোধের শেষ তারিখ'} className="text-xs text-[#6B7280]">
                       {formatBnDate(rent.dueDate, language)}
                     </TableCell>
                     <TableCell data-label={t.status}>
@@ -233,13 +233,13 @@ export default function MonthlyRentsPage() {
                           size="sm"
                           variant="default"
                           onClick={() => handleOpenPayment(rent)}
-                          className="gap-1.5 text-xs shadow-xs bg-emerald-600 hover:bg-emerald-700"
+                          className="gap-1.5 text-xs bg-[#12664F] hover:bg-[#0E513F]"
                         >
                           <Wallet className="w-3.5 h-3.5" />
                           {t.collectPayment}
                         </Button>
                       ) : (
-                        <span className="text-xs font-semibold text-emerald-600 inline-flex items-center gap-1">
+                        <span className="text-xs font-semibold text-[#12664F] inline-flex items-center gap-1">
                           {isEn ? 'Completed' : 'সম্পূর্ণ'}
                         </span>
                       )}

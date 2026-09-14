@@ -10,13 +10,11 @@ import { MonthlyReport, Property, ApiResponse } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StatCard } from '@/components/ui/stat-card';
 import {
-  BarChart3,
   Download,
-  DollarSign,
   TrendingUp,
   AlertCircle,
   CheckCircle2,
@@ -80,7 +78,7 @@ export default function ReportsPage() {
       link.click();
       document.body.removeChild(link);
       toast.success(isEn ? 'CSV Report downloaded!' : 'রিপোর্ট CSV ফাইলে ডাউনলোড হয়েছে!');
-    } catch (error: any) {
+    } catch {
       toast.error(isEn ? 'Failed to export CSV' : 'CSV ডাউনলোড করা সম্ভব হয়নি');
     } finally {
       setIsExporting(false);
@@ -91,15 +89,15 @@ export default function ReportsPage() {
   const netIncome = (fin?.collectedRent || 0) - (fin?.totalExpenses || 0);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 pb-8">
       <PageHeader
         title={t.reports}
         description={isEn ? 'Financial statements, revenue vs expenses, and audit reports' : 'মাসিক সমন্বিত আর্থিক হিসাব, আয়-ব্যয় এবং সিএসভি রিপোর্ট'}
         action={
           <Button
             onClick={handleExportCSV}
-            variant="gradient"
-            className="gap-2 shadow-xs"
+            variant="default"
+            className="h-10 gap-2"
             disabled={isExporting}
           >
             <Download className="w-4 h-4" />
@@ -109,14 +107,14 @@ export default function ReportsPage() {
       />
 
       {/* Filter Bar */}
-      <div className="flex flex-wrap items-center gap-3 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+      <div className="flex flex-wrap items-center gap-3 bg-white p-3 rounded-[10px] border border-[#E5E7EB] shadow-none">
         {/* Month Selector */}
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-slate-500">{isEn ? 'Month:' : 'মাস:'}</span>
+          <span className="text-xs font-semibold text-[#6B7280]">{isEn ? 'Month:' : 'মাস:'}</span>
           <select
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(Number(e.target.value))}
-            className="h-9 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-800 outline-none"
+            className="h-9 rounded-lg border border-[#E5E7EB] bg-[#FAFAF9] px-3 text-xs font-semibold text-[#374151] outline-none"
           >
             {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
               <option key={m} value={m}>
@@ -128,11 +126,11 @@ export default function ReportsPage() {
 
         {/* Year Selector */}
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-slate-500">{isEn ? 'Year:' : 'সাল:'}</span>
+          <span className="text-xs font-semibold text-[#6B7280]">{isEn ? 'Year:' : 'সাল:'}</span>
           <select
             value={selectedYear}
             onChange={(e) => setSelectedYear(Number(e.target.value))}
-            className="h-9 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-800 outline-none"
+            className="h-9 rounded-lg border border-[#E5E7EB] bg-[#FAFAF9] px-3 text-xs font-semibold text-[#374151] outline-none"
           >
             {[2024, 2025, 2026, 2027].map((y) => (
               <option key={y} value={y}>
@@ -144,11 +142,11 @@ export default function ReportsPage() {
 
         {/* Property Selector */}
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-slate-500">{t.properties}:</span>
+          <span className="text-xs font-semibold text-[#6B7280]">{t.properties}:</span>
           <select
             value={selectedPropertyId}
             onChange={(e) => setSelectedPropertyId(e.target.value)}
-            className="h-9 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-800 outline-none max-w-[200px]"
+            className="h-9 rounded-lg border border-[#E5E7EB] bg-[#FAFAF9] px-3 text-xs font-semibold text-[#374151] outline-none max-w-[200px]"
           >
             <option value="">{isEn ? 'All Properties' : 'সকল বাড়ি'}</option>
             {properties?.map((p) => (
@@ -163,7 +161,7 @@ export default function ReportsPage() {
       {/* Financial Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {isLoading ? (
-          Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-2xl" />)
+          Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-[10px]" />)
         ) : (
           <>
             <StatCard
@@ -171,32 +169,32 @@ export default function ReportsPage() {
               value={formatCurrency(fin?.collectedRent || 0, language)}
               subtitle={`${isEn ? 'Expected:' : 'প্রত্যাশিত:'} ${formatCurrency(fin?.expectedRent || 0, language)}`}
               icon={CheckCircle2}
-              iconColor="text-emerald-600"
-              iconBgColor="bg-emerald-50"
+              iconColor="text-[#12664F]"
+              iconBgColor="bg-[#F3FAF5]"
             />
             <StatCard
               title={isEn ? 'Total Expenses' : 'মোট খরচাপাতি'}
               value={formatCurrency(fin?.totalExpenses || 0, language)}
               subtitle={isEn ? 'Electricity, repairs & maintenance' : 'বিদ্যুৎ, মেরামত ও পরিচালনা'}
               icon={Wallet}
-              iconColor="text-rose-600"
-              iconBgColor="bg-rose-50"
+              iconColor="text-[#DC2626]"
+              iconBgColor="bg-[#FEF7F7]"
             />
             <StatCard
               title={isEn ? 'Net Income' : 'নীট লাভ / আয়'}
               value={formatCurrency(netIncome, language)}
               subtitle={isEn ? 'Revenue minus expenses' : 'মোট আদায় থেকে খরচ বাদ'}
               icon={TrendingUp}
-              iconColor={netIncome >= 0 ? 'text-emerald-600' : 'text-rose-600'}
-              iconBgColor={netIncome >= 0 ? 'bg-emerald-50' : 'bg-rose-50'}
+              iconColor={netIncome >= 0 ? 'text-[#12664F]' : 'text-[#DC2626]'}
+              iconBgColor={netIncome >= 0 ? 'bg-[#F3FAF5]' : 'bg-[#FEF7F7]'}
             />
             <StatCard
               title={isEn ? 'Outstanding Due' : 'মোট বকেয়া'}
               value={formatCurrency(fin?.outstandingRent || 0, language)}
               subtitle={`${fin?.collectionRate || 0}% ${t.collectionRate}`}
               icon={AlertCircle}
-              iconColor="text-amber-600"
-              iconBgColor="bg-amber-50"
+              iconColor="text-[#B45309]"
+              iconBgColor="bg-[#FFFCF2]"
             />
           </>
         )}
@@ -205,52 +203,52 @@ export default function ReportsPage() {
       {/* Breakdown Details */}
       {report && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="border-slate-200/80 shadow-xs">
+          <Card className="rounded-[10px] border-[#E5E7EB] shadow-none">
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
-                <PieChart className="w-5 h-5 text-emerald-600" />
+                <PieChart className="w-5 h-5 text-[#12664F]" />
                 {isEn ? 'Rent Invoices by Status' : 'ভাড়ার বিলসমূহের বর্তমান অবস্থা'}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
-              <div className="flex justify-between items-center p-3 rounded-xl bg-emerald-50 text-emerald-900 font-medium">
+              <div className="flex justify-between items-center p-3 rounded-lg bg-[#F3FAF5] text-emerald-900 font-medium">
                 <span>{isEn ? 'Fully Paid Units' : 'সম্পূর্ণ পরিশোধিত ফ্ল্যাট'}:</span>
                 <span className="font-bold">{report.rentsByStatus?.paid ?? '-'}</span>
               </div>
-              <div className="flex justify-between items-center p-3 rounded-xl bg-amber-50 text-amber-900 font-medium">
+              <div className="flex justify-between items-center p-3 rounded-lg bg-[#FFFCF2] text-[#92400E] font-medium">
                 <span>{isEn ? 'Partial Paid Units' : 'আংশিক পরিশোধিত ফ্ল্যাট'}:</span>
                 <span className="font-bold">{report.rentsByStatus?.partial ?? '-'}</span>
               </div>
-              <div className="flex justify-between items-center p-3 rounded-xl bg-slate-100 text-slate-900 font-medium">
+              <div className="flex justify-between items-center p-3 rounded-lg bg-[#FAFAF9] text-[#171717] font-medium">
                 <span>{isEn ? 'Pending Units' : 'অপেক্ষমান ফ্ল্যাট'}:</span>
                 <span className="font-bold">{report.rentsByStatus?.pending ?? '-'}</span>
               </div>
-              <div className="flex justify-between items-center p-3 rounded-xl bg-rose-50 text-rose-900 font-medium">
+              <div className="flex justify-between items-center p-3 rounded-lg bg-[#FEF7F7] text-[#991B1B] font-medium">
                 <span>{isEn ? 'Overdue Units' : 'মেয়াদোত্তীর্ণ ফ্ল্যাট'}:</span>
                 <span className="font-bold">{report.rentsByStatus?.overdue ?? '-'}</span>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-slate-200/80 shadow-xs">
+          <Card className="rounded-[10px] border-[#E5E7EB] shadow-none">
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
-                <Building2 className="w-5 h-5 text-emerald-600" />
+                <Building2 className="w-5 h-5 text-[#12664F]" />
                 {isEn ? 'Property Portfolio Stats' : 'বাড়ি ও ফ্ল্যাটের তথ্য'}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
-              <div className="flex justify-between items-center p-3 rounded-xl bg-slate-50">
-                <span className="text-slate-600">{t.properties}:</span>
-                <span className="font-bold text-slate-900">{report.totalProperties}</span>
+              <div className="flex justify-between items-center p-3 rounded-lg bg-[#FAFAF9]">
+                <span className="text-[#6B7280]">{t.properties}:</span>
+                <span className="font-bold text-[#171717]">{report.totalProperties}</span>
               </div>
-              <div className="flex justify-between items-center p-3 rounded-xl bg-slate-50">
-                <span className="text-slate-600">{t.units}:</span>
-                <span className="font-bold text-slate-900">{report.totalUnits}</span>
+              <div className="flex justify-between items-center p-3 rounded-lg bg-[#FAFAF9]">
+                <span className="text-[#6B7280]">{t.units}:</span>
+                <span className="font-bold text-[#171717]">{report.totalUnits}</span>
               </div>
-              <div className="flex justify-between items-center p-3 rounded-xl bg-slate-50">
-                <span className="text-slate-600">{t.tenants}:</span>
-                <span className="font-bold text-slate-900">{report.totalTenants}</span>
+              <div className="flex justify-between items-center p-3 rounded-lg bg-[#FAFAF9]">
+                <span className="text-[#6B7280]">{t.tenants}:</span>
+                <span className="font-bold text-[#171717]">{report.totalTenants}</span>
               </div>
             </CardContent>
           </Card>

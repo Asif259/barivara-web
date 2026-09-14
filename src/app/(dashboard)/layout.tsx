@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore, useAuthHydrated } from '@/stores/auth-store';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
-import { X } from 'lucide-react';
 
 export default function DashboardLayout({
   children,
@@ -29,14 +28,14 @@ export default function DashboardLayout({
   // Show spinner while waiting for hydration OR while still authenticated check is pending
   if (!hasHydrated || !isAuthenticated) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-600 border-t-transparent" />
+      <div className="flex min-h-screen items-center justify-center bg-[#FAFAF9]">
+        <div className="h-7 w-7 animate-spin rounded-full border-2 border-[#12664F] border-t-transparent" />
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50">
+    <div className="flex h-screen overflow-hidden bg-[#FAFAF9]">
       {/* Desktop Sidebar */}
       <div className="hidden md:flex md:flex-shrink-0">
         <Sidebar />
@@ -46,7 +45,7 @@ export default function DashboardLayout({
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-50 flex md:hidden">
           <div
-            className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity"
+            className="fixed inset-0 bg-[#171717]/40 transition-opacity"
             onClick={() => setMobileMenuOpen(false)}
           />
           <div className="relative z-10 flex h-full">
@@ -58,7 +57,7 @@ export default function DashboardLayout({
       {/* Main Content Area */}
       <div className="flex flex-1 flex-col overflow-hidden">
         <Header onMenuClick={() => setMobileMenuOpen(true)} />
-        <main className="flex-1 overflow-y-auto p-4 md:p-8">
+        <main className="flex-1 overflow-y-auto p-4 md:p-7">
           <div className="mx-auto max-w-7xl">{children}</div>
         </main>
       </div>

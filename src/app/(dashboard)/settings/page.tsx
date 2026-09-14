@@ -65,7 +65,9 @@ export default function SettingsPage() {
           if (!cancelled) setSignaturePreviewUrl(null);
         });
     } else {
-      setSignaturePreviewUrl(null);
+      Promise.resolve().then(() => {
+        if (!cancelled) setSignaturePreviewUrl(null);
+      });
     }
     return () => {
       cancelled = true;
@@ -149,10 +151,10 @@ export default function SettingsPage() {
 
   if (isProfileLoading && !storeUser) {
     return (
-      <div className="space-y-6">
-        <Skeleton className="h-24 rounded-2xl" />
-        <Skeleton className="h-72 rounded-2xl" />
-        <Skeleton className="h-48 rounded-2xl" />
+      <div className="space-y-8 pb-8">
+        <Skeleton className="h-24 rounded-[10px]" />
+        <Skeleton className="h-72 rounded-[10px]" />
+        <Skeleton className="h-48 rounded-[10px]" />
       </div>
     );
   }
@@ -165,8 +167,8 @@ export default function SettingsPage() {
     <div className="space-y-6 max-w-4xl">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">{t.settings}</h1>
-        <p className="text-sm text-slate-500 mt-1">
+        <h1 className="text-2xl font-bold tracking-tight text-[#171717]">{t.settings}</h1>
+        <p className="text-sm text-[#6B7280] mt-1">
           {isEn
             ? 'Manage your profile information and owner signature used on receipts.'
             : 'আপনার প্রোফাইল তথ্য এবং রসিদে ব্যবহৃত মালিকের স্বাক্ষর পরিচালনা করুন।'}
@@ -174,10 +176,10 @@ export default function SettingsPage() {
       </div>
 
       {/* Account Information Card */}
-      <Card className="border-slate-200/80 shadow-xs">
+      <Card className="rounded-[10px] border-[#E5E7EB] shadow-none">
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            <UserIcon className="w-5 h-5 text-emerald-600" />
+            <UserIcon className="w-5 h-5 text-[#12664F]" />
             {t.profileInformation}
           </CardTitle>
           <CardDescription>
@@ -188,14 +190,14 @@ export default function SettingsPage() {
         </CardHeader>
         <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <Label className="text-xs text-slate-500 flex items-center gap-1.5">
+            <Label className="text-xs text-[#6B7280] flex items-center gap-1.5">
               <UserIcon className="w-3.5 h-3.5" />
               {t.fullName}
             </Label>
-            <p className="font-semibold text-slate-900">{currentUser.name}</p>
+            <p className="font-semibold text-[#171717]">{currentUser.name}</p>
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs text-slate-500 flex items-center gap-1.5">
+            <Label className="text-xs text-[#6B7280] flex items-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5" />
               {t.role}
             </Label>
@@ -207,28 +209,28 @@ export default function SettingsPage() {
           </div>
           {currentUser.email && (
             <div className="space-y-1.5">
-              <Label className="text-xs text-slate-500 flex items-center gap-1.5">
+              <Label className="text-xs text-[#6B7280] flex items-center gap-1.5">
                 <Mail className="w-3.5 h-3.5" />
                 {t.email}
               </Label>
-              <p className="font-medium text-slate-900">{currentUser.email}</p>
+              <p className="font-medium text-[#171717]">{currentUser.email}</p>
             </div>
           )}
           {currentUser.phone && (
             <div className="space-y-1.5">
-              <Label className="text-xs text-slate-500 flex items-center gap-1.5">
+              <Label className="text-xs text-[#6B7280] flex items-center gap-1.5">
                 <Phone className="w-3.5 h-3.5" />
                 {t.phone}
               </Label>
-              <p className="font-medium text-slate-900">{currentUser.phone}</p>
+              <p className="font-medium text-[#171717]">{currentUser.phone}</p>
             </div>
           )}
           <div className="space-y-1.5 sm:col-span-2">
-            <Label className="text-xs text-slate-500 flex items-center gap-1.5">
+            <Label className="text-xs text-[#6B7280] flex items-center gap-1.5">
               <CalendarDays className="w-3.5 h-3.5" />
               {t.memberSince}
             </Label>
-            <p className="font-medium text-slate-900">
+            <p className="font-medium text-[#171717]">
               {formatBnDate(currentUser.createdAt, language)}
             </p>
           </div>
@@ -236,19 +238,19 @@ export default function SettingsPage() {
       </Card>
 
       {/* Owner Signature Card */}
-      <Card className="border-slate-200/80 shadow-xs">
+      <Card className="rounded-[10px] border-[#E5E7EB] shadow-none">
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            <Pencil className="w-5 h-5 text-emerald-600" />
+            <Pencil className="w-5 h-5 text-[#12664F]" />
             {t.ownerSignature}
           </CardTitle>
           <CardDescription>{t.ownerSignatureDescription}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
           {/* Current Signature Preview */}
-          <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50/50 p-5">
+          <div className="rounded-[10px] border border-dashed border-[#D1D5DB] bg-[#FAFAF9] p-5">
             <div className="flex flex-col sm:flex-row gap-5 items-start sm:items-center">
-              <div className="h-32 w-full sm:w-56 rounded-xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden shrink-0 relative">
+              <div className="h-32 w-full sm:w-56 rounded-lg bg-white border border-[#E5E7EB] flex items-center justify-center overflow-hidden shrink-0 relative">
                 {signaturePreviewUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -258,15 +260,15 @@ export default function SettingsPage() {
                   />
                 ) : (
                   <div className="text-center px-3">
-                    <ImageIcon className="w-8 h-8 mx-auto text-slate-300" />
-                    <p className="text-xs font-medium text-slate-500 mt-2">
+                    <ImageIcon className="w-8 h-8 mx-auto text-[#9CA3AF]" />
+                    <p className="text-xs font-medium text-[#6B7280] mt-2">
                       {t.noSignatureUploaded}
                     </p>
                   </div>
                 )}
               </div>
               <div className="flex-1 space-y-2">
-                <div className="flex items-start gap-2 text-xs text-slate-500">
+                <div className="flex items-start gap-2 text-xs text-[#6B7280]">
                   <Info className="w-3.5 h-3.5 mt-0.5 shrink-0" />
                   <p>
                     {isEn
@@ -274,14 +276,14 @@ export default function SettingsPage() {
                       : 'আপনার স্বাক্ষরের একটি পরিষ্কার ছবি আপলোড করুন (স্বচ্ছ ব্যাকগ্রাউন্ডসহ PNG ফরম্যাট সুপারিশকৃত)। একবার সেট করলে নতুন সকল রসিদে এটি দেখাবে।'}
                   </p>
                 </div>
-                <p className="text-[11px] text-slate-400">{t.signatureUploadHint}</p>
+                <p className="text-[11px] text-[#9CA3AF]">{t.signatureUploadHint}</p>
               </div>
             </div>
           </div>
 
           {/* File Uploader */}
           <div className="space-y-2">
-            <Label className="text-sm font-semibold text-slate-700">
+            <Label className="text-sm font-semibold text-[#374151]">
               {currentSignatureFileId ? t.replaceSignature : t.uploadSignature}
             </Label>
             <FileUploader
@@ -296,12 +298,12 @@ export default function SettingsPage() {
           </div>
 
           {/* Action buttons */}
-          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
+          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[#F3F4F6]">
             {pendingFileId && (
               <Button
                 onClick={handleSaveSignature}
                 disabled={setSignatureMutation.isPending}
-                variant="gradient"
+                variant="default"
                 size="sm"
                 className="gap-1.5"
               >
@@ -326,7 +328,7 @@ export default function SettingsPage() {
                 onClick={() => setShowRemoveConfirm(true)}
                 variant="outline"
                 size="sm"
-                className="gap-1.5 text-rose-600 border-rose-200 hover:bg-rose-50 hover:text-rose-700 ml-auto"
+                className="gap-1.5 text-[#DC2626] border-[#FECACA] hover:bg-[#FEF7F7] hover:text-[#B91C1C] ml-auto"
                 disabled={removeSignatureMutation.isPending}
               >
                 <Trash2 className="w-4 h-4" />
@@ -335,8 +337,8 @@ export default function SettingsPage() {
             )}
 
             {showRemoveConfirm && (
-              <div className="ml-auto flex items-center gap-2 bg-rose-50 border border-rose-200 rounded-xl px-3 py-1.5">
-                <span className="text-xs font-medium text-rose-700">
+              <div className="ml-auto flex items-center gap-2 bg-[#FEF7F7] border border-[#FECACA] rounded-lg px-3 py-1.5">
+                <span className="text-xs font-medium text-[#B91C1C]">
                   {t.confirmRemoveSignature}
                 </span>
                 <Button

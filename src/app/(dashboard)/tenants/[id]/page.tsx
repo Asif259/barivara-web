@@ -66,7 +66,7 @@ function DocumentThumbnail({
 }) {
   return (
     <div className="space-y-1.5">
-      <span className="text-xs text-slate-500 block font-medium">{label}</span>
+      <span className="text-[13px] text-[#6B7280] block font-medium">{label}</span>
       {url ? (
         <button
           onClick={onView}
@@ -100,7 +100,7 @@ function DocumentThumbnail({
 function DocumentThumbnailError({ label, isEn }: { label: string; isEn: boolean }) {
   return (
     <div className="space-y-1.5">
-      <span className="text-xs text-slate-500 block font-medium">{label}</span>
+      <span className="text-[13px] text-[#6B7280] block font-medium">{label}</span>
       <div className="h-24 w-full rounded-xl border border-dashed border-amber-300 bg-amber-50 flex flex-col items-center justify-center text-amber-700">
         <AlertTriangle className="w-5 h-5 mb-1" />
         <span className="text-xs font-medium">{isEn ? 'Preview unavailable' : 'প্রিভিউ দেখানো যাচ্ছে না'}</span>
@@ -195,10 +195,10 @@ export default function TenantDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-8 pb-8">
         <Skeleton className="h-10 w-48" />
-        <Skeleton className="h-64 w-full rounded-2xl" />
-        <Skeleton className="h-80 w-full rounded-2xl" />
+        <Skeleton className="h-32 w-full rounded-[10px]" />
+        <Skeleton className="h-80 w-full rounded-[10px]" />
       </div>
     );
   }
@@ -231,22 +231,22 @@ export default function TenantDetailPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 pb-8">
       {/* Header */}
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col gap-5 border-b border-[#E5E7EB] pb-6 sm:flex-row sm:items-center">
         <Link href="/tenants">
-          <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl shrink-0">
+          <Button variant="outline" size="icon" className="h-9 w-9 shrink-0">
             <ArrowLeft className="h-4 w-4" />
           </Button>
         </Link>
 
-        <div className="flex flex-1 flex-col sm:flex-row sm:items-center gap-4 min-w-0">
+        <div className="flex flex-1 flex-col gap-4 sm:flex-row sm:items-center min-w-0">
           {/* Profile Picture */}
           <div className="relative shrink-0">
             {profilePictureUrl ? (
               <button
                 onClick={() => openPreview(profilePictureUrl, t.profilePicture)}
-                className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl overflow-hidden border-2 border-emerald-200 bg-slate-100 hover:border-emerald-300 transition-colors cursor-pointer"
+                className="h-16 w-16 sm:h-20 sm:w-20 rounded-lg overflow-hidden border border-[#CDE4DA] bg-[#E8F3EF] hover:border-[#12664F] transition-colors cursor-pointer"
                 aria-label={isEn ? 'View profile picture' : 'প্রোফাইল ছবি দেখুন'}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -257,7 +257,7 @@ export default function TenantDetailPage() {
                 />
               </button>
             ) : (
-              <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-2xl sm:text-3xl border-2 border-emerald-200">
+              <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-lg bg-[#E8F3EF] text-[#12664F] flex items-center justify-center font-semibold text-2xl sm:text-3xl border border-[#CDE4DA]">
                 {tenant.name.charAt(0).toUpperCase()}
               </div>
             )}
@@ -265,8 +265,8 @@ export default function TenantDetailPage() {
 
           {/* Tenant Info */}
           <div className="flex-1 min-w-0">
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 truncate">{tenant.name}</h1>
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-sm text-slate-600">
+            <h1 className="text-[28px] sm:text-[30px] font-semibold leading-tight tracking-tight text-[#171717] truncate">{tenant.name}</h1>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-sm text-[#6B7280]">
               <span className="flex items-center gap-1">
                 <Phone className="w-3.5 h-3.5" />
                 {tenant.phone}
@@ -300,43 +300,43 @@ export default function TenantDetailPage() {
       </div>
 
       {/* Personal & Contact Information */}
-      <Card className="border-slate-200/80">
+      <Card className="rounded-[10px] border-[#E5E7EB] shadow-none">
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-            <User className="w-4 h-4 text-emerald-600" />
+          <CardTitle className="text-[17px] font-semibold text-[#171717] flex items-center gap-2">
+            <User className="w-4 h-4 text-[#307473]" />
             {t.personalContact}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3">
             <div className="space-y-1">
-              <span className="text-xs text-slate-500 block">{t.tenantName}</span>
-              <span className="font-medium text-slate-900 block">{tenant.name}</span>
+              <span className="text-[13px] text-[#6B7280] block">{t.tenantName}</span>
+              <span className="font-medium text-[#171717] block">{tenant.name}</span>
             </div>
             <div className="space-y-1">
-              <span className="text-xs text-slate-500 block">{t.phone}</span>
-              <span className="font-medium text-slate-900 block">{tenant.phone}</span>
+              <span className="text-[13px] text-[#6B7280] block">{t.phone}</span>
+              <span className="font-medium text-[#171717] block">{tenant.phone}</span>
             </div>
             {tenant.email && (
               <div className="space-y-1">
-                <span className="text-xs text-slate-500 block">{t.email}</span>
-                <span className="font-medium text-slate-900 block">{tenant.email}</span>
+                <span className="text-[13px] text-[#6B7280] block">{t.email}</span>
+                <span className="font-medium text-[#171717] block">{tenant.email}</span>
               </div>
             )}
             {tenant.occupation && (
               <div className="space-y-1">
-                <span className="text-xs text-slate-500 block">{t.occupation}</span>
-                <span className="font-medium text-slate-900 block">{tenant.occupation}</span>
+                <span className="text-[13px] text-[#6B7280] block">{t.occupation}</span>
+                <span className="font-medium text-[#171717] block">{tenant.occupation}</span>
               </div>
             )}
           </div>
 
-          <div className="pt-3 border-t border-slate-100 space-y-1">
-            <span className="text-xs text-slate-500 flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+          <div className="pt-3 border-t border-[#F3F4F6] space-y-1">
+            <span className="text-[13px] text-[#6B7280] flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5 text-[#307473]" />
               {t.address}
             </span>
-            <p className="text-sm font-medium text-slate-900 whitespace-pre-wrap">
+            <p className="text-sm font-medium text-[#171717] whitespace-pre-wrap">
               {tenant.permanentAddress || (isEn ? 'Not provided' : 'প্রদান করা হয়নি')}
             </p>
           </div>
@@ -344,10 +344,10 @@ export default function TenantDetailPage() {
       </Card>
 
       {/* Documents — horizontal row */}
-      <Card className="border-slate-200/80">
+      <Card className="rounded-[10px] border-[#E5E7EB] shadow-none">
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-            <FileText className="w-4 h-4 text-emerald-600" />
+          <CardTitle className="text-[17px] font-semibold text-[#171717] flex items-center gap-2">
+            <FileText className="w-4 h-4 text-[#307473]" />
             {t.documents}
           </CardTitle>
         </CardHeader>
@@ -388,7 +388,7 @@ export default function TenantDetailPage() {
             )}
 
             {!tenant.nidFrontImageId && !tenant.nidBackImageId && (
-              <div className="col-span-full text-center py-4 text-slate-500">
+              <div className="col-span-full text-center py-4 text-[#6B7280]">
                 <FileText className="w-8 h-8 mx-auto mb-2 text-slate-300" />
                 <p className="text-sm">{isEn ? 'No documents uploaded' : 'কোনো ডকুমেন্ট আপলোড করা হয়নি'}</p>
               </div>
@@ -398,32 +398,32 @@ export default function TenantDetailPage() {
       </Card>
 
       {/* Emergency Contact */}
-      <Card className="border-slate-200/80">
+      <Card className="rounded-[10px] border-[#E5E7EB] shadow-none">
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-            <Shield className="w-4 h-4 text-emerald-600" />
+          <CardTitle className="text-[17px] font-semibold text-[#171717] flex items-center gap-2">
+            <Shield className="w-4 h-4 text-[#307473]" />
             {t.emergencyContactSection}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
             <div className="space-y-1">
-              <span className="text-xs text-slate-500 block">{isEn ? 'Contact Person' : 'ব্যক্তির নাম'}</span>
-              <span className="font-medium text-slate-900 block">{tenant.emergencyContactName || (isEn ? 'Not provided' : 'প্রদান করা হয়নি')}</span>
+              <span className="text-[13px] text-[#6B7280] block">{isEn ? 'Contact Person' : 'ব্যক্তির নাম'}</span>
+              <span className="font-medium text-[#171717] block">{tenant.emergencyContactName || (isEn ? 'Not provided' : 'প্রদান করা হয়নি')}</span>
             </div>
             <div className="space-y-1">
-              <span className="text-xs text-slate-500 block">{isEn ? 'Emergency Phone' : 'জরুরি ফোন'}</span>
-              <span className="font-medium text-slate-900 block">{tenant.emergencyContactPhone || (isEn ? 'Not provided' : 'প্রদান করা হয়নি')}</span>
+              <span className="text-[13px] text-[#6B7280] block">{isEn ? 'Emergency Phone' : 'জরুরি ফোন'}</span>
+              <span className="font-medium text-[#171717] block">{tenant.emergencyContactPhone || (isEn ? 'Not provided' : 'প্রদান করা হয়নি')}</span>
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Rental Agreements */}
-      <Card className="border-slate-200/80 shadow-xs">
+      <Card className="rounded-[10px] border-[#E5E7EB] shadow-none shadow-xs">
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            <FileText className="w-5 h-5 text-emerald-600" />
+            <FileText className="w-5 h-5 text-[#307473]" />
             {isEn ? 'Rental Agreements' : 'ভাড়া চুক্তিসমূহ'}
           </CardTitle>
         </CardHeader>
@@ -432,7 +432,7 @@ export default function TenantDetailPage() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="bg-slate-100/80 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                  <tr className="bg-[#FAFAF9] text-left text-xs font-semibold text-[#6B7280] uppercase tracking-wider">
                     <th className="pb-3 px-4">{t.unitNumber}</th>
                     <th className="pb-3 px-4">{t.baseRent}</th>
                     <th className="pb-3 px-4">{t.serviceFee}</th>
@@ -443,30 +443,30 @@ export default function TenantDetailPage() {
                     <th className="pb-3 px-4 text-right">{t.actions}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-[#F3F4F6]">
                   {tenant.agreements.map((agr) => {
                     const isEndingThisRow = endingAgreementId === agr.id;
                     return (
-                      <tr key={agr.id} className="hover:bg-slate-50/50">
+                      <tr key={agr.id} className="hover:bg-[#FAFAF9]">
                         <td className="py-3 px-4">
-                          <div className="font-semibold text-slate-900">{agr.unit?.unitNumber}</div>
+                          <div className="font-semibold text-[#171717]">{agr.unit?.unitNumber}</div>
                           {agr.unit?.property?.name && (
-                            <div className="text-xs text-slate-500 truncate max-w-xs">{agr.unit.property.name}</div>
+                            <div className="text-[13px] text-[#6B7280] truncate max-w-xs">{agr.unit.property.name}</div>
                           )}
                         </td>
-                        <td className="py-3 px-4 font-semibold text-slate-900 whitespace-nowrap">
+                        <td className="py-3 px-4 font-semibold text-[#171717] whitespace-nowrap">
                           {formatCurrency(agr.monthlyRent, language)}
                         </td>
-                        <td className="py-3 px-4 text-slate-600 whitespace-nowrap">
+                        <td className="py-3 px-4 text-[#6B7280] whitespace-nowrap">
                           {formatCurrency(agr.serviceFee, language)}
                         </td>
-                        <td className="py-3 px-4 text-emerald-700 font-medium whitespace-nowrap">
+                        <td className="py-3 px-4 text-[#12664F] font-medium whitespace-nowrap">
                           {formatCurrency(agr.securityDeposit, language)}
                         </td>
-                        <td className="py-3 px-4 text-xs text-slate-600 whitespace-nowrap">
+                        <td className="py-3 px-4 text-xs text-[#6B7280] whitespace-nowrap">
                           {formatBnDate(agr.startDate, language)}
                         </td>
-                        <td className="py-3 px-4 text-xs text-slate-600 whitespace-nowrap">
+                        <td className="py-3 px-4 text-xs text-[#6B7280] whitespace-nowrap">
                           {agr.endDate ? formatBnDate(agr.endDate, language) : '—'}
                         </td>
                         <td className="py-3 px-4">
@@ -478,7 +478,7 @@ export default function TenantDetailPage() {
                               variant="ghost"
                               size="sm"
                               onClick={() => router.push(`/agreements/${agr.id}`)}
-                              className="h-8 px-3 text-xs text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 gap-1.5 border border-emerald-200"
+                              className="h-8 px-3 text-xs text-[#307473] hover:text-[#12664F] hover:bg-[#F3FAF5] gap-1.5 border border-[#CDE4DA]"
                               title={t.view}
                               aria-label={`${t.view} — ${agr.unit?.unitNumber ?? ''}`}
                             >
@@ -489,7 +489,7 @@ export default function TenantDetailPage() {
                               variant="ghost"
                               size="sm"
                               onClick={() => router.push(`/agreements/${agr.id}/edit`)}
-                              className="h-8 px-3 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 gap-1.5 border border-blue-200"
+                              className="h-8 px-3 text-xs text-[#2563EB] hover:text-[#1D4ED8] hover:bg-[#F5F9FF] gap-1.5 border border-[#C7DBFF]"
                               title={t.edit}
                               aria-label={`${t.edit} — ${agr.unit?.unitNumber ?? ''}`}
                             >
@@ -502,7 +502,7 @@ export default function TenantDetailPage() {
                                 size="sm"
                                 onClick={() => setConfirmEndAgreementId(agr.id)}
                                 disabled={isEndingThisRow}
-                                className="h-8 px-3 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 gap-1.5 border border-rose-200"
+                                className="h-8 px-3 text-xs text-[#DC2626] hover:text-[#B91C1C] hover:bg-[#FEF7F7] gap-1.5 border border-[#FECACA]"
                                 title={t.endAgreement}
                                 aria-label={`${t.endAgreement} — ${agr.unit?.unitNumber ?? ''}`}
                               >
@@ -523,7 +523,7 @@ export default function TenantDetailPage() {
               </table>
             </div>
           ) : (
-            <p className="text-sm text-slate-500 py-5 text-center">
+            <p className="text-sm text-[#6B7280] py-5 text-center">
               {isEn ? 'No rental agreements found for this tenant.' : 'এই ভাড়াটিয়ার কোনো সক্রিয় বা পূর্বের চুক্তি পাওয়া যায়নি।'}
             </p>
           )}
