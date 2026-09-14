@@ -233,13 +233,13 @@ export default function MonthlyRentsPage() {
                     <TableCell data-label={t.serviceFee} className="text-[#6B7280]">
                       {formatCurrency(rent.serviceFee, language)}
                     </TableCell>
-                    <TableCell data-label={t.total} className="font-semibold text-[#171717]">
+                    <TableCell data-label={t.total} className="font-medium text-[#171717]">
                       {formatCurrency(rent.totalAmount, language)}
                     </TableCell>
-                    <TableCell data-label={t.paid} className="text-[#12664F] font-semibold">
+                    <TableCell data-label={t.paid} className="text-[#12664F] font-medium">
                       {formatCurrency(rent.paidAmount, language)}
                     </TableCell>
-                    <TableCell data-label={t.remaining} className="text-[#DC2626] font-semibold">
+                    <TableCell data-label={t.remaining} className="text-[#DC2626] font-medium">
                       {formatCurrency(rent.remainingAmount, language)}
                     </TableCell>
                     <TableCell data-label={isEn ? 'Due Date' : 'পরিশোধের শেষ তারিখ'} className="text-xs text-[#6B7280]">

@@ -99,6 +99,8 @@ export interface ReceiptWhatsAppTextParams {
  * Thank you.
  */
 export function buildReceiptWhatsAppText({
+  tenantName,
+  unitNumber,
   month,
   year,
   amount,
@@ -140,18 +142,26 @@ export function buildReceiptWhatsAppText({
   if (isEn) {
     return [
       'Your rent payment receipt.',
+      tenantName ? `Tenant: ${tenantName}` : '',
+      unitNumber ? `Unit: ${unitNumber}` : '',
       `Receipt No: ${refTag}`,
       `Amount Paid: ${formattedAmountEn}`,
       `Rent Period: ${periodEn}`,
-    ].join('\n');
+      '',
+      'Thank you.',
+    ].filter(Boolean).join('\n');
   }
 
   return [
-    'আপনার ভাড়ার পেমেন্টের রসিদ।',
-    `রসিদ নং: ${refTag}`,
+    'আপনার ভাড়ার পেমেন্টের রশিদ।',
+    tenantName ? `ভাড়াটিয়া: ${tenantName}` : '',
+    unitNumber ? `ফ্ল্যাট: ${unitNumber}` : '',
+    `রশিদ নং: ${refTag}`,
     `পরিশোধিত পরিমাণ: ${formattedAmountBn}`,
     `ভাড়া মাস: ${periodBn}`,
-  ].join('\n');
+    '',
+    'ধন্যবাদ।',
+  ].filter(Boolean).join('\n');
 }
 
 /**

@@ -144,9 +144,9 @@ export const translations = {
     paymentDate: 'পেমেন্টের তারিখ',
     transactionId: 'ট্রানজেকশন আইডি',
     reversePayment: 'পেমেন্ট রিভার্স (বাতিল) করুন',
-    printReceipt: 'রসিদ প্রিন্ট করুন',
-    downloadReceipt: 'রসিদ ডাউনলোড করুন',
-    receipt: 'ভাড়ার মানি রিসিট',
+    printReceipt: 'রশিদ প্রিন্ট করুন',
+    downloadReceipt: 'রশিদ ডাউনলোড করুন',
+    receipt: 'ভাড়ার রশিদ',
     paymentHistory: 'পেমেন্ট হিস্ট্রি',
 
     // Messages
@@ -157,7 +157,7 @@ export const translations = {
     // Settings / Owner Signature
     profileInformation: 'প্রোফাইল তথ্য',
     ownerSignature: 'মালিকের স্বাক্ষর',
-    ownerSignatureDescription: 'ভাড়া আদায়ের রসিদে এই স্বাক্ষরটি ব্যবহার হবে। একবার সেট করার পর পুরোনো রসিদে পরিবর্তন আসবে না।',
+    ownerSignatureDescription: 'ভাড়া আদায়ের রশিদে এই স্বাক্ষরটি ব্যবহার হবে। একবার সেট করার পর পুরোনো রশিদে পরিবর্তন আসবে না।',
     uploadSignature: 'স্বাক্ষর আপলোড করুন',
     replaceSignature: 'স্বাক্ষর পরিবর্তন করুন',
     removeSignature: 'স্বাক্ষর মুছুন',
@@ -173,19 +173,19 @@ export const translations = {
     memberSince: 'যোগদানের তারিখ',
 
     // Receipt WhatsApp Sharing
-    sendReceipt: 'রসিদ পাঠান',
+    sendReceipt: 'রশিদ পাঠান',
     sendViaWhatsapp: 'হোয়াটসঅ্যাপে পাঠান',
     sendInWhatsapp: 'হোয়াটসঅ্যাপে পাঠান',
     chooseWhatsappContact: 'কন্টাক্ট নির্বাচন করুন',
     sendingReceipt: 'প্রস্তুত হচ্ছে...',
-    receiptSharedSuccess: 'রসিদ সফলভাবে শেয়ার করা হয়েছে',
-    receiptDownloadedForWhatsapp: 'রসিদ ইমেজ ডাউনলোড হয়েছে। হোয়াটসঅ্যাপ চ্যাটে রসিদটি যুক্ত করে পাঠিয়ে দিন।',
-    whatsappShareFailed: 'রসিদ শেয়ার করা যায়নি',
+    receiptSharedSuccess: 'রশিদ সফলভাবে শেয়ার করা হয়েছে',
+    receiptDownloadedForWhatsapp: 'রশিদ ইমেজ ডাউনলোড হয়েছে। হোয়াটসঅ্যাপ চ্যাটে রশিদটি যুক্ত করে পাঠিয়ে দিন।',
+    whatsappShareFailed: 'রশিদ শেয়ার করা যায়নি',
     whatsappUnavailable: 'হোয়াটসঅ্যাপ খোলা সম্ভব হয়নি',
-    receiptGenFailed: 'রসিদ ইমেজ তৈরি করতে সমস্যা হয়েছে',
+    receiptGenFailed: 'রশিদ ইমেজ তৈরি করতে সমস্যা হয়েছে',
     shareViaNativeSheet: 'ফাইলসহ শেয়ার করুন',
     desktopWhatsappInstructions: 'ডেস্কটপ থেকে হোয়াটসঅ্যাপে পাঠানোর নিয়ম',
-    step1Downloaded: 'রসিদের ইমেজ ফাইলটি আপনার ডিভাইসে ডাউনলোড হয়েছে।',
+    step1Downloaded: 'রশিদের ইমেজ ফাইলটি আপনার ডিভাইসে ডাউনলোড হয়েছে।',
     step2OpenWhatsapp: 'হোয়াটসঅ্যাপে চ্যাটটি খুলুন এবং ডাউনলোড করা ছবিটি ড্র্যাগ বা অ্যাটাচ করুন।',
     step3PressSend: 'প্রিফিল্ড মেসেজটি দেখে সেন্ড (Send) বাটনে চাপ দিন।',
     openWhatsapp: 'হোয়াটসঅ্যাপ ওপেন করুন',
@@ -341,7 +341,7 @@ export const translations = {
     reversePayment: 'Reverse Payment',
     printReceipt: 'Print Receipt',
     downloadReceipt: 'Download Receipt',
-    receipt: 'Rent Money Receipt',
+    receipt: 'Rent Receipt',
     paymentHistory: 'Payment History',
 
     // Messages

@@ -240,7 +240,7 @@ export function PaymentReceiptDialog({
       toast.success(isEn ? 'Receipt image downloaded successfully!' : 'মানি রিসিট ইমেজ ডাউনলোড হয়েছে!');
     } catch (error) {
       console.error('Failed to export receipt image:', error);
-      toast.error(t.receiptGenFailed || (isEn ? 'Failed to download receipt image' : 'রসিদ ইমেজ ডাউনলোড ব্যর্থ হয়েছে'));
+      toast.error(t.receiptGenFailed || (isEn ? 'Failed to download receipt image' : 'রশিদ ইমেজ ডাউনলোড ব্যর্থ হয়েছে'));
     } finally {
       setIsDownloading(false);
     }
@@ -333,7 +333,7 @@ export function PaymentReceiptDialog({
 
         await navigator.share({
           files: [file],
-          title: isEn ? 'Rent Payment Receipt' : 'ভাড়া পরিশোধের রসিদ',
+          title: isEn ? 'Rent Payment Receipt' : 'ভাড়া পরিশোধের রশিদ',
           text: messageText,
         });
 
@@ -357,7 +357,7 @@ export function PaymentReceiptDialog({
       return t.sendingReceipt || (isEn ? 'Preparing...' : 'প্রস্তুত হচ্ছে...');
     }
     if (canShareImageNatively) {
-      return isEn ? 'Share Receipt' : 'রসিদ শেয়ার করুন';
+      return isEn ? 'Share Receipt' : 'রশিদ শেয়ার করুন';
     }
     if (hasValidPhone && tenantName) {
       return isEn ? `Send to ${tenantName}` : `${tenantName}-কে পাঠান`;
@@ -436,7 +436,7 @@ export function PaymentReceiptDialog({
                             {isEn ? 'PAID / সম্পন্ন' : 'পরিশোধিত'}
                           </span>
                           <p className="text-[10px] text-slate-500 mt-2 font-mono">
-                            {isEn ? 'Receipt No.' : 'রসিদ নং'} #{effectivePayment.id.substring(0, 8).toUpperCase()}
+                            {isEn ? 'Receipt No.' : 'রশিদ নং'} #{effectivePayment.id.substring(0, 8).toUpperCase()}
                           </p>
                         </div>
                       </div>
@@ -608,7 +608,7 @@ export function PaymentReceiptDialog({
                     <div className="border-t border-stone-200 pt-3 text-center text-[10px] text-slate-500">
                       {isEn
                         ? 'Thank you for your payment. This is an electronic receipt.'
-                        : 'ভাড়া প্রদানের জন্য ধন্যবাদ। এটি একটি ইলেকট্রনিক রসিদ।'}
+                        : 'ভাড়া প্রদানের জন্য ধন্যবাদ। এটি একটি ইলেকট্রনিক রশিদ।'}
                     </div>
                   </div>
                 </div>
@@ -652,7 +652,7 @@ export function PaymentReceiptDialog({
                   className="gap-2 shadow-xs font-semibold bg-[#25D366] hover:bg-[#20ba59] text-white border-0 transition-colors w-full cursor-pointer"
                   title={
                     canShareImageNatively
-                      ? (isEn ? 'Share receipt image via native share sheet' : 'শেয়ার শিট দিয়ে রসিদ শেয়ার করুন')
+                      ? (isEn ? 'Share receipt image via native share sheet' : 'শেয়ার শিট দিয়ে রশিদ শেয়ার করুন')
                       : (hasValidPhone
                         ? `WhatsApp: ${phoneResult.normalizedPhone}`
                         : (isEn ? 'No WhatsApp number for this tenant' : 'ভাড়াটিয়ার হোয়াটসঅ্যাপ নম্বর নেই'))

@@ -171,7 +171,7 @@ export default function SettingsPage() {
         <p className="text-sm text-[#6B7280] mt-1">
           {isEn
             ? 'Manage your profile information and owner signature used on receipts.'
-            : 'আপনার প্রোফাইল তথ্য এবং রসিদে ব্যবহৃত মালিকের স্বাক্ষর পরিচালনা করুন।'}
+            : 'আপনার প্রোফাইল তথ্য এবং রশিদে ব্যবহৃত মালিকের স্বাক্ষর পরিচালনা করুন।'}
         </p>
       </div>
 
@@ -273,7 +273,7 @@ export default function SettingsPage() {
                   <p>
                     {isEn
                       ? 'Upload a clear, high-contrast image of your signature (PNG with a transparent background is recommended). Once set, it will appear on all new payment receipts.'
-                      : 'আপনার স্বাক্ষরের একটি পরিষ্কার ছবি আপলোড করুন (স্বচ্ছ ব্যাকগ্রাউন্ডসহ PNG ফরম্যাট সুপারিশকৃত)। একবার সেট করলে নতুন সকল রসিদে এটি দেখাবে।'}
+                      : 'আপনার স্বাক্ষরের একটি পরিষ্কার ছবি আপলোড করুন (স্বচ্ছ ব্যাকগ্রাউন্ডসহ PNG ফরম্যাট সুপারিশকৃত)। একবার সেট করলে নতুন সকল রশিদে এটি দেখাবে।'}
                   </p>
                 </div>
                 <p className="text-[11px] text-[#9CA3AF]">{t.signatureUploadHint}</p>

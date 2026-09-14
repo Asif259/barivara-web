@@ -264,7 +264,7 @@ export function ExpenseFormDialog({
               category="OTHER"
               entityType="expense"
               entityId={expense?.id}
-              label={isEn ? 'Attach Bill / Memo / Receipt (Optional)' : 'বিল / মেমো / রসিদের ছবি বা ডকুমেন্ট (ঐচ্ছিক)'}
+              label={isEn ? 'Attach Bill / Memo / Receipt (Optional)' : 'বিল / মেমো / রশিদের ছবি বা ডকুমেন্ট (ঐচ্ছিক)'}
               description={isEn ? 'Upload electricity bill, memo scan or receipt (Max 5MB)' : 'বিদ্যুৎ বিলের কপি বা খরচের মেমো আপলোড করুন (সর্বোচ্চ ৫MB)'}
               maxSizeMB={5}
               value={watch('receiptFileId')}
