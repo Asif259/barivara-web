@@ -20,16 +20,16 @@ export function EmptyState({
   className,
 }: EmptyStateProps) {
   return (
-    <div className={`flex flex-col items-center justify-center p-12 text-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 ${className || ''}`}>
-      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 mb-4 shadow-xs">
-        <Icon className="h-7 w-7" />
+    <div className={`flex flex-col items-center justify-center p-10 text-center rounded-[10px] border border-dashed border-[#E5E7EB] bg-[#FAFAF9] ${className || ''}`}>
+      <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-white border border-[#E5E7EB] text-[#9CA3AF] mb-4">
+        <Icon className="h-5 w-5" />
       </div>
-      <h3 className="text-base font-semibold text-slate-900 mb-1">{title}</h3>
+      <h3 className="text-base font-semibold text-[#171717] mb-1">{title}</h3>
       {description && (
-        <p className="text-sm text-slate-500 max-w-sm mb-6">{description}</p>
+        <p className="text-[13px] text-[#6B7280] max-w-sm mb-6">{description}</p>
       )}
       {actionLabel && onAction && (
-        <Button onClick={onAction} variant="default" className="shadow-xs">
+        <Button onClick={onAction} variant="default">
           {actionLabel}
         </Button>
       )}

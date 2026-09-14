@@ -4,29 +4,29 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98] cursor-pointer",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#12664F] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98] cursor-pointer",
   {
     variants: {
       variant: {
         default:
-          "bg-emerald-600 text-white shadow-sm hover:bg-emerald-700 hover:shadow-md hover:shadow-emerald-600/20 active:bg-emerald-800",
+          "bg-[#12664F] text-white hover:bg-[#0E513F] active:bg-[#0B4335]",
         destructive:
-          "bg-rose-600 text-white shadow-sm hover:bg-rose-700 hover:shadow-md active:bg-rose-800",
+          "bg-[#DC2626] text-white hover:bg-[#B91C1C] active:bg-[#991B1B]",
         outline:
-          "border border-slate-200 bg-white text-slate-700 shadow-xs hover:bg-slate-50 hover:text-slate-900 active:bg-slate-100",
+          "border border-[#E5E7EB] bg-white text-[#171717] hover:bg-[#FAFAF9] hover:border-[#D1D5DB] active:bg-[#F3F4F6]",
         secondary:
-          "bg-slate-100 text-slate-900 shadow-xs hover:bg-slate-200 active:bg-slate-300",
+          "bg-[#F3F4F6] text-[#171717] hover:bg-[#E5E7EB] active:bg-[#D1D5DB]",
         ghost:
-          "text-slate-700 hover:bg-slate-100 hover:text-slate-900",
+          "text-[#374151] hover:bg-[#F3F4F6] hover:text-[#171717]",
         link:
-          "text-emerald-600 underline-offset-4 hover:underline",
+          "text-[#12664F] underline-offset-4 hover:underline",
         gradient:
-          "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md hover:from-emerald-700 hover:to-teal-700 hover:shadow-lg hover:shadow-emerald-600/25",
+          "bg-[#12664F] text-white hover:bg-[#0E513F] active:bg-[#0B4335]",
       },
       size: {
         default: "h-10 px-4 py-2",
-        sm: "h-8 rounded-lg px-3 text-xs",
-        lg: "h-11 rounded-xl px-8 text-base",
+        sm: "h-9 rounded-lg px-3 text-xs",
+        lg: "h-11 rounded-lg px-8 text-base",
         icon: "h-10 w-10",
       },
     },

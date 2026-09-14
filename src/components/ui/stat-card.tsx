@@ -28,16 +28,16 @@ export function StatCard({
   className,
 }: StatCardProps) {
   return (
-    <Card className={cn("overflow-hidden border-slate-200/80 bg-white", className)}>
-      <CardContent className="p-6">
+    <Card className={cn("overflow-hidden border-[#E5E7EB] bg-white", className)}>
+      <CardContent className="p-5">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-sm font-medium text-slate-500">{title}</p>
-            <h3 className="text-2xl font-bold tracking-tight text-slate-900">{value}</h3>
-            {subtitle && <p className="text-xs text-slate-500">{subtitle}</p>}
+            <p className="text-sm font-medium text-[#6B7280]">{title}</p>
+            <h3 className="text-2xl font-semibold tracking-tight text-[#171717]">{value}</h3>
+            {subtitle && <p className="text-xs text-[#6B7280]">{subtitle}</p>}
           </div>
-          <div className={cn("flex h-12 w-12 items-center justify-center rounded-2xl shadow-xs", iconBgColor)}>
-            <Icon className={cn("h-6 w-6", iconColor)} />
+          <div className={cn("flex h-9 w-9 items-center justify-center rounded-md", iconBgColor)}>
+            <Icon className={cn("h-4 w-4", iconColor)} />
           </div>
         </div>
 
