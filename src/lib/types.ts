@@ -61,20 +61,30 @@ export interface AuthResponseData extends AuthTokens {
 export interface ChangePasswordInput {
   currentPassword: string;
   newPassword: string;
+  confirmPassword: string;
 }
 
 export interface ForgotPasswordInput {
-  email: string;
+  identifier: string;
 }
 
 export interface VerifyResetOtpInput {
-  email: string;
+  identifier: string;
   otp: string;
 }
 
 export interface ResetPasswordInput {
-  resetToken: string;
+  identifier: string;
   newPassword: string;
+  confirmPassword: string;
+  resetToken?: string;
+}
+
+export interface ResetPasswordDirectInput {
+  identifier: string;
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
 }
 
 // Property

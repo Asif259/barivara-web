@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { FileUploader } from '@/components/ui/file-uploader';
+import { ChangePasswordCard } from '@/components/settings/change-password-card';
 import { formatBnDate } from '@/lib/utils';
 import {
   User as UserIcon,
@@ -364,6 +365,9 @@ export default function SettingsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Security & Password Card */}
+      <ChangePasswordCard />
     </div>
   );
 }

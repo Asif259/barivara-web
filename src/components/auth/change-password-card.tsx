@@ -55,6 +55,7 @@ export function ChangePasswordCard() {
       const response = await authApi.changePassword({
         currentPassword: data.currentPassword,
         newPassword: data.newPassword,
+        confirmPassword: data.confirmPassword,
       });
 
       const message = response.data?.message || t.passwordChangedSuccess;

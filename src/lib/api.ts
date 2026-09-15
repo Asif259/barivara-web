@@ -13,6 +13,7 @@ import {
   Property,
   PropertySummary,
   ResetPasswordInput,
+  ResetPasswordDirectInput,
   Unit,
   VerifyResetOtpInput,
 } from './types';
@@ -185,10 +186,15 @@ export const authApi = {
   changePassword: (payload: ChangePasswordInput) =>
     apiClient.post<ApiResponse<{ message: string }>>('/auth/change-password', payload),
   forgotPassword: (payload: ForgotPasswordInput) =>
-    apiClient.post<ApiResponse<{ message: string }>>('/auth/forgot-password', payload),
+    apiClient.post<ApiResponse<{ message: string; identifier: string }>>('/auth/forgot-password', payload),
   verifyResetOtp: (payload: VerifyResetOtpInput) =>
-    apiClient.post<ApiResponse<{ resetToken: string; message: string }>>('/auth/verify-password-reset', payload),
+    apiClient.post<ApiResponse<{ resetToken: string; identifier: string; message: string }>>(
+      '/auth/verify-password-reset-otp',
+      payload,
+    ),
   resetPassword: (payload: ResetPasswordInput) =>
     apiClient.post<ApiResponse<{ message: string }>>('/auth/reset-password', payload),
+  resetPasswordDirect: (payload: ResetPasswordDirectInput) =>
+    apiClient.post<ApiResponse<{ message: string }>>('/auth/reset-password-direct', payload),
 };
 
