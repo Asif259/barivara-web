@@ -1,5 +1,6 @@
 // BariVara Core TypeScript Definitions matching the Backend API
 
+
 export interface ApiResponse<T = unknown> {
   success: boolean;
   message: string;
@@ -55,6 +56,25 @@ export interface AuthTokens {
 
 export interface AuthResponseData extends AuthTokens {
   user: User;
+}
+
+export interface ChangePasswordInput {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface ForgotPasswordInput {
+  email: string;
+}
+
+export interface VerifyResetOtpInput {
+  email: string;
+  otp: string;
+}
+
+export interface ResetPasswordInput {
+  resetToken: string;
+  newPassword: string;
 }
 
 // Property

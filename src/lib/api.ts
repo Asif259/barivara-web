@@ -1,4 +1,5 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
+
 import { useAuthStore } from '../stores/auth-store';
 import { useLanguageStore } from '../stores/language-store';
 import {
@@ -6,10 +7,14 @@ import {
   ApiErrorPayload,
   BulkCreateUnitsPayload,
   BulkCreateUnitsResult,
+  ChangePasswordInput,
   CreateUnitInput,
+  ForgotPasswordInput,
   Property,
   PropertySummary,
+  ResetPasswordInput,
   Unit,
+  VerifyResetOtpInput,
 } from './types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -174,4 +179,15 @@ export const unitsApi = {
   remove: (unitId: string) => apiClient.delete(`/units/${unitId}`),
   bulkCreate: (propertyId: string, payload: BulkCreateUnitsPayload) =>
     apiClient.post<ApiResponse<BulkCreateUnitsResult>>(`/properties/${propertyId}/units/bulk`, payload),
+};
+
+export const authApi = {
+  changePassword: (payload: ChangePasswordInput) =>
+    apiClient.post<ApiResponse<{ message: string }>>('/auth/change-password', payload),
+  forgotPassword: (payload: ForgotPasswordInput) =>
+    apiClient.post<ApiResponse<{ message: string }>>('/auth/forgot-password', payload),
+  verifyResetOtp: (payload: VerifyResetOtpInput) =>
+    apiClient.post<ApiResponse<{ resetToken: string; message: string }>>('/auth/verify-reset-otp', payload),
+  resetPassword: (payload: ResetPasswordInput) =>
+    apiClient.post<ApiResponse<{ message: string }>>('/auth/reset-password', payload),
 };
