@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState, Suspense } from 'react';
-import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import * as z from 'zod';
 import { toast } from 'sonner';
 import {
   Mail,
@@ -13,25 +13,25 @@ import {
   KeyRound,
   Eye,
   EyeOff,
-  ArrowLeft,
   Loader2,
+  Globe,
+  Send,
   ShieldCheck,
   CheckCircle2,
   RefreshCw,
-  Send,
-  UserCheck,
+  User as UserIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useTranslation } from '@/lib/translations';
 import { useLanguageStore } from '@/stores/language-store';
+import { useTranslation } from '@/lib/translations';
 import { authApi, getApiErrorMessage } from '@/lib/api';
 
 const passwordPattern = /((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/;
 
 // ============================================================================
-// Schemas
+// Form Schemas
 // ============================================================================
 
 const directResetSchema = z
@@ -74,38 +74,43 @@ const setNewPasswordSchema = z
     path: ['confirmPassword'],
   });
 
-type DirectResetFormData = z.infer<typeof directResetSchema>;
-type RequestOtpFormData = z.infer<typeof requestOtpSchema>;
-type VerifyOtpFormData = z.infer<typeof verifyOtpSchema>;
-type SetNewPasswordFormData = z.infer<typeof setNewPasswordSchema>;
+type DirectResetFormValues = z.infer<typeof directResetSchema>;
+type RequestOtpFormValues = z.infer<typeof requestOtpSchema>;
+type VerifyOtpFormValues = z.infer<typeof verifyOtpSchema>;
+type SetNewPasswordFormValues = z.infer<typeof setNewPasswordSchema>;
 
 function ForgotPasswordContent() {
-  const { language } = useLanguageStore();
-  const t = useTranslation(language);
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialIdentifier = searchParams.get('email') || searchParams.get('identifier') || '';
 
-  // Tab: 'optionA' (known current password) | 'optionB' (email OTP)
-  const [activeTab, setActiveTab] = useState<'optionA' | 'optionB'>('optionB');
+  const { language, setLanguage } = useLanguageStore();
+  const t = useTranslation(language);
+  const isBn = language === 'bn';
 
-  // Option B step: 1 (send OTP) -> 2 (verify OTP) -> 3 (set new password)
+  // Recovery method tab: 'otp' | 'direct'
+  const [method, setMethod] = useState<'otp' | 'direct'>('otp');
+
+  // OTP Sub-steps: 1 = Enter Identifier, 2 = Verify OTP, 3 = New Password
   const [otpStep, setOtpStep] = useState<1 | 2 | 3>(1);
   const [otpIdentifier, setOtpIdentifier] = useState(initialIdentifier);
   const [resetToken, setResetToken] = useState<string>('');
 
-  // Password visibility toggles
+  // Password visibility
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Loading states
-  const [isDirectLoading, setIsDirectLoading] = useState(false);
-  const [isOtpLoading, setIsOtpLoading] = useState(false);
+  // Loading flags
+  const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
 
-  // Option A Form
-  const directForm = useForm<DirectResetFormData>({
+  const toggleLanguage = () => {
+    setLanguage(language === 'bn' ? 'en' : 'bn');
+  };
+
+  // Option A (Direct Reset with Known Current Password)
+  const directForm = useForm<DirectResetFormValues>({
     resolver: zodResolver(directResetSchema),
     defaultValues: {
       identifier: initialIdentifier,
@@ -115,24 +120,24 @@ function ForgotPasswordContent() {
     },
   });
 
-  // Option B Step 1 Form
-  const requestOtpForm = useForm<RequestOtpFormData>({
+  // Option B (Step 1: Request OTP)
+  const requestOtpForm = useForm<RequestOtpFormValues>({
     resolver: zodResolver(requestOtpSchema),
     defaultValues: {
       identifier: initialIdentifier,
     },
   });
 
-  // Option B Step 2 Form
-  const verifyOtpForm = useForm<VerifyOtpFormData>({
+  // Option B (Step 2: Verify OTP)
+  const verifyOtpForm = useForm<VerifyOtpFormValues>({
     resolver: zodResolver(verifyOtpSchema),
     defaultValues: {
       otp: '',
     },
   });
 
-  // Option B Step 3 Form
-  const setNewPasswordForm = useForm<SetNewPasswordFormData>({
+  // Option B (Step 3: Set New Password)
+  const setNewPasswordForm = useForm<SetNewPasswordFormValues>({
     resolver: zodResolver(setNewPasswordSchema),
     defaultValues: {
       newPassword: '',
@@ -140,87 +145,119 @@ function ForgotPasswordContent() {
     },
   });
 
-  // Option A Submit: Direct reset with known current password
-  const onDirectSubmit = async (data: DirectResetFormData) => {
-    setIsDirectLoading(true);
+  // Submit: Option A Direct Reset
+  const onDirectSubmit = async (data: DirectResetFormValues) => {
+    setIsLoading(true);
     try {
-      const res = await authApi.resetPasswordDirect({
+      const response = await authApi.resetPasswordDirect({
         identifier: data.identifier,
         currentPassword: data.currentPassword,
         newPassword: data.newPassword,
         confirmPassword: data.confirmPassword,
       });
-      toast.success(res.data?.message || t.passwordChangedSuccess);
+
+      toast.success(
+        response.data?.message || (isBn ? 'পাসওয়ার্ড সফলভাবে পরিবর্তন হয়েছে!' : 'Password changed successfully!'),
+      );
       router.push('/login');
-    } catch (err) {
-      toast.error(getApiErrorMessage(err, 'পাসওয়ার্ড পরিবর্তন করা সম্ভব হয়নি। তথ্য যাচাই করুন।'));
+    } catch (error: any) {
+      const errorMsg = getApiErrorMessage(
+        error,
+        isBn ? 'পাসওয়ার্ড পরিবর্তন ব্যর্থ হয়েছে। তথ্য যাচাই করুন।' : 'Password change failed. Please check your credentials.',
+      );
+      toast.error(errorMsg);
     } finally {
-      setIsDirectLoading(false);
+      setIsLoading(false);
     }
   };
 
-  // Option B Step 1 Submit: Request OTP
-  const onRequestOtpSubmit = async (data: RequestOtpFormData) => {
-    setIsOtpLoading(true);
+  // Submit: Option B Step 1 Request OTP
+  const onRequestOtpSubmit = async (data: RequestOtpFormValues) => {
+    setIsLoading(true);
     try {
-      const res = await authApi.forgotPassword({ identifier: data.identifier });
+      const response = await authApi.forgotPassword({ identifier: data.identifier });
       setOtpIdentifier(data.identifier);
       setOtpStep(2);
-      toast.success(res.data?.message || t.otpSentSuccess);
-    } catch (err) {
-      toast.error(getApiErrorMessage(err, 'ওটিপি পাঠাতে সমস্যা হয়েছে। পুনরায় চেষ্টা করুন।'));
+      toast.success(
+        response.data?.message ||
+          (isBn ? 'পাসওয়ার্ড রিসেট ওটিপি আপনার ইমেইলে পাঠানো হয়েছে।' : 'Password reset OTP has been sent to your email.'),
+      );
+    } catch (error: any) {
+      const errorMsg = getApiErrorMessage(
+        error,
+        isBn ? 'ওটিপি পাঠাতে সমস্যা হয়েছে। পুনরায় চেষ্টা করুন।' : 'Failed to send OTP. Please try again.',
+      );
+      toast.error(errorMsg);
     } finally {
-      setIsOtpLoading(false);
+      setIsLoading(false);
     }
   };
 
-  // Option B Step 2 Submit: Verify OTP
-  const onVerifyOtpSubmit = async (data: VerifyOtpFormData) => {
-    setIsOtpLoading(true);
+  // Submit: Option B Step 2 Verify OTP
+  const onVerifyOtpSubmit = async (data: VerifyOtpFormValues) => {
+    setIsLoading(true);
     try {
-      const res = await authApi.verifyResetOtp({
+      const response = await authApi.verifyResetOtp({
         identifier: otpIdentifier,
         otp: data.otp,
       });
-      const token = res.data?.data?.resetToken || '';
+      const token = response.data?.data?.resetToken || '';
       setResetToken(token);
       setOtpStep(3);
-      toast.success(res.data?.message || t.otpVerifiedSuccess);
-    } catch (err) {
-      toast.error(getApiErrorMessage(err, 'ভুল বা মেয়াদোত্তীর্ণ ওটিপি কোড।'));
+      toast.success(
+        response.data?.message || (isBn ? 'ওটিপি কোড যাচাই সফল হয়েছে!' : 'OTP verified successfully!'),
+      );
+    } catch (error: any) {
+      const errorMsg = getApiErrorMessage(
+        error,
+        isBn ? 'ভুল বা মেয়াদোত্তীর্ণ ওটিপি কোড।' : 'Invalid or expired OTP code.',
+      );
+      toast.error(errorMsg);
     } finally {
-      setIsOtpLoading(false);
+      setIsLoading(false);
     }
   };
 
-  // Option B Step 3 Submit: Set New Password
-  const onSetNewPasswordSubmit = async (data: SetNewPasswordFormData) => {
-    setIsOtpLoading(true);
+  // Submit: Option B Step 3 Set New Password
+  const onSetNewPasswordSubmit = async (data: SetNewPasswordFormValues) => {
+    setIsLoading(true);
     try {
-      const res = await authApi.resetPassword({
+      const response = await authApi.resetPassword({
         identifier: otpIdentifier,
         resetToken,
         newPassword: data.newPassword,
         confirmPassword: data.confirmPassword,
       });
-      toast.success(res.data?.message || t.passwordResetSuccess);
+      toast.success(
+        response.data?.message || (isBn ? 'পাসওয়ার্ড সফলভাবে রিসেট হয়েছে!' : 'Password reset successfully!'),
+      );
       router.push('/login');
-    } catch (err) {
-      toast.error(getApiErrorMessage(err, 'পাসওয়ার্ড রিসেট ব্যর্থ হয়েছে। পুনরায় চেষ্টা করুন।'));
+    } catch (error: any) {
+      const errorMsg = getApiErrorMessage(
+        error,
+        isBn ? 'পাসওয়ার্ড রিসেট ব্যর্থ হয়েছে। পুনরায় চেষ্টা করুন।' : 'Password reset failed. Please try again.',
+      );
+      toast.error(errorMsg);
     } finally {
-      setIsOtpLoading(false);
+      setIsLoading(false);
     }
   };
 
-  // Resend OTP
+  // Resend OTP handler
   const handleResendOtp = async () => {
     if (!otpIdentifier) return;
     setIsResending(true);
     try {
-      const res = await authApi.forgotPassword({ identifier: otpIdentifier });
-      toast.success(res.data?.message || t.otpSentSuccess);
-    } catch (err) {
-      toast.error(getApiErrorMessage(err, 'ওটিপি পাঠাতে সমস্যা হয়েছে।'));
+      const response = await authApi.forgotPassword({ identifier: otpIdentifier });
+      toast.success(
+        response.data?.message || (isBn ? 'নতুন ওটিপি কোড পাঠানো হয়েছে।' : 'New OTP code sent.'),
+      );
+    } catch (error: any) {
+      const errorMsg = getApiErrorMessage(
+        error,
+        isBn ? 'ওটিপি পাঠাতে সমস্যা হয়েছে।' : 'Failed to resend OTP.',
+      );
+      toast.error(errorMsg);
     } finally {
       setIsResending(false);
     }
@@ -228,158 +265,175 @@ function ForgotPasswordContent() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-          {t.forgotPasswordTitle}
-        </h2>
-        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-          {t.forgotPasswordSub}
-        </p>
+      {/* Header + Language Toggle */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
+            {isBn ? 'পাসওয়ার্ড পুনরুদ্ধার' : 'Reset Password'}
+          </h2>
+          <p className="text-sm text-slate-500 mt-1">
+            {isBn ? 'অ্যাকাউন্টে প্রবেশের মাধ্যম বেছে নিন' : 'Choose how you want to recover your account'}
+          </p>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={toggleLanguage}
+          className="gap-1.5 text-xs text-slate-600 rounded-xl shrink-0"
+        >
+          <Globe className="w-3.5 h-3.5 text-emerald-600" />
+          {isBn ? 'English' : 'বাংলা'}
+        </Button>
       </div>
 
-      {/* Choice Selector Tabs */}
-      <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
+      {/* Choice Segmented Control */}
+      <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 rounded-2xl">
         <button
           type="button"
-          onClick={() => setActiveTab('optionB')}
-          className={`py-2 px-3 text-xs sm:text-sm font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
-            activeTab === 'optionB'
-              ? 'bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-400 shadow-sm'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+          onClick={() => {
+            setMethod('otp');
+            setOtpStep(1);
+          }}
+          className={`py-2 px-3 text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+            method === 'otp'
+              ? 'bg-white text-emerald-700 shadow-sm'
+              : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          <Mail className="w-4 h-4 shrink-0" />
-          <span className="truncate">{t.forgotPasswordOptionB}</span>
+          <Mail className="w-3.5 h-3.5 shrink-0" />
+          <span>{isBn ? 'ইমেইল ওটিপি (OTP)' : 'Email OTP'}</span>
         </button>
 
         <button
           type="button"
-          onClick={() => setActiveTab('optionA')}
-          className={`py-2 px-3 text-xs sm:text-sm font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
-            activeTab === 'optionA'
-              ? 'bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-400 shadow-sm'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+          onClick={() => setMethod('direct')}
+          className={`py-2 px-3 text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+            method === 'direct'
+              ? 'bg-white text-emerald-700 shadow-sm'
+              : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          <UserCheck className="w-4 h-4 shrink-0" />
-          <span className="truncate">{t.forgotPasswordOptionA}</span>
+          <KeyRound className="w-3.5 h-3.5 shrink-0" />
+          <span>{isBn ? 'আগের পাসওয়ার্ড জানা আছে' : 'I know password'}</span>
         </button>
       </div>
 
       {/* =================================================================== */}
-      {/* OPTION A: Knows Current Password Flow                               */}
+      {/* OPTION A: DIRECT RESET (Knows current password)                     */}
       {/* =================================================================== */}
-      {activeTab === 'optionA' && (
+      {method === 'direct' && (
         <form onSubmit={directForm.handleSubmit(onDirectSubmit)} className="space-y-4">
-          <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl text-xs text-emerald-800 dark:text-emerald-300">
-            {t.forgotPasswordOptionASub}
-          </div>
-
-          {/* Identifier */}
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <Label htmlFor="directIdentifier">{t.emailOrPhone}</Label>
             <div className="relative">
-              <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <UserIcon className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
               <Input
                 id="directIdentifier"
                 type="text"
-                placeholder="user@example.com অথবা 01712345678"
-                className={`pl-10 rounded-xl ${directForm.formState.errors.identifier ? 'border-red-500' : ''}`}
+                placeholder={isBn ? 'user@example.com অথবা 01712345678' : 'user@example.com or 01712345678'}
+                className="pl-10"
                 {...directForm.register('identifier')}
               />
             </div>
             {directForm.formState.errors.identifier && (
-              <p className="text-xs text-red-500">{directForm.formState.errors.identifier.message}</p>
+              <p className="text-xs font-medium text-rose-500">
+                {directForm.formState.errors.identifier.message}
+              </p>
             )}
           </div>
 
-          {/* Current Password */}
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <Label htmlFor="directCurrentPassword">{t.currentPassword}</Label>
             <div className="relative">
-              <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Lock className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
               <Input
                 id="directCurrentPassword"
                 type={showCurrentPassword ? 'text' : 'password'}
                 placeholder="••••••••"
-                className={`pl-10 pr-10 rounded-xl ${directForm.formState.errors.currentPassword ? 'border-red-500' : ''}`}
+                className="pl-10 pr-10"
                 {...directForm.register('currentPassword')}
               />
               <button
                 type="button"
                 onClick={() => setShowCurrentPassword((prev) => !prev)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-3.5 top-3 text-slate-400 hover:text-slate-600"
                 tabIndex={-1}
               >
                 {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
             {directForm.formState.errors.currentPassword && (
-              <p className="text-xs text-red-500">{directForm.formState.errors.currentPassword.message}</p>
+              <p className="text-xs font-medium text-rose-500">
+                {directForm.formState.errors.currentPassword.message}
+              </p>
             )}
           </div>
 
-          {/* New Password */}
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <Label htmlFor="directNewPassword">{t.newPassword}</Label>
             <div className="relative">
-              <KeyRound className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <KeyRound className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
               <Input
                 id="directNewPassword"
                 type={showNewPassword ? 'text' : 'password'}
                 placeholder="••••••••"
-                className={`pl-10 pr-10 rounded-xl ${directForm.formState.errors.newPassword ? 'border-red-500' : ''}`}
+                className="pl-10 pr-10"
                 {...directForm.register('newPassword')}
               />
               <button
                 type="button"
                 onClick={() => setShowNewPassword((prev) => !prev)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-3.5 top-3 text-slate-400 hover:text-slate-600"
                 tabIndex={-1}
               >
                 {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
             {directForm.formState.errors.newPassword && (
-              <p className="text-xs text-red-500">{directForm.formState.errors.newPassword.message}</p>
+              <p className="text-xs font-medium text-rose-500">
+                {directForm.formState.errors.newPassword.message}
+              </p>
             )}
           </div>
 
-          {/* Confirm Password */}
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <Label htmlFor="directConfirmPassword">{t.confirmNewPassword}</Label>
             <div className="relative">
-              <ShieldCheck className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <ShieldCheck className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
               <Input
                 id="directConfirmPassword"
                 type={showConfirmPassword ? 'text' : 'password'}
                 placeholder="••••••••"
-                className={`pl-10 pr-10 rounded-xl ${directForm.formState.errors.confirmPassword ? 'border-red-500' : ''}`}
+                className="pl-10 pr-10"
                 {...directForm.register('confirmPassword')}
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword((prev) => !prev)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-3.5 top-3 text-slate-400 hover:text-slate-600"
                 tabIndex={-1}
               >
                 {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
             {directForm.formState.errors.confirmPassword && (
-              <p className="text-xs text-red-500">{directForm.formState.errors.confirmPassword.message}</p>
+              <p className="text-xs font-medium text-rose-500">
+                {directForm.formState.errors.confirmPassword.message}
+              </p>
             )}
           </div>
 
           <Button
             type="submit"
-            disabled={isDirectLoading}
-            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-md mt-2 font-semibold"
+            variant="gradient"
+            size="lg"
+            className="w-full font-semibold shadow-md mt-2"
+            disabled={isLoading}
           >
-            {isDirectLoading ? (
+            {isLoading ? (
               <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
                 {t.changingPassword}
               </>
             ) : (
@@ -393,42 +447,42 @@ function ForgotPasswordContent() {
       )}
 
       {/* =================================================================== */}
-      {/* OPTION B: Email OTP Flow (3 Steps)                                 */}
+      {/* OPTION B: EMAIL OTP FLOW                                            */}
       {/* =================================================================== */}
-      {activeTab === 'optionB' && (
+      {method === 'otp' && (
         <div className="space-y-4">
-          {/* Step 1: Request OTP */}
+          {/* Step 1: Identifier Input */}
           {otpStep === 1 && (
             <form onSubmit={requestOtpForm.handleSubmit(onRequestOtpSubmit)} className="space-y-4">
-              <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl text-xs text-emerald-800 dark:text-emerald-300">
-                {t.forgotPasswordOptionBSub}
-              </div>
-
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label htmlFor="otpIdentifierInput">{t.emailOrPhone}</Label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <UserIcon className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
                   <Input
                     id="otpIdentifierInput"
                     type="text"
-                    placeholder="user@example.com অথবা 01712345678"
-                    className={`pl-10 rounded-xl ${requestOtpForm.formState.errors.identifier ? 'border-red-500' : ''}`}
+                    placeholder={isBn ? 'user@example.com অথবা 01712345678' : 'user@example.com or 01712345678'}
+                    className="pl-10"
                     {...requestOtpForm.register('identifier')}
                   />
                 </div>
                 {requestOtpForm.formState.errors.identifier && (
-                  <p className="text-xs text-red-500">{requestOtpForm.formState.errors.identifier.message}</p>
+                  <p className="text-xs font-medium text-rose-500">
+                    {requestOtpForm.formState.errors.identifier.message}
+                  </p>
                 )}
               </div>
 
               <Button
                 type="submit"
-                disabled={isOtpLoading}
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-md mt-2 font-semibold"
+                variant="gradient"
+                size="lg"
+                className="w-full font-semibold shadow-md mt-2"
+                disabled={isLoading}
               >
-                {isOtpLoading ? (
+                {isLoading ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
                     {t.sendingOtp}
                   </>
                 ) : (
@@ -441,53 +495,57 @@ function ForgotPasswordContent() {
             </form>
           )}
 
-          {/* Step 2: Verify OTP */}
+          {/* Step 2: OTP Verification Input */}
           {otpStep === 2 && (
             <form onSubmit={verifyOtpForm.handleSubmit(onVerifyOtpSubmit)} className="space-y-4">
-              <div className="p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl flex items-center justify-between">
+              <div className="flex items-center justify-between p-3 bg-emerald-50/70 border border-emerald-200/80 rounded-2xl">
                 <div>
-                  <p className="text-xs text-slate-500">{t.emailOrPhone}</p>
-                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{otpIdentifier}</p>
+                  <span className="text-xs text-slate-500 block">{t.emailOrPhone}</span>
+                  <span className="text-sm font-semibold text-slate-900 block truncate max-w-[200px]">
+                    {otpIdentifier}
+                  </span>
                 </div>
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
                   onClick={() => setOtpStep(1)}
-                  className="text-xs text-emerald-600 hover:text-emerald-700"
+                  className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 h-8 px-2.5 rounded-lg"
                 >
-                  বদলান
+                  {isBn ? 'পরিবর্তন' : 'Change'}
                 </Button>
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label htmlFor="otpCodeInput">{t.otpLabel}</Label>
                 <div className="relative">
-                  <KeyRound className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <KeyRound className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
                   <Input
                     id="otpCodeInput"
                     type="text"
                     maxLength={6}
                     placeholder={t.otpPlaceholder}
-                    className={`pl-10 text-center tracking-widest text-lg font-bold rounded-xl ${
-                      verifyOtpForm.formState.errors.otp ? 'border-red-500' : ''
-                    }`}
+                    className="pl-10 text-center tracking-widest text-lg font-bold"
                     {...verifyOtpForm.register('otp')}
                   />
                 </div>
                 {verifyOtpForm.formState.errors.otp && (
-                  <p className="text-xs text-red-500">{verifyOtpForm.formState.errors.otp.message}</p>
+                  <p className="text-xs font-medium text-rose-500">
+                    {verifyOtpForm.formState.errors.otp.message}
+                  </p>
                 )}
               </div>
 
               <Button
                 type="submit"
-                disabled={isOtpLoading}
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-md mt-2 font-semibold"
+                variant="gradient"
+                size="lg"
+                className="w-full font-semibold shadow-md mt-2"
+                disabled={isLoading}
               >
-                {isOtpLoading ? (
+                {isLoading ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
                     {t.verifyingOtp}
                   </>
                 ) : (
@@ -498,14 +556,14 @@ function ForgotPasswordContent() {
                 )}
               </Button>
 
-              <div className="text-center pt-2">
+              <div className="text-center pt-1">
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
                   onClick={handleResendOtp}
                   disabled={isResending}
-                  className="text-xs text-slate-600 hover:text-emerald-600 gap-1.5"
+                  className="text-xs font-medium text-slate-600 hover:text-emerald-600 gap-1.5"
                 >
                   <RefreshCw className={`w-3.5 h-3.5 ${isResending ? 'animate-spin' : ''}`} />
                   {t.resendOtp}
@@ -517,70 +575,70 @@ function ForgotPasswordContent() {
           {/* Step 3: Set New Password */}
           {otpStep === 3 && (
             <form onSubmit={setNewPasswordForm.handleSubmit(onSetNewPasswordSubmit)} className="space-y-4">
-              <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl text-xs text-emerald-800 dark:text-emerald-300">
-                {t.otpVerifiedSuccess}
-              </div>
-
-              {/* New Password */}
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label htmlFor="step3NewPassword">{t.newPassword}</Label>
                 <div className="relative">
-                  <KeyRound className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <KeyRound className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
                   <Input
                     id="step3NewPassword"
                     type={showNewPassword ? 'text' : 'password'}
                     placeholder="••••••••"
-                    className={`pl-10 pr-10 rounded-xl ${setNewPasswordForm.formState.errors.newPassword ? 'border-red-500' : ''}`}
+                    className="pl-10 pr-10"
                     {...setNewPasswordForm.register('newPassword')}
                   />
                   <button
                     type="button"
                     onClick={() => setShowNewPassword((prev) => !prev)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    className="absolute right-3.5 top-3 text-slate-400 hover:text-slate-600"
                     tabIndex={-1}
                   >
                     {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
                 {setNewPasswordForm.formState.errors.newPassword && (
-                  <p className="text-xs text-red-500">{setNewPasswordForm.formState.errors.newPassword.message}</p>
+                  <p className="text-xs font-medium text-rose-500">
+                    {setNewPasswordForm.formState.errors.newPassword.message}
+                  </p>
                 )}
               </div>
 
-              {/* Confirm Password */}
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label htmlFor="step3ConfirmPassword">{t.confirmNewPassword}</Label>
                 <div className="relative">
-                  <ShieldCheck className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <ShieldCheck className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
                   <Input
                     id="step3ConfirmPassword"
                     type={showConfirmPassword ? 'text' : 'password'}
                     placeholder="••••••••"
-                    className={`pl-10 pr-10 rounded-xl ${setNewPasswordForm.formState.errors.confirmPassword ? 'border-red-500' : ''}`}
+                    className="pl-10 pr-10"
                     {...setNewPasswordForm.register('confirmPassword')}
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword((prev) => !prev)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    className="absolute right-3.5 top-3 text-slate-400 hover:text-slate-600"
                     tabIndex={-1}
                   >
                     {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
                 {setNewPasswordForm.formState.errors.confirmPassword && (
-                  <p className="text-xs text-red-500">{setNewPasswordForm.formState.errors.confirmPassword.message}</p>
+                  <p className="text-xs font-medium text-rose-500">
+                    {setNewPasswordForm.formState.errors.confirmPassword.message}
+                  </p>
                 )}
               </div>
 
               <Button
                 type="submit"
-                disabled={isOtpLoading}
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-md mt-2 font-semibold"
+                variant="gradient"
+                size="lg"
+                className="w-full font-semibold shadow-md mt-2"
+                disabled={isLoading}
               >
-                {isOtpLoading ? (
+                {isLoading ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
                     {t.resettingPassword}
                   </>
                 ) : (
@@ -595,15 +653,17 @@ function ForgotPasswordContent() {
         </div>
       )}
 
-      {/* Back to Login link */}
-      <div className="text-center pt-2 border-t border-slate-100 dark:border-slate-800">
-        <Link
-          href="/login"
-          className="inline-flex items-center text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
-        >
-          <ArrowLeft className="w-4 h-4 mr-1.5" />
-          {t.backToLogin}
-        </Link>
+      {/* Footer Link to Login */}
+      <div className="text-center pt-2 border-t border-slate-100">
+        <p className="text-sm text-slate-500">
+          {isBn ? 'পাসওয়ার্ড মনে পড়েছে?' : 'Remember your password?'}{' '}
+          <Link
+            href="/login"
+            className="font-semibold text-emerald-600 hover:text-emerald-700 hover:underline"
+          >
+            {t.loginNow}
+          </Link>
+        </p>
       </div>
     </div>
   );
