@@ -111,6 +111,12 @@ export default function LoginPage() {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="password">{t.password}</Label>
+            <Link
+              href="/forgot-password"
+              className="text-xs font-medium text-emerald-600 hover:text-emerald-700 hover:underline"
+            >
+              {language === 'bn' ? 'পাসওয়ার্ড ভুলে গেছেন?' : 'Forgot Password?'}
+            </Link>
           </div>
           <div className="relative">
             <Lock className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
@@ -162,3 +168,4 @@ export default function LoginPage() {
     </div>
   );
 }
+

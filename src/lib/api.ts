@@ -187,7 +187,8 @@ export const authApi = {
   forgotPassword: (payload: ForgotPasswordInput) =>
     apiClient.post<ApiResponse<{ message: string }>>('/auth/forgot-password', payload),
   verifyResetOtp: (payload: VerifyResetOtpInput) =>
-    apiClient.post<ApiResponse<{ resetToken: string; message: string }>>('/auth/verify-reset-otp', payload),
+    apiClient.post<ApiResponse<{ resetToken: string; message: string }>>('/auth/verify-password-reset', payload),
   resetPassword: (payload: ResetPasswordInput) =>
     apiClient.post<ApiResponse<{ message: string }>>('/auth/reset-password', payload),
 };
+
