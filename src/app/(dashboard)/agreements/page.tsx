@@ -94,9 +94,21 @@ export default function AgreementsPage() {
     }
   };
 
+  const handleOpenCreateAgreement = () => {
+    setEditingAgreement(null);
+    setAgreementDialogOpen(true);
+  };
+
   const handleEditAgreement = (agreement: RentalAgreement) => {
     setEditingAgreement(agreement);
     setAgreementDialogOpen(true);
+  };
+
+  const handleDialogClose = (open: boolean) => {
+    setAgreementDialogOpen(open);
+    if (!open) {
+      setEditingAgreement(null);
+    }
   };
 
   return (
@@ -105,7 +117,7 @@ export default function AgreementsPage() {
         title={t.agreements}
         description={isEn ? 'Manage active and ended tenant leases' : 'ভাড়াটিয়া ও ফ্ল্যাটের সক্রিয় এবং পূর্ববর্তী চুক্তিসমূহ'}
         action={
-          <Button onClick={() => setAgreementDialogOpen(true)} variant="default" className="h-10 gap-2">
+          <Button onClick={handleOpenCreateAgreement} variant="default" className="h-10 gap-2">
             <Plus className="w-4 h-4" />
             {t.addNewAgreement}
           </Button>
@@ -257,7 +269,7 @@ export default function AgreementsPage() {
               title={isEn ? 'No Agreements Found' : 'কোনো চুক্তি পাওয়া যায়নি'}
               description={isEn ? 'Create a rental agreement to assign a tenant to a unit' : 'ফ্ল্যাটে ভাড়াটিয়া তোলার জন্য নতুন চুক্তি করুন'}
               actionLabel={t.addNewAgreement}
-              onAction={() => setAgreementDialogOpen(true)}
+              onAction={handleOpenCreateAgreement}
             />
           )}
         </CardContent>
@@ -266,7 +278,7 @@ export default function AgreementsPage() {
       {/* Agreement Form Dialog */}
       <AgreementFormDialog
         open={agreementDialogOpen}
-        onOpenChange={setAgreementDialogOpen}
+        onOpenChange={handleDialogClose}
         onSuccess={refetch}
         agreement={editingAgreement}
         isEditing={!!editingAgreement}
