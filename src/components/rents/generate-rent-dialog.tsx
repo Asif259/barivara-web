@@ -43,9 +43,15 @@ const generateSchema = z.object({
   year: z.number().min(2020).max(2035),
   month: z.number().min(1).max(12),
   propertyId: z.string().optional(),
+  includeCurrentMonthNewTenants: z.boolean(),
 });
 
-type GenerateFormValues = z.infer<typeof generateSchema>;
+type GenerateFormValues = {
+  year: number;
+  month: number;
+  propertyId?: string;
+  includeCurrentMonthNewTenants: boolean;
+};
 
 interface GenerateRentDialogProps {
   open: boolean;
@@ -86,6 +92,7 @@ export function GenerateRentDialog({
       year: defaultPeriod.year,
       month: defaultPeriod.month,
       propertyId: '',
+      includeCurrentMonthNewTenants: false,
     },
   });
 
@@ -97,6 +104,7 @@ export function GenerateRentDialog({
         year: period.year,
         month: period.month,
         propertyId: '',
+        includeCurrentMonthNewTenants: false,
       });
     }
   }, [open, reset]);
@@ -107,6 +115,7 @@ export function GenerateRentDialog({
       const payload: Record<string, unknown> = {
         year: Number(data.year),
         month: Number(data.month),
+        includeCurrentMonthNewTenants: !!data.includeCurrentMonthNewTenants,
       };
       if (data.propertyId) {
         payload.propertyId = data.propertyId;
@@ -147,8 +156,8 @@ export function GenerateRentDialog({
           </DialogTitle>
           <DialogDescription>
             {isEn
-              ? 'Automatically generate monthly bills for all active rental agreements.'
-              : 'সকল সক্রিয় ভাড়া চুক্তির জন্য এক ক্লিকে স্বয়ংক্রিয়ভাবে চলতি মাসের বিল তৈরি করুন।'}
+              ? 'Automatically generate monthly bills for active rental agreements.'
+              : 'সকল সক্রিয় ভাড়া চুক্তির জন্য এক ক্লিকে স্বয়ংক্রিয়ভাবে মাসিক বিল তৈরি করুন।'}
           </DialogDescription>
         </DialogHeader>
 
@@ -194,6 +203,28 @@ export function GenerateRentDialog({
                 </option>
               ))}
             </select>
+          </div>
+
+          {/* Option for new tenants starting current month (Default: Off) */}
+          <div className="flex items-start gap-2.5 p-3 rounded-xl border border-slate-200 bg-slate-50/70">
+            <input
+              type="checkbox"
+              id="includeCurrentMonthNewTenants"
+              className="h-4 w-4 mt-0.5 rounded-sm border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+              {...register('includeCurrentMonthNewTenants')}
+            />
+            <div className="space-y-0.5 leading-tight">
+              <Label htmlFor="includeCurrentMonthNewTenants" className="text-xs font-semibold text-slate-800 cursor-pointer">
+                {isEn
+                  ? "Also generate current month's rent for new tenants who started this month"
+                  : 'চলতি মাসে চুক্তি শুরু করা নতুন ভাড়াটিয়াদের চলতি মাসের বিলও একসাথে তৈরি করুন'}
+              </Label>
+              <p className="text-[11px] text-slate-500">
+                {isEn
+                  ? 'Default (Off): New tenants starting this month will not receive previous month invoices. Check this if you collect current month rent in advance.'
+                  : 'ডিফল্ট (বন্ধ): এই মাসে চুক্তি শুরু করা নতুন ভাড়াটিয়াদের গত মাসের বিল তৈরি হবে না। অগ্রিম ভাড়া আদায়ের জন্য এটি অন করুন।'}
+              </p>
+            </div>
           </div>
 
           <DialogFooter className="pt-2">
