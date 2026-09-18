@@ -21,6 +21,7 @@ import {
   TableRow,
   TableHead,
   TableCell,
+  TableSkeleton,
 } from '@/components/ui/table';
 import { ExpenseFormDialog } from '@/components/expenses/expense-form-dialog';
 import {
@@ -171,79 +172,97 @@ export default function ExpensesPage() {
       </div>
 
       {/* Expenses Table */}
-      <Card className="rounded-[10px] border-[#E5E7EB] shadow-none">
-        <CardContent className="p-0">
-          {isLoading ? (
-            <div className="p-6 space-y-3">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-            </div>
-          ) : expenses && expenses.length > 0 ? (
-            <Table>
-              <TableHeader className="bg-[#FAFAF9]">
-                <TableRow>
-                  <TableHead>{t.date}</TableHead>
-                  <TableHead>{t.propertyName}</TableHead>
-                  <TableHead>{isEn ? 'Category' : 'খরচের খাত'}</TableHead>
-                  <TableHead>{t.amount}</TableHead>
-                  <TableHead>{isEn ? 'Description' : 'বিবরণ'}</TableHead>
-                  <TableHead>{t.paymentMethod}</TableHead>
-                  <TableHead>{isEn ? 'Voucher' : 'ভাউচার'}</TableHead>
-                  <TableHead className="text-right">{t.actions}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {expenses.map((expense) => (
-                  <TableRow key={expense.id}>
-                    <TableCell data-label={t.date} className="text-xs text-[#6B7280] font-medium">
-                      {formatBnDate(expense.expenseDate, language)}
-                    </TableCell>
-                    <TableCell data-label={t.propertyName} className="font-semibold text-[#171717]">
-                      {expense.property?.name || 'Property'}
-                    </TableCell>
-                    <TableCell data-label={isEn ? 'Category' : 'খরচের খাত'}>
-                      <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#FAFAF9] text-[#374151] border border-[#E5E7EB]">
-                        {expense.category}
-                      </span>
-                    </TableCell>
-                    <TableCell data-label={t.amount} className="font-bold text-[#DC2626] text-sm">
-                      {formatCurrency(expense.amount, language)}
-                    </TableCell>
-                    <TableCell data-label={isEn ? 'Description' : 'বিবরণ'} className="text-xs text-[#6B7280] max-w-xs truncate">
-                      {expense.description || '-'}
-                    </TableCell>
-                    <TableCell data-label={t.paymentMethod} className="text-xs text-[#6B7280]">
-                      {expense.paymentMethod}
-                    </TableCell>
-                    <TableCell data-label={isEn ? 'Voucher' : 'ভাউচার'} className="font-mono text-xs text-[#6B7280]">
-                      {expense.reference || '-'}
-                    </TableCell>
-                    <TableCell data-label={t.actions} className="text-right">
-                      <div className="flex items-center justify-end gap-1 table-actions">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleEdit(expense)}
-                          className="h-8 w-8 p-0 text-[#6B7280] hover:text-[#171717]"
-                        >
-                          <Edit className="w-3.5 h-3.5" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleDelete(expense.id)}
-                          className="h-8 w-8 p-0 text-[#DC2626] hover:text-[#B91C1C] hover:bg-[#FEF7F7]"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
+      {isLoading ? (
+        <Table className="min-w-[900px]">
+          <TableHeader>
+            <TableRow>
+              <TableHead align="left" className="min-w-[105px]">{t.date}</TableHead>
+              <TableHead className="min-w-[150px]">{t.propertyName}</TableHead>
+              <TableHead align="left" className="min-w-[110px]">{isEn ? 'Category' : 'খরচের খাত'}</TableHead>
+              <TableHead align="right" className="min-w-[110px]">{t.amount}</TableHead>
+              <TableHead align="left" className="min-w-[180px]">{isEn ? 'Description' : 'বিবরণ'}</TableHead>
+              <TableHead align="center" className="min-w-[100px]">{t.paymentMethod}</TableHead>
+              <TableHead align="left" className="min-w-[110px]">{isEn ? 'Voucher' : 'ভাউচার'}</TableHead>
+              <TableHead align="right" className="min-w-[90px]">{t.actions}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableSkeleton columns={8} rows={5} />
+          </TableBody>
+        </Table>
+      ) : expenses && expenses.length > 0 ? (
+        <Table className="min-w-[900px]">
+          <TableHeader>
+            <TableRow>
+              <TableHead align="left" className="min-w-[105px]">{t.date}</TableHead>
+              <TableHead className="min-w-[150px]">{t.propertyName}</TableHead>
+              <TableHead align="left" className="min-w-[110px]">{isEn ? 'Category' : 'খরচের খাত'}</TableHead>
+              <TableHead align="right" className="min-w-[110px]">{t.amount}</TableHead>
+              <TableHead align="left" className="min-w-[180px]">{isEn ? 'Description' : 'বিবরণ'}</TableHead>
+              <TableHead align="center" className="min-w-[100px]">{t.paymentMethod}</TableHead>
+              <TableHead align="left" className="min-w-[110px]">{isEn ? 'Voucher' : 'ভাউচার'}</TableHead>
+              <TableHead align="right" className="min-w-[90px]">{t.actions}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {expenses.map((expense) => (
+              <TableRow key={expense.id}>
+                <TableCell align="left" className="text-xs text-[#64748B] whitespace-nowrap">
+                  {formatBnDate(expense.expenseDate, language)}
+                </TableCell>
+                <TableCell className="min-w-[150px]">
+                  <span className="font-semibold text-[#0F172A] block truncate max-w-[160px]" title={expense.property?.name || 'Property'}>
+                    {expense.property?.name || '—'}
+                  </span>
+                </TableCell>
+                <TableCell align="left">
+                  <span className="px-2.5 py-0.5 rounded text-[11px] font-semibold bg-[#F8FAFC] text-[#334155] border border-[#E2E8F0] whitespace-nowrap">
+                    {expense.category}
+                  </span>
+                </TableCell>
+                <TableCell align="right" className="font-bold text-[#DC2626] text-sm whitespace-nowrap">
+                  {formatCurrency(expense.amount, language)}
+                </TableCell>
+                <TableCell align="left" className="min-w-[180px]">
+                  <span className="text-xs text-[#64748B] block truncate max-w-[200px]" title={expense.description || ''}>
+                    {expense.description || '—'}
+                  </span>
+                </TableCell>
+                <TableCell align="center" className="text-xs text-[#64748B] whitespace-nowrap">
+                  {expense.paymentMethod || '—'}
+                </TableCell>
+                <TableCell align="left" className="font-mono text-xs text-[#64748B] whitespace-nowrap">
+                  {expense.reference || '—'}
+                </TableCell>
+                <TableCell align="right">
+                  <div className="flex items-center justify-end gap-1">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleEdit(expense)}
+                      className="h-8 w-8 p-0 text-[#64748B] hover:text-[#0F172A]"
+                      title={isEn ? 'Edit' : 'সম্পাদনা'}
+                    >
+                      <Edit className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleDelete(expense.id)}
+                      className="h-8 w-8 p-0 text-[#DC2626] hover:text-[#B91C1C] hover:bg-[#FEF2F2]"
+                      title={isEn ? 'Delete' : 'মুছুন'}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      ) : (
+        <Card className="rounded-[10px] border-[#E2E8F0] shadow-none">
+          <CardContent className="p-0">
             <EmptyState
               icon={Wallet}
               title={isEn ? 'No Expense Records' : 'কোনো খরচের রেকর্ড নেই'}
@@ -251,9 +270,9 @@ export default function ExpensesPage() {
               actionLabel={isEn ? 'Add Expense' : 'নতুন খরচ যোগ করুন'}
               onAction={handleCreate}
             />
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Expense Form Modal Dialog */}
       <ExpenseFormDialog

@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableSkeleton } from '@/components/ui/table';
 import { CollectPaymentDialog } from '@/components/payments/collect-payment-dialog';
 import {
   Building2,
@@ -246,51 +246,86 @@ export default function DashboardPage() {
               {isEn ? 'View all rents' : 'সকল ভাড়া দেখুন'} <ArrowUpRight className="h-4 w-4" />
             </Link>
           </CardHeader>
-          <CardContent className="pt-5">
+          <CardContent className="p-0 pt-0">
             {isOutstandingLoading ? (
-              <div className="space-y-3">
-                <Skeleton className="h-10 w-full" />
-                <Skeleton className="h-10 w-full" />
-                <Skeleton className="h-10 w-full" />
-              </div>
-            ) : outstandingRents && outstandingRents.length > 0 ? (
-              <Table>
+              <Table className="min-w-[850px]">
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t.tenantName}</TableHead>
-                    <TableHead>{t.unitNumber}</TableHead>
-                    <TableHead>{isEn ? 'Month / Year' : 'মাস ও সাল'}</TableHead>
-                    <TableHead>{t.total}</TableHead>
-                    <TableHead>{t.paid}</TableHead>
-                    <TableHead>{t.remaining}</TableHead>
-                    <TableHead>{t.status}</TableHead>
-                    <TableHead className="text-right">{t.actions}</TableHead>
+                    <TableHead className="min-w-[200px]">{t.tenantName}</TableHead>
+                    <TableHead className="min-w-[120px]">{t.unitNumber}</TableHead>
+                    <TableHead align="left" className="min-w-[95px]">{isEn ? 'Month / Year' : 'মাস ও সাল'}</TableHead>
+                    <TableHead align="right" className="min-w-[100px]">{t.total}</TableHead>
+                    <TableHead align="right" className="min-w-[95px]">{t.paid}</TableHead>
+                    <TableHead align="right" className="min-w-[95px]">{t.remaining}</TableHead>
+                    <TableHead align="center" className="min-w-[95px]">{t.status}</TableHead>
+                    <TableHead align="right" className="min-w-[120px]">{t.actions}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableSkeleton columns={8} rows={4} />
+                </TableBody>
+              </Table>
+            ) : outstandingRents && outstandingRents.length > 0 ? (
+              <Table className="min-w-[850px]">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="min-w-[200px]">{t.tenantName}</TableHead>
+                    <TableHead className="min-w-[120px]">{t.unitNumber}</TableHead>
+                    <TableHead align="left" className="min-w-[95px]">{isEn ? 'Month / Year' : 'মাস ও সাল'}</TableHead>
+                    <TableHead align="right" className="min-w-[100px]">{t.total}</TableHead>
+                    <TableHead align="right" className="min-w-[95px]">{t.paid}</TableHead>
+                    <TableHead align="right" className="min-w-[95px]">{t.remaining}</TableHead>
+                    <TableHead align="center" className="min-w-[95px]">{t.status}</TableHead>
+                    <TableHead align="right" className="min-w-[120px]">{t.actions}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {outstandingRents.map((rent) => (
                     <TableRow key={rent.id}>
-                      <TableCell data-label={t.tenantName} className="font-medium text-[#171717]">
-                        <div className="text-right sm:text-left">
-                          <span>{rent.agreement?.tenant?.name || 'Tenant'}</span>
-                          <span className="block text-xs font-normal text-[#6B7280]">{rent.agreement?.tenant?.phone}</span>
+                      <TableCell className="min-w-[200px]">
+                        <div className="min-w-0 max-w-[180px]">
+                          <span className="font-semibold text-[#0F172A] block truncate" title={rent.agreement?.tenant?.name || 'Tenant'}>
+                            {rent.agreement?.tenant?.name || 'Tenant'}
+                          </span>
+                          <span className="block text-xs font-normal text-[#64748B] truncate" title={rent.agreement?.tenant?.phone || ''}>
+                            {rent.agreement?.tenant?.phone || '—'}
+                          </span>
                         </div>
                       </TableCell>
-                      <TableCell data-label={t.unitNumber}>
-                        <div className="text-right sm:text-left">
-                          <span className="font-medium text-[#374151]">{rent.agreement?.unit?.unitNumber}</span>
-                          <span className="block text-xs text-[#6B7280]">{rent.agreement?.unit?.property?.name}</span>
+                      <TableCell className="min-w-[120px]">
+                        <div className="min-w-0">
+                          <span className="font-semibold text-[#1E293B] block">
+                            {rent.agreement?.unit?.unitNumber || '—'}
+                          </span>
+                          <span className="block text-xs text-[#64748B] truncate max-w-[120px]" title={rent.agreement?.unit?.property?.name || ''}>
+                            {rent.agreement?.unit?.property?.name || '—'}
+                          </span>
                         </div>
                       </TableCell>
-                      <TableCell data-label={isEn ? 'Month / Year' : 'মাস ও সাল'} className="text-xs text-[#6B7280]">{rent.month}/{rent.year}</TableCell>
-                      <TableCell data-label={t.total} className="font-medium">{formatCurrency(rent.totalAmount, language)}</TableCell>
-                      <TableCell data-label={t.paid} className="font-medium text-[#15803D]">{formatCurrency(rent.paidAmount, language)}</TableCell>
-                      <TableCell data-label={t.remaining} className="font-medium text-[#DC2626]">{formatCurrency(rent.remainingAmount, language)}</TableCell>
-                      <TableCell data-label={t.status}><StatusBadge status={rent.status} lang={language} /></TableCell>
-                      <TableCell data-label={t.actions} className="text-right">
-                        <Button size="sm" variant="outline" onClick={() => handleOpenPayment(rent)} className="gap-1.5 whitespace-nowrap">
-                          <Wallet className="h-3.5 w-3.5 text-[#12664F]" />
-                          {isEn ? 'Collect rent' : 'ভাড়া আদায়'}
+                      <TableCell align="left" className="text-xs text-[#64748B] whitespace-nowrap">
+                        {rent.month}/{rent.year}
+                      </TableCell>
+                      <TableCell align="right" className="font-semibold text-[#0F172A] whitespace-nowrap">
+                        {formatCurrency(rent.totalAmount, language)}
+                      </TableCell>
+                      <TableCell align="right" className="font-medium text-[#059669] whitespace-nowrap">
+                        {formatCurrency(rent.paidAmount, language)}
+                      </TableCell>
+                      <TableCell align="right" className="font-semibold text-[#DC2626] whitespace-nowrap">
+                        {formatCurrency(rent.remainingAmount, language)}
+                      </TableCell>
+                      <TableCell align="center">
+                        <StatusBadge status={rent.status} lang={language} />
+                      </TableCell>
+                      <TableCell align="right">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleOpenPayment(rent)}
+                          className="h-8 gap-1.5 whitespace-nowrap text-xs px-2.5 text-[#334155] hover:text-[#059669] hover:bg-[#F0FDF4]"
+                        >
+                          <Wallet className="h-3.5 w-3.5 text-[#059669]" />
+                          <span>{isEn ? 'Collect' : 'আদায়'}</span>
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -298,11 +333,13 @@ export default function DashboardPage() {
                 </TableBody>
               </Table>
             ) : (
-              <EmptyState
-                icon={CheckCircle2}
-                title={isEn ? 'No outstanding rents' : 'কোনো বকেয়া ভাড়া নেই'}
-                description={isEn ? 'All rent invoices for the current period have been fully collected.' : 'চলতি সময়ের সকল ফ্ল্যাটের ভাড়া শতভাগ আদায় সম্পন্ন হয়েছে।'}
-              />
+              <div className="p-5">
+                <EmptyState
+                  icon={CheckCircle2}
+                  title={isEn ? 'No outstanding rents' : 'কোনো বকেয়া ভাড়া নেই'}
+                  description={isEn ? 'All rent invoices for the current period have been fully collected.' : 'চলতি সময়ের সকল ফ্ল্যাটের ভাড়া শতভাগ আদায় সম্পন্ন হয়েছে।'}
+                />
+              </div>
             )}
           </CardContent>
         </Card>

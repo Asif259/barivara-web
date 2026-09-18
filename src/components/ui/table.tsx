@@ -1,18 +1,29 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
-const Table = React.forwardRef<
-  HTMLTableElement,
-  React.HTMLAttributes<HTMLTableElement>
->(({ className, ...props }, ref) => (
-  <div className="table-container relative w-full overflow-x-auto rounded-lg border border-[#E5E7EB] bg-white max-md:border-0 max-md:bg-transparent max-md:shadow-none">
-    <table
-      ref={ref}
-      className={cn("w-full caption-bottom text-sm responsive-table", className)}
-      {...props}
-    />
-  </div>
-));
+export const EMPTY_VALUE = "—";
+
+interface TableProps extends React.HTMLAttributes<HTMLTableElement> {
+  containerClassName?: string;
+}
+
+const Table = React.forwardRef<HTMLTableElement, TableProps>(
+  ({ className, containerClassName, ...props }, ref) => (
+    <div
+      className={cn(
+        "table-container relative w-full overflow-x-auto rounded-lg border border-[#E2E8F0] bg-white shadow-none",
+        containerClassName
+      )}
+    >
+      <table
+        ref={ref}
+        className={cn("w-full caption-bottom text-sm data-table", className)}
+        {...props}
+      />
+    </div>
+  )
+);
 Table.displayName = "Table";
 
 const TableHeader = React.forwardRef<
@@ -21,7 +32,10 @@ const TableHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <thead
     ref={ref}
-    className={cn("bg-[#FAFAF9] border-b border-[#E5E7EB] text-[#6B7280] font-semibold", className)}
+    className={cn(
+      "bg-[#FAFAF9] border-b border-[#E2E8F0] text-xs font-semibold text-[#64748B]",
+      className
+    )}
     {...props}
   />
 ));
@@ -33,7 +47,7 @@ const TableBody = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <tbody
     ref={ref}
-      className={cn("[&_tr:last-child]:border-0 divide-y divide-[#F3F4F6]", className)}
+    className={cn("[&_tr:last-child]:border-0 divide-y divide-[#F1F5F9]", className)}
     {...props}
   />
 ));
@@ -46,7 +60,7 @@ const TableFooter = React.forwardRef<
   <tfoot
     ref={ref}
     className={cn(
-      "border-t border-[#E5E7EB] bg-[#FAFAF9] font-medium [&>tr]:last:border-b-0",
+      "border-t border-[#E2E8F0] bg-[#FAFAF9] font-medium [&>tr]:last:border-b-0",
       className
     )}
     {...props}
@@ -61,7 +75,7 @@ const TableRow = React.forwardRef<
   <tr
     ref={ref}
     className={cn(
-      "border-b border-[#F3F4F6] transition-colors hover:bg-[#FAFAF9] data-[state=selected]:bg-[#F3F4F6]",
+      "h-[46px] border-b border-[#F1F5F9] transition-colors hover:bg-[#F8FAFC] data-[state=selected]:bg-[#F1F5F9]",
       className
     )}
     {...props}
@@ -69,41 +83,61 @@ const TableRow = React.forwardRef<
 ));
 TableRow.displayName = "TableRow";
 
-const TableHead = React.forwardRef<
-  HTMLTableCellElement,
-  React.ThHTMLAttributes<HTMLTableCellElement>
->(({ className, ...props }, ref) => (
-  <th
-    ref={ref}
-    className={cn(
-      "px-3 py-3 text-left align-middle font-medium text-[#6B7280] [&:has([role=checkbox])]:pr-0 whitespace-normal break-words leading-tight text-xs tracking-wide",
-      className
-    )}
-    {...props}
-  />
-));
-TableHead.displayName = "TableHead";
+interface TableHeadProps extends React.ThHTMLAttributes<HTMLTableCellElement> {
+  align?: "left" | "center" | "right";
+}
 
-const TableCell = React.forwardRef<
-  HTMLTableCellElement,
-  React.TdHTMLAttributes<HTMLTableCellElement>
->(({ className, children, title, ...props }, ref) => {
-  const autoTitle = title || (typeof children === 'string' || typeof children === 'number' ? String(children) : undefined);
-
-  return (
-    <td
+const TableHead = React.forwardRef<HTMLTableCellElement, TableHeadProps>(
+  ({ className, align = "left", ...props }, ref) => (
+    <th
       ref={ref}
-      title={autoTitle}
       className={cn(
-        "px-3 py-3.5 align-middle [&:has([role=checkbox])]:pr-0 text-sm text-[#374151]",
+        "h-10 px-3.5 py-2 align-middle text-xs font-semibold text-[#64748B] whitespace-nowrap leading-tight",
+        align === "left" && "text-left",
+        align === "center" && "text-center",
+        align === "right" && "text-right",
         className
       )}
       {...props}
-    >
-      {children}
-    </td>
-  );
-});
+    />
+  )
+);
+TableHead.displayName = "TableHead";
+
+interface TableCellProps extends React.TdHTMLAttributes<HTMLTableCellElement> {
+  align?: "left" | "center" | "right";
+  isNumeric?: boolean;
+}
+
+const TableCell = React.forwardRef<HTMLTableCellElement, TableCellProps>(
+  ({ className, align, isNumeric, children, title, ...props }, ref) => {
+    const autoTitle =
+      title ||
+      (typeof children === "string" || typeof children === "number"
+        ? String(children)
+        : undefined);
+
+    const effectiveAlign = align || (isNumeric ? "right" : "left");
+
+    return (
+      <td
+        ref={ref}
+        title={autoTitle}
+        className={cn(
+          "px-3.5 py-2.5 sm:py-3 align-middle text-sm text-[#1E293B] leading-tight",
+          effectiveAlign === "left" && "text-left",
+          effectiveAlign === "center" && "text-center",
+          effectiveAlign === "right" && "text-right tabular-nums",
+          isNumeric && "tabular-nums font-medium",
+          className
+        )}
+        {...props}
+      >
+        {children}
+      </td>
+    );
+  }
+);
 TableCell.displayName = "TableCell";
 
 const TableCaption = React.forwardRef<
@@ -112,11 +146,41 @@ const TableCaption = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <caption
     ref={ref}
-    className={cn("mt-4 text-xs text-[#6B7280]", className)}
+    className={cn("mt-4 text-xs text-[#64748B]", className)}
     {...props}
   />
 ));
 TableCaption.displayName = "TableCaption";
+
+interface TableSkeletonProps {
+  columns: number;
+  rows?: number;
+}
+
+export function TableSkeleton({ columns, rows = 5 }: TableSkeletonProps) {
+  return (
+    <>
+      {Array.from({ length: rows }).map((_, r) => (
+        <TableRow key={r} className="hover:bg-transparent">
+          {Array.from({ length: columns }).map((_, c) => (
+            <TableCell key={c} className="py-3">
+              <Skeleton
+                className={cn(
+                  "h-4 rounded",
+                  c === 0
+                    ? "w-28 sm:w-36"
+                    : c === columns - 1
+                    ? "w-16 ml-auto"
+                    : "w-20"
+                )}
+              />
+            </TableCell>
+          ))}
+        </TableRow>
+      ))}
+    </>
+  );
+}
 
 export {
   Table,

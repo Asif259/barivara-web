@@ -15,7 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { StatusBadge } from '@/components/ui/status-badge';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableSkeleton } from '@/components/ui/table';
 import { UnitFormDialog } from '@/components/units/unit-form-dialog';
 import { BulkUnitFormDialog } from '@/components/units/bulk-unit-form-dialog';
 import { PropertyFormDialog } from '@/components/properties/property-form-dialog';
@@ -179,38 +179,67 @@ export default function PropertyDetailPage() {
         </CardHeader>
         <CardContent className="p-0 pt-0">
           {isUnitsLoading ? (
-            <div className="space-y-3 p-5"><Skeleton className="h-10 w-full" /><Skeleton className="h-10 w-full" /></div>
-          ) : units && units.length > 0 ? (
-            <Table>
+            <Table className="min-w-[860px]">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="min-w-[130px]">{t.unitNumber}</TableHead>
-                  <TableHead className="w-[100px]">{t.floor}</TableHead>
-                  <TableHead className="min-w-[130px]">{t.unitType}</TableHead>
-                  <TableHead className="min-w-[130px]">{isEn ? 'Rooms' : 'রুম ও বাথ'}</TableHead>
-                  <TableHead className="w-[140px]">{t.baseRent}</TableHead>
-                  <TableHead className="w-[140px]">{t.serviceFee}</TableHead>
-                  <TableHead className="w-[130px]">{t.status}</TableHead>
-                  <TableHead className="w-[120px] text-right">{t.actions}</TableHead>
+                  <TableHead className="min-w-[120px]">{t.unitNumber}</TableHead>
+                  <TableHead align="left" className="min-w-[90px]">{t.floor}</TableHead>
+                  <TableHead align="left" className="min-w-[110px]">{t.unitType}</TableHead>
+                  <TableHead align="left" className="min-w-[120px]">{isEn ? 'Rooms' : 'রুম ও বাথ'}</TableHead>
+                  <TableHead align="right" className="min-w-[110px]">{t.baseRent}</TableHead>
+                  <TableHead align="right" className="min-w-[100px]">{t.serviceFee}</TableHead>
+                  <TableHead align="center" className="min-w-[100px]">{t.status}</TableHead>
+                  <TableHead align="right" className="min-w-[100px]">{t.actions}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableSkeleton columns={8} rows={4} />
+              </TableBody>
+            </Table>
+          ) : units && units.length > 0 ? (
+            <Table className="min-w-[860px]">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="min-w-[120px]">{t.unitNumber}</TableHead>
+                  <TableHead align="left" className="min-w-[90px]">{t.floor}</TableHead>
+                  <TableHead align="left" className="min-w-[110px]">{t.unitType}</TableHead>
+                  <TableHead align="left" className="min-w-[120px]">{isEn ? 'Rooms' : 'রুম ও বাথ'}</TableHead>
+                  <TableHead align="right" className="min-w-[110px]">{t.baseRent}</TableHead>
+                  <TableHead align="right" className="min-w-[100px]">{t.serviceFee}</TableHead>
+                  <TableHead align="center" className="min-w-[100px]">{t.status}</TableHead>
+                  <TableHead align="right" className="min-w-[100px]">{t.actions}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {Object.entries(unitsByFloor).sort(([a], [b]) => Number(b) - Number(a)).flatMap(([floor, floorUnits]) => [
-                  <TableRow key={`floor-${floor}`} className="bg-[#FAFAF9] hover:bg-[#FAFAF9] table-section-header">
-                    <TableCell colSpan={8} className="py-2.5 text-xs font-medium text-[#6B7280]">
-                      <span className="inline-flex items-center gap-2"><Layers className="h-3.5 w-3.5 text-[#307473]" />{isEn ? `Floor ${floor}` : `${floor} তলা`}<span className="font-normal text-[#9CA3AF]">({floorUnits.length} {t.units})</span></span>
+                  <TableRow key={`floor-${floor}`} className="bg-[#F8FAFC] hover:bg-[#F8FAFC]">
+                    <TableCell colSpan={8} className="py-2 px-3.5 text-xs font-semibold text-[#475569] border-y border-[#E2E8F0]">
+                      <span className="inline-flex items-center gap-2">
+                        <Layers className="h-3.5 w-3.5 text-[#059669]" />
+                        <span>{isEn ? `Floor ${floor}` : `${floor} তলা`}</span>
+                        <span className="font-normal text-[#64748B]">({floorUnits.length} {t.units})</span>
+                      </span>
                     </TableCell>
                   </TableRow>,
                   ...floorUnits.map((unit) => (
                     <TableRow key={unit.id}>
-                      <TableCell data-label={t.unitNumber} className="font-medium text-[#171717]">{unit.unitNumber}</TableCell>
-                      <TableCell data-label={t.floor} className="text-[#6B7280]">{unit.floor} {isEn ? 'Floor' : 'তলা'}</TableCell>
-                      <TableCell data-label={t.unitType} className="text-sm text-[#6B7280]">{unit.unitType}</TableCell>
-                      <TableCell data-label={isEn ? 'Rooms' : 'রুম ও বাথ'} className="text-sm text-[#6B7280]">{unit.bedrooms || 0} Bed · {unit.bathrooms || 0} Bath</TableCell>
-                      <TableCell data-label={t.baseRent} className="font-medium text-[#171717]">{formatCurrency(unit.monthlyBaseRent, language)}</TableCell>
-                      <TableCell data-label={t.serviceFee} className="text-[#6B7280]">{formatCurrency(unit.defaultServiceFee, language)}</TableCell>
-                      <TableCell data-label={t.status}><StatusBadge status={unit.status} lang={language} /></TableCell>
-                      <TableCell data-label={t.actions} className="text-right"><div className="flex items-center justify-end gap-1 table-actions"><Button size="icon" variant="ghost" onClick={() => handleEditUnit(unit)} className="h-8 w-8 text-[#6B7280] hover:text-[#171717]" title={t.edit}><Edit className="h-3.5 w-3.5" /></Button><Button size="icon" variant="ghost" onClick={() => handleDeleteUnit(unit.id, unit.unitNumber)} className="h-8 w-8 text-[#DC2626] hover:bg-[#FEF2F2]" title={t.delete}><Trash2 className="h-3.5 w-3.5" /></Button></div></TableCell>
+                      <TableCell className="font-semibold text-[#0F172A]">{unit.unitNumber}</TableCell>
+                      <TableCell align="left" className="text-xs text-[#64748B]">{unit.floor} {isEn ? 'Floor' : 'তলা'}</TableCell>
+                      <TableCell align="left" className="text-xs text-[#64748B]">{unit.unitType}</TableCell>
+                      <TableCell align="left" className="text-xs text-[#64748B]">{unit.bedrooms || 0} Bed · {unit.bathrooms || 0} Bath</TableCell>
+                      <TableCell align="right" className="font-semibold text-[#0F172A] whitespace-nowrap">{formatCurrency(unit.monthlyBaseRent, language)}</TableCell>
+                      <TableCell align="right" className="text-[#64748B] whitespace-nowrap">{formatCurrency(unit.defaultServiceFee, language)}</TableCell>
+                      <TableCell align="center"><StatusBadge status={unit.status} lang={language} /></TableCell>
+                      <TableCell align="right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button size="icon" variant="ghost" onClick={() => handleEditUnit(unit)} className="h-8 w-8 text-[#64748B] hover:text-[#0F172A]" title={t.edit}>
+                            <Edit className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button size="icon" variant="ghost" onClick={() => handleDeleteUnit(unit.id, unit.unitNumber)} className="h-8 w-8 text-[#DC2626] hover:bg-[#FEF2F2]" title={t.delete}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   )),
                 ])}

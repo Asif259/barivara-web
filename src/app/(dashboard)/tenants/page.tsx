@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Table, TableHeader, TableBody, TableRow, TableHead } from '@/components/ui/table';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableSkeleton } from '@/components/ui/table';
 import { TenantFormDialog } from '@/components/tenants/tenant-form-dialog';
 import { ImagePreviewDialog } from '@/components/ui/image-preview-dialog';
 import { TenantRow } from '@/components/ui/tenant-row';
@@ -87,40 +87,61 @@ export default function TenantsPage() {
         <p className="text-xs text-[#6B7280]">{tenants ? `${tenants.length} ${isEn ? 'tenants' : 'জন ভাড়াটিয়া'}` : ''}</p>
       </div>
 
-      <Card className="rounded-[10px] border-[#E5E7EB] shadow-none">
-        <CardContent className="p-0">
-          {isLoading ? (
-            <div className="space-y-3 p-5"><Skeleton className="h-11 w-full" /><Skeleton className="h-11 w-full" /><Skeleton className="h-11 w-full" /></div>
-          ) : tenants && tenants.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="min-w-[250px]">{t.tenantName}</TableHead>
-                  <TableHead className="min-w-[170px]">{t.phone}</TableHead>
-                  <TableHead className="min-w-[220px]">{t.email}</TableHead>
-                  <TableHead className="min-w-[150px]">{t.occupation}</TableHead>
-                  <TableHead className="w-[140px]">{isEn ? 'Added On' : 'যোগে করার তারিখ'}</TableHead>
-                  <TableHead className="w-[190px] text-right">{t.actions}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {tenants.map((tenant) => (
-                  <TenantRow
-                    key={tenant.id}
-                    tenant={tenant}
-                    language={language}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                    onPreview={openPreview}
-                  />
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <EmptyState icon={Users} title={t.noTenantsFound} description={isEn ? 'Add your tenants to assign them to flats and record rent' : 'ভাড়াটিয়া যুক্ত করে ফ্ল্যাটে চুক্তি সম্পন্ন করুন'} actionLabel={t.addNewTenant} onAction={handleCreate} />
-          )}
-        </CardContent>
-      </Card>
+      {/* Tenants Table */}
+      {isLoading ? (
+        <Table className="min-w-[860px]">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="min-w-[220px]">{t.tenantName}</TableHead>
+              <TableHead align="left" className="min-w-[140px]">{t.phone}</TableHead>
+              <TableHead align="left" className="min-w-[180px]">{t.email}</TableHead>
+              <TableHead align="left" className="min-w-[140px]">{t.occupation}</TableHead>
+              <TableHead align="left" className="min-w-[110px]">{isEn ? 'Added On' : 'যোগে করার তারিখ'}</TableHead>
+              <TableHead align="right" className="min-w-[140px]">{t.actions}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableSkeleton columns={6} rows={5} />
+          </TableBody>
+        </Table>
+      ) : tenants && tenants.length > 0 ? (
+        <Table className="min-w-[860px]">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="min-w-[220px]">{t.tenantName}</TableHead>
+              <TableHead align="left" className="min-w-[140px]">{t.phone}</TableHead>
+              <TableHead align="left" className="min-w-[180px]">{t.email}</TableHead>
+              <TableHead align="left" className="min-w-[140px]">{t.occupation}</TableHead>
+              <TableHead align="left" className="min-w-[110px]">{isEn ? 'Added On' : 'যোগে করার তারিখ'}</TableHead>
+              <TableHead align="right" className="min-w-[140px]">{t.actions}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {tenants.map((tenant) => (
+              <TenantRow
+                key={tenant.id}
+                tenant={tenant}
+                language={language}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onPreview={openPreview}
+              />
+            ))}
+          </TableBody>
+        </Table>
+      ) : (
+        <Card className="rounded-[10px] border-[#E2E8F0] shadow-none">
+          <CardContent className="p-0">
+            <EmptyState
+              icon={Users}
+              title={t.noTenantsFound}
+              description={isEn ? 'Add your tenants to assign them to flats and record rent' : 'ভাড়াটিয়া যুক্ত করে ফ্ল্যাটে চুক্তি সম্পন্ন করুন'}
+              actionLabel={t.addNewTenant}
+              onAction={handleCreate}
+            />
+          </CardContent>
+        </Card>
+      )}
 
       <TenantFormDialog tenant={editingTenant} open={tenantDialogOpen} onOpenChange={setTenantDialogOpen} onSuccess={refetch} />
       <ImagePreviewDialog open={previewOpen} onOpenChange={setPreviewOpen} imageUrl={previewImageUrl} title={previewTitle} />

@@ -23,6 +23,7 @@ import {
   TableRow,
   TableHead,
   TableCell,
+  TableSkeleton,
 } from '@/components/ui/table';
 import { AgreementFormDialog } from '@/components/agreements/agreement-form-dialog';
 import { TenantAvatar } from '@/components/ui/tenant-avatar';
@@ -161,109 +162,128 @@ export default function AgreementsPage() {
       </div>
 
       {/* Compact, Information-Dense Agreements Table */}
-      <Card className="rounded-[10px] border-[#E5E7EB] shadow-none overflow-hidden">
-        <CardContent className="p-0">
-          {isLoading ? (
-            <div className="p-6 space-y-3">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-            </div>
-            ) : visibleAgreements.length > 0 ? (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader className="bg-[#FAFAF9]">
-                  <TableRow>
-                    <TableHead className="w-[170px]">{t.tenantName}</TableHead>
-                    <TableHead className="w-[95px]">{t.unitNumber}</TableHead>
-                    <TableHead className="w-[105px]">{t.baseRent}</TableHead>
-                    <TableHead className="w-[100px]">{t.serviceFee}</TableHead>
-                    <TableHead className="w-[100px]">{t.securityDeposit}</TableHead>
-                    <TableHead className="w-[100px]">{t.dueDay}</TableHead>
-                    <TableHead className="w-[105px]">{t.startDate}</TableHead>
-                    <TableHead className="w-[105px] text-center">{t.status}</TableHead>
-                    <TableHead className="w-[100px] text-center">{t.actions}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {visibleAgreements.map((agr) => (
-                    <TableRow key={agr.id}>
-                      <TableCell data-label={t.tenantName} className="min-w-[250px]">
-                        <div className="flex items-center gap-3">
-                          <TenantAvatar
-                            profilePictureId={agr.tenant?.profilePictureId}
-                            name={agr.tenant?.name || 'Tenant'}
-                            size="md"
-                            onClick={() => agr.tenant?.id && window.open(`/tenants/${agr.tenant.id}`, '_blank')}
-                            ariaLabel={isEn ? 'View tenant profile' : 'ভাড়াটিয়ার প্রোফাইল দেখুন'}
-                          />
-                          <div className="min-w-0">
-                            <p className="truncate font-medium text-[#171717]">{agr.tenant?.name || 'Tenant'}</p>
-                            <p className="mt-0.5 text-xs text-[#6B7280]">{agr.tenant?.phone || (isEn ? 'No phone number' : 'ফোন নম্বর নেই')}</p>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell data-label={t.unitNumber}>
-                        <div className="text-right sm:text-left">
-                          <span className="font-semibold text-[#374151]">{agr.unit?.unitNumber}</span>
-                          {!isSingleProperty && agr.unit?.property?.name && (
-                            <span className="block text-xs text-[#6B7280] cell-clamp-2" title={agr.unit.property.name}>{agr.unit.property.name}</span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell data-label={t.baseRent} className="font-medium text-[#171717] whitespace-nowrap">
-                        {formatCurrency(agr.monthlyRent, language)}
-                      </TableCell>
-                      <TableCell data-label={t.serviceFee} className="text-[#6B7280] whitespace-nowrap">
-                        {formatCurrency(agr.serviceFee, language)}
-                      </TableCell>
-                      <TableCell data-label={t.securityDeposit} className="text-[#12664F] font-medium whitespace-nowrap">
-                        {formatCurrency(agr.securityDeposit, language)}
-                      </TableCell>
-                      <TableCell data-label={t.dueDay} className="text-[#374151] font-medium text-xs whitespace-nowrap">
-                        {isEn ? `Day ${agr.dueDay}` : `প্রতি মাসের ${agr.dueDay} তারিখ`}
-                      </TableCell>
-                      <TableCell data-label={t.startDate} className="text-xs text-[#6B7280] whitespace-nowrap">
-                        {formatBnDate(agr.startDate, language)}
-                      </TableCell>
-                      <TableCell data-label={t.status}>
-                        <StatusBadge status={agr.status} lang={language} />
-                      </TableCell>
-                      <TableCell data-label={t.actions} className="text-right">
-                        <div className="flex items-center justify-end gap-1 table-actions">
-                          <Link href={`/tenants/${agr.tenant?.id}`}>
-                            <Button size="sm" variant="outline" className="h-8 gap-1.5 whitespace-nowrap text-xs">
-                              {isEn ? 'Profile' : 'প্রোফাইল'}<ExternalLink className="h-3.5 w-3.5" />
-                            </Button>
-                          </Link>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => handleEditAgreement(agr)}
-                            className="h-8 w-8 text-[#6B7280] hover:text-[#171717]"
-                            title={t.edit}
-                          >
-                            <Edit className="w-3.5 h-3.5" />
-                          </Button>
-                          {agr.status === 'ACTIVE' && (
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              onClick={() => handleEndAgreement(agr.id, agr.tenant?.name || 'tenant')}
-                              className="h-8 w-8 text-[#DC2626] hover:bg-[#FEF2F2]"
-                              title={t.endAgreement}
-                            >
-                              <Ban className="w-3.5 h-3.5" />
-                            </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          ) : (
+      {isLoading ? (
+        <Table className="min-w-[960px]">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="min-w-[220px]">{t.tenantName}</TableHead>
+              <TableHead className="min-w-[110px]">{t.unitNumber}</TableHead>
+              <TableHead align="right" className="min-w-[100px]">{t.baseRent}</TableHead>
+              <TableHead align="right" className="min-w-[95px]">{t.serviceFee}</TableHead>
+              <TableHead align="right" className="min-w-[105px]">{t.securityDeposit}</TableHead>
+              <TableHead align="right" className="min-w-[90px]">{t.dueDay}</TableHead>
+              <TableHead align="left" className="min-w-[105px]">{t.startDate}</TableHead>
+              <TableHead align="center" className="min-w-[100px]">{t.status}</TableHead>
+              <TableHead align="right" className="min-w-[130px]">{t.actions}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableSkeleton columns={9} rows={5} />
+          </TableBody>
+        </Table>
+      ) : visibleAgreements.length > 0 ? (
+        <Table className="min-w-[960px]">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="min-w-[220px]">{t.tenantName}</TableHead>
+              <TableHead className="min-w-[110px]">{t.unitNumber}</TableHead>
+              <TableHead align="right" className="min-w-[100px]">{t.baseRent}</TableHead>
+              <TableHead align="right" className="min-w-[95px]">{t.serviceFee}</TableHead>
+              <TableHead align="right" className="min-w-[105px]">{t.securityDeposit}</TableHead>
+              <TableHead align="right" className="min-w-[90px]">{t.dueDay}</TableHead>
+              <TableHead align="left" className="min-w-[105px]">{t.startDate}</TableHead>
+              <TableHead align="center" className="min-w-[100px]">{t.status}</TableHead>
+              <TableHead align="right" className="min-w-[130px]">{t.actions}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {visibleAgreements.map((agr) => (
+              <TableRow key={agr.id}>
+                <TableCell className="min-w-[220px]">
+                  <div className="flex items-center gap-2.5">
+                    <TenantAvatar
+                      profilePictureId={agr.tenant?.profilePictureId}
+                      name={agr.tenant?.name || 'Tenant'}
+                      size="sm"
+                      onClick={() => agr.tenant?.id && window.open(`/tenants/${agr.tenant.id}`, '_blank')}
+                      ariaLabel={isEn ? 'View tenant profile' : 'ভাড়াটিয়ার প্রোফাইল দেখুন'}
+                    />
+                    <div className="min-w-0 max-w-[160px]">
+                      <p className="truncate font-medium text-[#0F172A] text-sm" title={agr.tenant?.name || 'Tenant'}>
+                        {agr.tenant?.name || 'Tenant'}
+                      </p>
+                      <p className="truncate text-xs text-[#64748B]" title={agr.tenant?.phone || ''}>
+                        {agr.tenant?.phone || '—'}
+                      </p>
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell className="min-w-[110px]">
+                  <div className="min-w-0">
+                    <span className="font-semibold text-[#1E293B] block">
+                      {agr.unit?.unitNumber || '—'}
+                    </span>
+                    {!isSingleProperty && agr.unit?.property?.name && (
+                      <span className="block text-xs text-[#64748B] truncate max-w-[120px]" title={agr.unit.property.name}>
+                        {agr.unit.property.name}
+                      </span>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell align="right" className="font-semibold text-[#0F172A] whitespace-nowrap">
+                  {formatCurrency(agr.monthlyRent, language)}
+                </TableCell>
+                <TableCell align="right" className="text-[#64748B] whitespace-nowrap">
+                  {formatCurrency(agr.serviceFee, language)}
+                </TableCell>
+                <TableCell align="right" className="text-[#059669] font-medium whitespace-nowrap">
+                  {formatCurrency(agr.securityDeposit, language)}
+                </TableCell>
+                <TableCell align="right" className="text-[#334155] font-medium text-xs whitespace-nowrap">
+                  {isEn ? `Day ${agr.dueDay}` : `প্রতি মাসের ${agr.dueDay} তারিখ`}
+                </TableCell>
+                <TableCell align="left" className="text-xs text-[#64748B] whitespace-nowrap">
+                  {formatBnDate(agr.startDate, language)}
+                </TableCell>
+                <TableCell align="center">
+                  <StatusBadge status={agr.status} lang={language} />
+                </TableCell>
+                <TableCell align="right">
+                  <div className="flex items-center justify-end gap-1">
+                    <Link href={`/tenants/${agr.tenant?.id}`}>
+                      <Button size="sm" variant="outline" className="h-8 gap-1.5 whitespace-nowrap text-xs px-2.5">
+                        {isEn ? 'Profile' : 'প্রোফাইল'}<ExternalLink className="h-3.5 w-3.5" />
+                      </Button>
+                    </Link>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handleEditAgreement(agr)}
+                      className="h-8 w-8 text-[#64748B] hover:text-[#0F172A]"
+                      title={t.edit}
+                    >
+                      <Edit className="w-3.5 h-3.5" />
+                    </Button>
+                    {agr.status === 'ACTIVE' && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => handleEndAgreement(agr.id, agr.tenant?.name || 'tenant')}
+                        className="h-8 w-8 text-[#DC2626] hover:bg-[#FEF2F2]"
+                        title={t.endAgreement}
+                      >
+                        <Ban className="w-3.5 h-3.5" />
+                      </Button>
+                    )}
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      ) : (
+        <Card className="rounded-[10px] border-[#E2E8F0] shadow-none">
+          <CardContent className="p-0">
             <EmptyState
               icon={FileText}
               title={isEn ? 'No Agreements Found' : 'কোনো চুক্তি পাওয়া যায়নি'}
@@ -271,9 +291,9 @@ export default function AgreementsPage() {
               actionLabel={t.addNewAgreement}
               onAction={handleOpenCreateAgreement}
             />
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Agreement Form Dialog */}
       <AgreementFormDialog

@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { StatusBadge } from '@/components/ui/status-badge';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { TenantFormDialog } from '@/components/tenants/tenant-form-dialog';
 import { ImagePreviewDialog } from '@/components/ui/image-preview-dialog';
 import { getFileDownloadUrl } from '@/lib/file-upload';
@@ -427,103 +428,103 @@ export default function TenantDetailPage() {
             {isEn ? 'Rental Agreements' : 'ভাড়া চুক্তিসমূহ'}
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0 pt-0">
           {tenant.agreements && tenant.agreements.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-[#FAFAF9] text-left text-xs font-semibold text-[#6B7280] uppercase tracking-wider">
-                    <th className="pb-3 px-4">{t.unitNumber}</th>
-                    <th className="pb-3 px-4">{t.baseRent}</th>
-                    <th className="pb-3 px-4">{t.serviceFee}</th>
-                    <th className="pb-3 px-4">{t.securityDeposit}</th>
-                    <th className="pb-3 px-4">{t.startDate}</th>
-                    <th className="pb-3 px-4">{t.endDate}</th>
-                    <th className="pb-3 px-4">{t.status}</th>
-                    <th className="pb-3 px-4 text-right">{t.actions}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#F3F4F6]">
-                  {tenant.agreements.map((agr) => {
-                    const isEndingThisRow = endingAgreementId === agr.id;
-                    return (
-                      <tr key={agr.id} className="hover:bg-[#FAFAF9]">
-                        <td className="py-3 px-4">
-                          <div className="font-semibold text-[#171717]">{agr.unit?.unitNumber}</div>
-                          {agr.unit?.property?.name && (
-                            <div className="text-[13px] text-[#6B7280] truncate max-w-xs">{agr.unit.property.name}</div>
-                          )}
-                        </td>
-                        <td className="py-3 px-4 font-semibold text-[#171717] whitespace-nowrap">
-                          {formatCurrency(agr.monthlyRent, language)}
-                        </td>
-                        <td className="py-3 px-4 text-[#6B7280] whitespace-nowrap">
-                          {formatCurrency(agr.serviceFee, language)}
-                        </td>
-                        <td className="py-3 px-4 text-[#12664F] font-medium whitespace-nowrap">
-                          {formatCurrency(agr.securityDeposit, language)}
-                        </td>
-                        <td className="py-3 px-4 text-xs text-[#6B7280] whitespace-nowrap">
-                          {formatBnDate(agr.startDate, language)}
-                        </td>
-                        <td className="py-3 px-4 text-xs text-[#6B7280] whitespace-nowrap">
-                          {agr.endDate ? formatBnDate(agr.endDate, language) : '—'}
-                        </td>
-                        <td className="py-3 px-4">
-                          <StatusBadge status={agr.status} lang={language} />
-                        </td>
-                        <td className="py-3 px-4 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => router.push(`/agreements/${agr.id}`)}
-                              className="h-8 px-3 text-xs text-[#307473] hover:text-[#12664F] hover:bg-[#F3FAF5] gap-1.5 border border-[#CDE4DA]"
-                              title={t.view}
-                              aria-label={`${t.view} — ${agr.unit?.unitNumber ?? ''}`}
-                            >
-                              <Eye className="w-3.5 h-3.5" />
-                              <span className="hidden sm:inline">{t.view}</span>
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => router.push(`/agreements/${agr.id}/edit`)}
-                              className="h-8 px-3 text-xs text-[#2563EB] hover:text-[#1D4ED8] hover:bg-[#F5F9FF] gap-1.5 border border-[#C7DBFF]"
-                              title={t.edit}
-                              aria-label={`${t.edit} — ${agr.unit?.unitNumber ?? ''}`}
-                            >
-                              <Edit className="w-3.5 h-3.5" />
-                              <span className="hidden sm:inline">{t.edit}</span>
-                            </Button>
-                            {agr.status === 'ACTIVE' && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setConfirmEndAgreementId(agr.id)}
-                                disabled={isEndingThisRow}
-                                className="h-8 px-3 text-xs text-[#DC2626] hover:text-[#B91C1C] hover:bg-[#FEF7F7] gap-1.5 border border-[#FECACA]"
-                                title={t.endAgreement}
-                                aria-label={`${t.endAgreement} — ${agr.unit?.unitNumber ?? ''}`}
-                              >
-                                {isEndingThisRow ? (
-                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                ) : (
-                                  <Ban className="w-3.5 h-3.5" />
-                                )}
-                                <span className="hidden sm:inline">{t.endAgreement}</span>
-                              </Button>
-                            )}
+            <Table className="min-w-[860px]">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="min-w-[140px]">{t.unitNumber}</TableHead>
+                  <TableHead align="right" className="min-w-[105px]">{t.baseRent}</TableHead>
+                  <TableHead align="right" className="min-w-[95px]">{t.serviceFee}</TableHead>
+                  <TableHead align="right" className="min-w-[105px]">{t.securityDeposit}</TableHead>
+                  <TableHead align="left" className="min-w-[100px]">{t.startDate}</TableHead>
+                  <TableHead align="left" className="min-w-[100px]">{t.endDate}</TableHead>
+                  <TableHead align="center" className="min-w-[95px]">{t.status}</TableHead>
+                  <TableHead align="right" className="min-w-[160px]">{t.actions}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {tenant.agreements.map((agr) => {
+                  const isEndingThisRow = endingAgreementId === agr.id;
+                  return (
+                    <TableRow key={agr.id}>
+                      <TableCell className="min-w-[140px]">
+                        <div className="font-semibold text-[#0F172A]">{agr.unit?.unitNumber || '—'}</div>
+                        {agr.unit?.property?.name && (
+                          <div className="text-xs text-[#64748B] truncate max-w-[160px]" title={agr.unit.property.name}>
+                            {agr.unit.property.name}
                           </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                        )}
+                      </TableCell>
+                      <TableCell align="right" className="font-semibold text-[#0F172A] whitespace-nowrap">
+                        {formatCurrency(agr.monthlyRent, language)}
+                      </TableCell>
+                      <TableCell align="right" className="text-[#64748B] whitespace-nowrap">
+                        {formatCurrency(agr.serviceFee, language)}
+                      </TableCell>
+                      <TableCell align="right" className="text-[#059669] font-medium whitespace-nowrap">
+                        {formatCurrency(agr.securityDeposit, language)}
+                      </TableCell>
+                      <TableCell align="left" className="text-xs text-[#64748B] whitespace-nowrap">
+                        {formatBnDate(agr.startDate, language)}
+                      </TableCell>
+                      <TableCell align="left" className="text-xs text-[#64748B] whitespace-nowrap">
+                        {agr.endDate ? formatBnDate(agr.endDate, language) : '—'}
+                      </TableCell>
+                      <TableCell align="center">
+                        <StatusBadge status={agr.status} lang={language} />
+                      </TableCell>
+                      <TableCell align="right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => router.push(`/agreements/${agr.id}`)}
+                            className="h-8 px-2.5 text-xs text-[#059669] hover:text-[#047857] hover:bg-[#F0FDF4] gap-1.5 border border-[#A7F3D0]"
+                            title={t.view}
+                            aria-label={`${t.view} — ${agr.unit?.unitNumber ?? ''}`}
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            <span className="hidden sm:inline">{t.view}</span>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => router.push(`/agreements/${agr.id}/edit`)}
+                            className="h-8 px-2.5 text-xs text-[#2563EB] hover:text-[#1D4ED8] hover:bg-[#EFF6FF] gap-1.5 border border-[#BFDBFE]"
+                            title={t.edit}
+                            aria-label={`${t.edit} — ${agr.unit?.unitNumber ?? ''}`}
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                            <span className="hidden sm:inline">{t.edit}</span>
+                          </Button>
+                          {agr.status === 'ACTIVE' && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setConfirmEndAgreementId(agr.id)}
+                              disabled={isEndingThisRow}
+                              className="h-8 px-2.5 text-xs text-[#DC2626] hover:text-[#B91C1C] hover:bg-[#FEF2F2] gap-1.5 border border-[#FECACA]"
+                              title={t.endAgreement}
+                              aria-label={`${t.endAgreement} — ${agr.unit?.unitNumber ?? ''}`}
+                            >
+                              {isEndingThisRow ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Ban className="w-3.5 h-3.5" />
+                              )}
+                              <span className="hidden sm:inline">{t.endAgreement}</span>
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
           ) : (
-            <p className="text-sm text-[#6B7280] py-5 text-center">
+            <p className="text-sm text-[#64748B] py-5 text-center">
               {isEn ? 'No rental agreements found for this tenant.' : 'এই ভাড়াটিয়ার কোনো সক্রিয় বা পূর্বের চুক্তি পাওয়া যায়নি।'}
             </p>
           )}

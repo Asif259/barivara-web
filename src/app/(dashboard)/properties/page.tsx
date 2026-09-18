@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableSkeleton } from '@/components/ui/table';
 import { PropertyFormDialog } from '@/components/properties/property-form-dialog';
 import {
   Building2,
@@ -105,86 +105,125 @@ export default function PropertiesPage() {
       </div>
 
       {isLoading ? (
-        <Card className="rounded-[10px] border-[#E5E7EB] shadow-none">
-          <CardContent className="space-y-3 p-5">
-            {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
-          </CardContent>
-        </Card>
+        <Table className="min-w-[840px]">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="min-w-[220px]">{isEn ? 'Property' : 'বাড়ি'}</TableHead>
+              <TableHead className="min-w-[220px]">{isEn ? 'Address' : 'ঠিকানা'}</TableHead>
+              <TableHead align="right" className="min-w-[90px]">{t.units}</TableHead>
+              <TableHead align="right" className="min-w-[90px]">{t.floor}</TableHead>
+              <TableHead align="center" className="min-w-[100px]">{t.status}</TableHead>
+              <TableHead align="right" className="min-w-[160px]">{t.actions}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableSkeleton columns={6} rows={5} />
+          </TableBody>
+        </Table>
       ) : properties && properties.length > 0 ? (
-        <Card className="rounded-[10px] border-[#E5E7EB] shadow-none">
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="min-w-[240px]">{isEn ? 'Property' : 'বাড়ি'}</TableHead>
-                  <TableHead className="min-w-[250px]">{isEn ? 'Address' : 'ঠিকানা'}</TableHead>
-                  <TableHead className="w-[120px]">{t.units}</TableHead>
-                  <TableHead className="w-[120px]">{t.floor}</TableHead>
-                  <TableHead className="w-[150px]">{t.status}</TableHead>
-                  <TableHead className="w-[180px] text-right">{t.actions}</TableHead>
+        <Table className="min-w-[840px]">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="min-w-[220px]">{isEn ? 'Property' : 'বাড়ি'}</TableHead>
+              <TableHead className="min-w-[220px]">{isEn ? 'Address' : 'ঠিকানা'}</TableHead>
+              <TableHead align="right" className="min-w-[90px]">{t.units}</TableHead>
+              <TableHead align="right" className="min-w-[90px]">{t.floor}</TableHead>
+              <TableHead align="center" className="min-w-[100px]">{t.status}</TableHead>
+              <TableHead align="right" className="min-w-[160px]">{t.actions}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {properties.map((property) => {
+              const unitCount = property._count?.units || 0;
+              return (
+                <TableRow key={property.id}>
+                  <TableCell className="min-w-[220px]">
+                    <div className="flex items-center gap-2.5">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#E8F3EF] text-[#059669]">
+                        <Building2 className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0 max-w-[170px]">
+                        <p className="truncate font-medium text-[#0F172A] text-sm" title={property.name}>
+                          {property.name}
+                        </p>
+                        {property.description && (
+                          <p className="truncate text-xs text-[#64748B]" title={property.description}>
+                            {property.description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell className="min-w-[220px]">
+                    <div className="flex items-center gap-1.5 text-[#64748B] text-xs">
+                      <MapPin className="h-3.5 w-3.5 shrink-0 text-[#94A3B8]" />
+                      <span className="truncate max-w-[200px]" title={`${property.address}${property.city ? `, ${property.city}` : ''}`}>
+                        {property.address}{property.city ? `, ${property.city}` : ''}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell align="right" className="tabular-nums font-medium text-[#334155]">
+                    <span className="inline-flex items-center gap-1.5 justify-end">
+                      <Home className="h-3.5 w-3.5 text-[#94A3B8]" />
+                      {unitCount}
+                    </span>
+                  </TableCell>
+                  <TableCell align="right" className="tabular-nums text-[#64748B]">
+                    <span className="inline-flex items-center gap-1.5 justify-end">
+                      <Layers className="h-3.5 w-3.5 text-[#94A3B8]" />
+                      {property.totalFloors}
+                    </span>
+                  </TableCell>
+                  <TableCell align="center">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[#15803D] bg-[#F0FDF4] px-2 py-0.5 rounded border border-[#DCFCE7]">
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#15803D]" />
+                      {isEn ? 'Active' : 'সক্রিয়'}
+                    </span>
+                  </TableCell>
+                  <TableCell align="right">
+                    <div className="flex items-center justify-end gap-1">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => handleEdit(property)}
+                        className="h-8 w-8 text-[#64748B] hover:text-[#0F172A]"
+                        title={t.edit}
+                      >
+                        <Edit className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => handleDelete(property.id, property.name)}
+                        className="h-8 w-8 text-[#DC2626] hover:bg-[#FEF2F2]"
+                        title={t.delete}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                      <Link href={`/properties/${property.id}`}>
+                        <Button size="sm" variant="outline" className="h-8 gap-1.5 whitespace-nowrap text-xs px-2.5">
+                          {isEn ? 'Units' : 'ইউনিট'} <ExternalLink className="h-3.5 w-3.5" />
+                        </Button>
+                      </Link>
+                    </div>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {properties.map((property) => {
-                  const unitCount = property._count?.units || 0;
-                  return (
-                    <TableRow key={property.id}>
-                      <TableCell data-label={isEn ? 'Property' : 'বাড়ি'} className="min-w-[240px]">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#E8F3EF] text-[#12664F]">
-                            <Building2 className="h-4 w-4" />
-                          </div>
-                          <div className="min-w-0">
-                            <p className="truncate font-medium text-[#171717]">{property.name}</p>
-                            {property.description && <p className="mt-0.5 truncate text-xs text-[#6B7280]">{property.description}</p>}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell data-label={isEn ? 'Address' : 'ঠিকানা'} className="min-w-[250px]">
-                        <div className="flex items-start gap-2 text-[#6B7280]">
-                          <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#9CA3AF]" />
-                          <span>{property.address}{property.city ? `, ${property.city}` : ''}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell data-label={t.units}>
-                        <span className="inline-flex items-center gap-1.5 font-medium text-[#374151]"><Home className="h-3.5 w-3.5 text-[#6B7280]" />{unitCount}</span>
-                      </TableCell>
-                      <TableCell data-label={t.floor}>
-                        <span className="inline-flex items-center gap-1.5 text-[#6B7280]"><Layers className="h-3.5 w-3.5 text-[#9CA3AF]" />{property.totalFloors}</span>
-                      </TableCell>
-                      <TableCell data-label={t.status}>
-                        <span className="inline-flex items-center gap-2 text-xs font-medium text-[#15803D]"><span className="h-1.5 w-1.5 rounded-full bg-[#15803D]" />{isEn ? 'Active' : 'সক্রিয়'}</span>
-                      </TableCell>
-                      <TableCell data-label={t.actions} className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button size="icon" variant="ghost" onClick={() => handleEdit(property)} className="h-8 w-8 text-[#6B7280] hover:text-[#171717]" title={t.edit}>
-                            <Edit className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button size="icon" variant="ghost" onClick={() => handleDelete(property.id, property.name)} className="h-8 w-8 text-[#DC2626] hover:bg-[#FEF2F2]" title={t.delete}>
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                          <Link href={`/properties/${property.id}`}>
-                            <Button size="sm" variant="outline" className="h-8 gap-1.5 whitespace-nowrap text-xs">
-                              {isEn ? 'Manage units' : 'ইউনিট দেখুন'} <ExternalLink className="h-3.5 w-3.5" />
-                            </Button>
-                          </Link>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+              );
+            })}
+          </TableBody>
+        </Table>
+      ) : (
+        <Card className="rounded-[10px] border-[#E2E8F0] shadow-none">
+          <CardContent className="p-0">
+            <EmptyState
+              icon={Building2}
+              title={t.noPropertiesFound}
+              description={t.addFirstProperty}
+              actionLabel={t.addNewProperty}
+              onAction={handleCreate}
+            />
           </CardContent>
         </Card>
-      ) : (
-        <EmptyState
-          icon={Building2}
-          title={t.noPropertiesFound}
-          description={t.addFirstProperty}
-          actionLabel={t.addNewProperty}
-          onAction={handleCreate}
-        />
       )}
 
       <PropertyFormDialog property={editingProperty} open={propertyDialogOpen} onOpenChange={setPropertyDialogOpen} onSuccess={refetch} />
