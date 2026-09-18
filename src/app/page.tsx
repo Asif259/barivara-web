@@ -2,11 +2,11 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { useLanguageHydrated, useLanguageStore, Language } from '@/stores/language-store';
 import { useAuthStore } from '@/stores/auth-store';
 import { Button } from '@/components/ui/button';
-import { Check, ArrowRight, ShieldCheck, Sparkles } from 'lucide-react';
-import Image from 'next/image';
+import { Check, ArrowRight } from 'lucide-react';
 
 export default function RootPage() {
   const router = useRouter();
@@ -28,8 +28,8 @@ export default function RootPage() {
 
   if (!languageHydrated) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-600 border-t-transparent" />
+      <div className="flex min-h-screen items-center justify-center bg-[#FAFAF9]">
+        <div className="h-7 w-7 animate-spin rounded-full border-2 border-[#12664F] border-t-transparent" />
       </div>
     );
   }
@@ -44,100 +44,134 @@ export default function RootPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 flex flex-col justify-between p-6 text-white relative overflow-hidden">
-      {/* Background Decorative Glow */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40vw] h-[40vw] rounded-full bg-emerald-500/10 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40vw] h-[40vw] rounded-full bg-teal-500/10 blur-[120px] pointer-events-none" />
-
-      {/* Top Brand */}
-      <div className="w-full max-w-5xl mx-auto flex items-center justify-between z-10 pt-4">
-        <div className="flex items-center gap-3">
-          <div className="h-11 w-11 rounded-2xl overflow-hidden shrink-0 shadow-lg shadow-emerald-500/25">
-            <Image src="/logo.png" alt="BariVara" width={44} height={44} className="w-full h-full object-cover" />
+    <div className="min-h-screen bg-[#FAFAF9] flex flex-col justify-between py-10 px-4 sm:px-6 lg:px-8 text-[#171717] selection:bg-[#12664F] selection:text-white">
+      {/* Brand Header */}
+      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
+        <div className="inline-flex items-center gap-3">
+          <div className="h-12 w-12 rounded-xl overflow-hidden shrink-0 shadow-xs border border-[#E5E7EB] bg-white p-1">
+            <Image
+              src="/logo.png"
+              alt="BariVara"
+              width={48}
+              height={48}
+              className="w-full h-full object-cover rounded-lg"
+              priority
+            />
           </div>
-          <div>
-            <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-              বাড়িভাড়া <span className="text-xs font-medium px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">BariVara</span>
-            </h1>
-            <p className="text-xs text-slate-400">Smart Property & Rental Management</p>
+          <div className="text-left">
+            <span className="text-2xl font-bold text-[#171717] tracking-tight block">
+              বাড়িভাড়া <span className="text-[#12664F] text-sm font-semibold">BariVara</span>
+            </span>
+            <span className="text-xs text-[#6B7280] block">স্মার্ট বাড়ি ও ভাড়া ব্যবস্থাপনা</span>
           </div>
         </div>
       </div>
 
-      {/* Center Language Choice Modal/Card */}
-      <div className="w-full max-w-xl mx-auto my-auto z-10 py-12">
-        <div className="text-center mb-8 space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium mb-2">
-            <Sparkles className="w-3.5 h-3.5" /> First Launch Setup
+      {/* Center Selection Card */}
+      <div className="w-full max-w-md mx-auto my-auto px-0 py-8">
+        <div className="bg-white py-8 px-6 sm:px-8 shadow-sm rounded-2xl border border-[#E5E7EB]">
+          <div className="text-center mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-[#171717] tracking-tight">
+              {selectedLang === 'bn' ? 'ভাষা নির্বাচন করুন' : 'Select Language'}
+            </h2>
+            <p className="text-sm text-[#6B7280] mt-1.5">
+              {selectedLang === 'bn'
+                ? 'আপনার পছন্দের ভাষা নির্বাচন করুন। পরবর্তীতে সেটিংস থেকে পরিবর্তন করা যাবে।'
+                : 'Choose your preferred language. You can change this anytime in settings.'}
+            </p>
           </div>
-          <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            ভাষা নির্বাচন করুন <br />
-            <span className="text-2xl font-medium text-slate-400">Select Your Language</span>
-          </h2>
-          <p className="text-sm text-slate-400 max-w-md mx-auto">
-            আপনি পরবর্তীতে সেটিংস থেকে যেকোনো সময় ভাষা পরিবর্তন করতে পারবেন।
-          </p>
-        </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-          {/* Bangla Option */}
-          <button
-            type="button"
-            aria-pressed={selectedLang === 'bn'}
-            onClick={() => setDraftLanguage('bn')}
-            className={`relative rounded-2xl p-6 cursor-pointer border-2 transition-all duration-200 bg-slate-800/80 backdrop-blur-md hover:bg-slate-800 ${
-              selectedLang === 'bn'
-                ? 'border-emerald-500 shadow-xl shadow-emerald-500/20 ring-4 ring-emerald-500/10'
-                : 'border-slate-700/80 hover:border-slate-600'
-            }`}
-          >
-            {selectedLang === 'bn' && (
-              <div className="absolute top-4 right-4 h-6 w-6 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center shadow-xs">
-                <Check className="h-4 w-4 stroke-[3]" />
+          <div className="space-y-3 mb-6">
+            {/* Bangla Option */}
+            <button
+              type="button"
+              role="radio"
+              aria-checked={selectedLang === 'bn'}
+              onClick={() => setDraftLanguage('bn')}
+              className={`w-full flex items-center justify-between p-4 rounded-xl border text-left transition-all duration-150 cursor-pointer ${
+                selectedLang === 'bn'
+                  ? 'border-[#12664F] bg-[#E8F3EF]/40 ring-1 ring-[#12664F]'
+                  : 'border-[#E5E7EB] bg-white hover:border-[#D1D5DB] hover:bg-[#FAFAF9]'
+              }`}
+            >
+              <div className="flex items-center gap-3.5">
+                <span
+                  className={`flex items-center justify-center w-10 h-10 rounded-lg text-xs font-bold shrink-0 transition-colors ${
+                    selectedLang === 'bn'
+                      ? 'bg-[#12664F] text-white'
+                      : 'bg-[#F3F4F6] text-[#374151]'
+                  }`}
+                >
+                  বাং
+                </span>
+                <div>
+                  <h3 className="text-sm font-semibold text-[#171717]">বাংলা</h3>
+                  <p className="text-xs text-[#6B7280] mt-0.5">বাড়িওয়ালাদের জন্য সম্পূর্ণ বাংলায় ব্যবস্থাপনা</p>
+                </div>
               </div>
-            )}
-            <div className="text-3xl mb-3">🇧🇩</div>
-            <h3 className="text-xl font-bold text-white mb-1">বাংলা</h3>
-            <p className="text-xs text-slate-400">বাংলাদেশী বাড়িওয়ালা ও ভাড়াটিয়াদের জন্য সম্পূর্ণ বাংলায় ব্যবস্থাপনা</p>
-          </button>
-
-          {/* English Option */}
-          <button
-            type="button"
-            aria-pressed={selectedLang === 'en'}
-            onClick={() => setDraftLanguage('en')}
-            className={`relative rounded-2xl p-6 cursor-pointer border-2 transition-all duration-200 bg-slate-800/80 backdrop-blur-md hover:bg-slate-800 ${
-              selectedLang === 'en'
-                ? 'border-emerald-500 shadow-xl shadow-emerald-500/20 ring-4 ring-emerald-500/10'
-                : 'border-slate-700/80 hover:border-slate-600'
-            }`}
-          >
-            {selectedLang === 'en' && (
-              <div className="absolute top-4 right-4 h-6 w-6 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center shadow-xs">
-                <Check className="h-4 w-4 stroke-[3]" />
+              <div
+                className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 transition-colors ${
+                  selectedLang === 'bn'
+                    ? 'border-[#12664F] bg-[#12664F] text-white'
+                    : 'border-[#D1D5DB] bg-white'
+                }`}
+              >
+                {selectedLang === 'bn' && <Check className="w-3.5 h-3.5 stroke-[3]" />}
               </div>
-            )}
-            <div className="text-3xl mb-3">🌐</div>
-            <h3 className="text-xl font-bold text-white mb-1">English</h3>
-            <p className="text-xs text-slate-400">Manage properties, units, and collections in English</p>
-          </button>
-        </div>
+            </button>
 
-        <Button
-          onClick={handleContinue}
-          size="lg"
-          variant="gradient"
-          className="w-full text-base font-semibold py-6 rounded-2xl gap-2 shadow-lg shadow-emerald-600/30"
-        >
-          {selectedLang === 'bn' ? 'এগিয়ে যান' : 'Continue'}
-          <ArrowRight className="h-5 w-5" />
-        </Button>
+            {/* English Option */}
+            <button
+              type="button"
+              role="radio"
+              aria-checked={selectedLang === 'en'}
+              onClick={() => setDraftLanguage('en')}
+              className={`w-full flex items-center justify-between p-4 rounded-xl border text-left transition-all duration-150 cursor-pointer ${
+                selectedLang === 'en'
+                  ? 'border-[#12664F] bg-[#E8F3EF]/40 ring-1 ring-[#12664F]'
+                : 'border-[#E5E7EB] bg-white hover:border-[#D1D5DB] hover:bg-[#FAFAF9]'
+              }`}
+            >
+              <div className="flex items-center gap-3.5">
+                <span
+                  className={`flex items-center justify-center w-10 h-10 rounded-lg text-xs font-bold shrink-0 transition-colors ${
+                    selectedLang === 'en'
+                      ? 'bg-[#12664F] text-white'
+                      : 'bg-[#F3F4F6] text-[#374151]'
+                  }`}
+                >
+                  EN
+                </span>
+                <div>
+                  <h3 className="text-sm font-semibold text-[#171717]">English</h3>
+                  <p className="text-xs text-[#6B7280] mt-0.5">Manage properties, units, and collections</p>
+                </div>
+              </div>
+              <div
+                className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 transition-colors ${
+                  selectedLang === 'en'
+                    ? 'border-[#12664F] bg-[#12664F] text-white'
+                    : 'border-[#D1D5DB] bg-white'
+                }`}
+              >
+                {selectedLang === 'en' && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+              </div>
+            </button>
+          </div>
+
+          <Button
+            onClick={handleContinue}
+            className="w-full bg-[#12664F] hover:bg-[#0E513F] text-white font-medium h-11 rounded-xl gap-2 shadow-xs cursor-pointer"
+          >
+            <span>{selectedLang === 'bn' ? 'এগিয়ে যান' : 'Continue'}</span>
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
-      {/* Footer */}
-      <div className="w-full max-w-5xl mx-auto text-center text-xs text-slate-500 z-10 pb-4 flex items-center justify-center gap-2">
-        <ShieldCheck className="w-4 h-4 text-emerald-500" />
-        <span>BariVara Rental Management System &bull; Secure & Encrypted</span>
+      {/* Minimal Footer */}
+      <div className="w-full max-w-md mx-auto text-center text-xs text-[#9CA3AF] py-2">
+        © {new Date().getFullYear()} BariVara • স্মার্ট বাড়ি ও ভাড়া ব্যবস্থাপনা
       </div>
     </div>
   );
