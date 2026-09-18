@@ -7,7 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api';
 import { useLanguageStore } from '@/stores/language-store';
 import { useTranslation } from '@/lib/translations';
-import { Tenant, ApiResponse } from '@/lib/types';
+import { Tenant, RentalAgreement, ApiResponse } from '@/lib/types';
 import { formatCurrency, formatBnDate } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,6 +15,21 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import {
+  ResponsiveTableContainer,
+  MobileDataRow,
+  MobileTableSkeleton,
+  CompactStatus,
+} from '@/components/ui/responsive-table';
+import {
+  BottomSheet,
+  BottomSheetContent,
+  BottomSheetHeader,
+  BottomSheetTitle,
+  BottomSheetDescription,
+  BottomSheetFooter,
+  DetailItem,
+} from '@/components/ui/bottom-sheet';
 import { TenantFormDialog } from '@/components/tenants/tenant-form-dialog';
 import { ImagePreviewDialog } from '@/components/ui/image-preview-dialog';
 import { getFileDownloadUrl } from '@/lib/file-upload';
@@ -124,6 +139,7 @@ export default function TenantDetailPage() {
   const isEn = language === 'en';
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [detailAgreement, setDetailAgreement] = useState<RentalAgreement | null>(null);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   const [previewTitle, setPreviewTitle] = useState<string>('');
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -430,105 +446,245 @@ export default function TenantDetailPage() {
         </CardHeader>
         <CardContent className="p-0 pt-0">
           {tenant.agreements && tenant.agreements.length > 0 ? (
-            <Table className="min-w-[860px]">
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="min-w-[140px]">{t.unitNumber}</TableHead>
-                  <TableHead align="right" className="min-w-[105px]">{t.baseRent}</TableHead>
-                  <TableHead align="right" className="min-w-[95px]">{t.serviceFee}</TableHead>
-                  <TableHead align="right" className="min-w-[105px]">{t.securityDeposit}</TableHead>
-                  <TableHead align="left" className="min-w-[100px]">{t.startDate}</TableHead>
-                  <TableHead align="left" className="min-w-[100px]">{t.endDate}</TableHead>
-                  <TableHead align="center" className="min-w-[95px]">{t.status}</TableHead>
-                  <TableHead align="right" className="min-w-[160px]">{t.actions}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {tenant.agreements.map((agr) => {
-                  const isEndingThisRow = endingAgreementId === agr.id;
-                  return (
-                    <TableRow key={agr.id}>
-                      <TableCell className="min-w-[140px]">
-                        <div className="font-semibold text-[#0F172A]">{agr.unit?.unitNumber || '—'}</div>
-                        {agr.unit?.property?.name && (
-                          <div className="text-xs text-[#64748B] truncate max-w-[160px]" title={agr.unit.property.name}>
-                            {agr.unit.property.name}
-                          </div>
-                        )}
-                      </TableCell>
-                      <TableCell align="right" className="font-semibold text-[#0F172A] whitespace-nowrap">
-                        {formatCurrency(agr.monthlyRent, language)}
-                      </TableCell>
-                      <TableCell align="right" className="text-[#64748B] whitespace-nowrap">
-                        {formatCurrency(agr.serviceFee, language)}
-                      </TableCell>
-                      <TableCell align="right" className="text-[#059669] font-medium whitespace-nowrap">
-                        {formatCurrency(agr.securityDeposit, language)}
-                      </TableCell>
-                      <TableCell align="left" className="text-xs text-[#64748B] whitespace-nowrap">
-                        {formatBnDate(agr.startDate, language)}
-                      </TableCell>
-                      <TableCell align="left" className="text-xs text-[#64748B] whitespace-nowrap">
-                        {agr.endDate ? formatBnDate(agr.endDate, language) : '—'}
-                      </TableCell>
-                      <TableCell align="center">
-                        <StatusBadge status={agr.status} lang={language} />
-                      </TableCell>
-                      <TableCell align="right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => router.push(`/agreements/${agr.id}`)}
-                            className="h-8 px-2.5 text-xs text-[#059669] hover:text-[#047857] hover:bg-[#F0FDF4] gap-1.5 border border-[#A7F3D0]"
-                            title={t.view}
-                            aria-label={`${t.view} — ${agr.unit?.unitNumber ?? ''}`}
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                            <span className="hidden sm:inline">{t.view}</span>
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => router.push(`/agreements/${agr.id}/edit`)}
-                            className="h-8 px-2.5 text-xs text-[#2563EB] hover:text-[#1D4ED8] hover:bg-[#EFF6FF] gap-1.5 border border-[#BFDBFE]"
-                            title={t.edit}
-                            aria-label={`${t.edit} — ${agr.unit?.unitNumber ?? ''}`}
-                          >
-                            <Edit className="w-3.5 h-3.5" />
-                            <span className="hidden sm:inline">{t.edit}</span>
-                          </Button>
-                          {agr.status === 'ACTIVE' && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setConfirmEndAgreementId(agr.id)}
-                              disabled={isEndingThisRow}
-                              className="h-8 px-2.5 text-xs text-[#DC2626] hover:text-[#B91C1C] hover:bg-[#FEF2F2] gap-1.5 border border-[#FECACA]"
-                              title={t.endAgreement}
-                              aria-label={`${t.endAgreement} — ${agr.unit?.unitNumber ?? ''}`}
-                            >
-                              {isEndingThisRow ? (
-                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                              ) : (
-                                <Ban className="w-3.5 h-3.5" />
+            <ResponsiveTableContainer className="border-0 rounded-none">
+              {/* Desktop Tabular View */}
+              <div className="hidden md:block overflow-x-auto">
+                <Table className="min-w-[860px]">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="min-w-[140px]">{t.unitNumber}</TableHead>
+                      <TableHead align="right" className="min-w-[105px]">{t.baseRent}</TableHead>
+                      <TableHead align="right" className="min-w-[95px]">{t.serviceFee}</TableHead>
+                      <TableHead align="right" className="min-w-[105px]">{t.securityDeposit}</TableHead>
+                      <TableHead align="left" className="min-w-[100px]">{t.startDate}</TableHead>
+                      <TableHead align="left" className="min-w-[100px]">{t.endDate}</TableHead>
+                      <TableHead align="center" className="min-w-[95px]">{t.status}</TableHead>
+                      <TableHead align="right" className="min-w-[160px]">{t.actions}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {tenant.agreements.map((agr) => {
+                      const isEndingThisRow = endingAgreementId === agr.id;
+                      return (
+                        <TableRow key={agr.id}>
+                          <TableCell className="min-w-[140px]">
+                            <div className="font-semibold text-[#0F172A]">{agr.unit?.unitNumber || '—'}</div>
+                            {agr.unit?.property?.name && (
+                              <div className="text-xs text-[#64748B] truncate max-w-[160px]" title={agr.unit.property.name}>
+                                {agr.unit.property.name}
+                              </div>
+                            )}
+                          </TableCell>
+                          <TableCell align="right" className="font-semibold text-[#0F172A] whitespace-nowrap">
+                            {formatCurrency(agr.monthlyRent, language)}
+                          </TableCell>
+                          <TableCell align="right" className="text-[#64748B] whitespace-nowrap">
+                            {formatCurrency(agr.serviceFee, language)}
+                          </TableCell>
+                          <TableCell align="right" className="text-[#059669] font-medium whitespace-nowrap">
+                            {formatCurrency(agr.securityDeposit, language)}
+                          </TableCell>
+                          <TableCell align="left" className="text-xs text-[#64748B] whitespace-nowrap">
+                            {formatBnDate(agr.startDate, language)}
+                          </TableCell>
+                          <TableCell align="left" className="text-xs text-[#64748B] whitespace-nowrap">
+                            {agr.endDate ? formatBnDate(agr.endDate, language) : '—'}
+                          </TableCell>
+                          <TableCell align="center">
+                            <StatusBadge status={agr.status} lang={language} />
+                          </TableCell>
+                          <TableCell align="right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => router.push(`/agreements/${agr.id}`)}
+                                className="h-8 px-2.5 text-xs text-[#059669] hover:text-[#047857] hover:bg-[#F0FDF4] gap-1.5 border border-[#A7F3D0]"
+                                title={t.view}
+                                aria-label={`${t.view} — ${agr.unit?.unitNumber ?? ''}`}
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                                <span className="hidden sm:inline">{t.view}</span>
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => router.push(`/agreements/${agr.id}/edit`)}
+                                className="h-8 px-2.5 text-xs text-[#2563EB] hover:text-[#1D4ED8] hover:bg-[#EFF6FF] gap-1.5 border border-[#BFDBFE]"
+                                title={t.edit}
+                                aria-label={`${t.edit} — ${agr.unit?.unitNumber ?? ''}`}
+                              >
+                                <Edit className="w-3.5 h-3.5" />
+                                <span className="hidden sm:inline">{t.edit}</span>
+                              </Button>
+                              {agr.status === 'ACTIVE' && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setConfirmEndAgreementId(agr.id)}
+                                  disabled={isEndingThisRow}
+                                  className="h-8 px-2.5 text-xs text-[#DC2626] hover:text-[#B91C1C] hover:bg-[#FEF2F2] gap-1.5 border border-[#FECACA]"
+                                  title={t.endAgreement}
+                                  aria-label={`${t.endAgreement} — ${agr.unit?.unitNumber ?? ''}`}
+                                >
+                                  {isEndingThisRow ? (
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                  ) : (
+                                    <Ban className="w-3.5 h-3.5" />
+                                  )}
+                                  <span className="hidden sm:inline">{t.endAgreement}</span>
+                                </Button>
                               )}
-                              <span className="hidden sm:inline">{t.endAgreement}</span>
-                            </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile 2-Line Rows */}
+              <div className="block md:hidden divide-y divide-[#F1F5F9]">
+                {tenant.agreements.map((agr) => {
+                  const isActive = agr.status === 'ACTIVE';
+                  return (
+                    <MobileDataRow
+                      key={agr.id}
+                      onClick={() => setDetailAgreement(agr)}
+                      showChevron
+                      identity={
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className="font-semibold text-sm text-[#0F172A]">Unit {agr.unit?.unitNumber || '—'}</span>
+                          {agr.unit?.property?.name && (
+                            <span className="text-xs text-[#64748B] truncate max-w-[130px]">· {agr.unit.property.name}</span>
                           )}
                         </div>
-                      </TableCell>
-                    </TableRow>
+                      }
+                      value={`${formatCurrency(agr.monthlyRent, language)}${isEn ? '/mo' : '/মাস'}`}
+                      stateAndDetail={
+                        <>
+                          <CompactStatus
+                            label={isActive ? (isEn ? 'Active' : 'সক্রিয়') : (isEn ? 'Ended' : 'সমাপ্ত')}
+                            variant={isActive ? 'success' : 'neutral'}
+                          />
+                          <span className="text-slate-300">·</span>
+                          <span>{isEn ? `Started ${formatBnDate(agr.startDate, language)}` : `শুরু ${formatBnDate(agr.startDate, language)}`}</span>
+                        </>
+                      }
+                      action={
+                        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => router.push(`/agreements/${agr.id}`)}
+                            className="h-8 min-h-[38px] px-2.5 text-xs text-[#059669] border-[#A7F3D0] hover:bg-[#F0FDF4] gap-1"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>{t.view}</span>
+                          </Button>
+                        </div>
+                      }
+                    />
                   );
                 })}
-              </TableBody>
-            </Table>
+              </div>
+            </ResponsiveTableContainer>
           ) : (
             <p className="text-sm text-[#64748B] py-5 text-center">
               {isEn ? 'No rental agreements found for this tenant.' : 'এই ভাড়াটিয়ার কোনো সক্রিয় বা পূর্বের চুক্তি পাওয়া যায়নি।'}
             </p>
           )}
         </CardContent>
+
+        {/* Row Details Bottom Sheet on Mobile */}
+        <BottomSheet open={!!detailAgreement} onOpenChange={(open) => !open && setDetailAgreement(null)}>
+          {detailAgreement && (
+            <BottomSheetContent>
+              <BottomSheetHeader>
+                <BottomSheetTitle>
+                  Unit {detailAgreement.unit?.unitNumber || '—'}
+                </BottomSheetTitle>
+                <BottomSheetDescription>
+                  {detailAgreement.unit?.property?.name || 'Rental Agreement'}
+                </BottomSheetDescription>
+              </BottomSheetHeader>
+
+              <div className="py-2">
+                <DetailItem
+                  label={isEn ? 'Monthly Rent' : 'মাসিক ভাড়া'}
+                  value={formatCurrency(detailAgreement.monthlyRent, language)}
+                  isNumeric
+                  highlight
+                />
+                <DetailItem
+                  label={isEn ? 'Service Fee' : 'সার্ভিস চার্জ'}
+                  value={formatCurrency(detailAgreement.serviceFee, language)}
+                  isNumeric
+                />
+                <DetailItem
+                  label={isEn ? 'Security Deposit' : 'অগ্রিম জামানত'}
+                  value={formatCurrency(detailAgreement.securityDeposit, language)}
+                  isNumeric
+                />
+                <DetailItem
+                  label={isEn ? 'Start Date' : 'শুরুর তারিখ'}
+                  value={formatBnDate(detailAgreement.startDate, language)}
+                />
+                {detailAgreement.endDate && (
+                  <DetailItem
+                    label={isEn ? 'End Date' : 'সমাপ্তির তারিখ'}
+                    value={formatBnDate(detailAgreement.endDate, language)}
+                  />
+                )}
+                <DetailItem
+                  label={isEn ? 'Status' : 'অবস্থা'}
+                  value={<StatusBadge status={detailAgreement.status} lang={language} />}
+                />
+              </div>
+
+              <BottomSheetFooter>
+                <Button
+                  onClick={() => {
+                    const id = detailAgreement.id;
+                    setDetailAgreement(null);
+                    router.push(`/agreements/${id}`);
+                  }}
+                  className="w-full sm:w-auto bg-[#059669] hover:bg-[#047857] min-h-[44px]"
+                >
+                  <Eye className="w-4 h-4 mr-2" />
+                  {t.view}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    const id = detailAgreement.id;
+                    setDetailAgreement(null);
+                    router.push(`/agreements/${id}/edit`);
+                  }}
+                  className="w-full sm:w-auto min-h-[44px]"
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  {t.edit}
+                </Button>
+                {detailAgreement.status === 'ACTIVE' && (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      const id = detailAgreement.id;
+                      setDetailAgreement(null);
+                      setConfirmEndAgreementId(id);
+                    }}
+                    className="w-full sm:w-auto min-h-[44px] text-[#DC2626] hover:bg-[#FEF2F2] border-[#FCA5A5]"
+                  >
+                    <Ban className="w-4 h-4 mr-2" />
+                    {t.endAgreement}
+                  </Button>
+                )}
+              </BottomSheetFooter>
+            </BottomSheetContent>
+          )}
+        </BottomSheet>
       </Card>
 
       {/* Tenant Edit Dialog */}

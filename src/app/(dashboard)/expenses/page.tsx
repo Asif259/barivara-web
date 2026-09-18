@@ -23,6 +23,20 @@ import {
   TableCell,
   TableSkeleton,
 } from '@/components/ui/table';
+import {
+  MobileDataRow,
+  MobileTableSkeleton,
+  ResponsiveTableContainer,
+} from '@/components/ui/responsive-table';
+import {
+  BottomSheet,
+  BottomSheetContent,
+  BottomSheetHeader,
+  BottomSheetTitle,
+  BottomSheetDescription,
+  BottomSheetFooter,
+  DetailItem,
+} from '@/components/ui/bottom-sheet';
 import { ExpenseFormDialog } from '@/components/expenses/expense-form-dialog';
 import {
   Wallet,
@@ -42,6 +56,7 @@ export default function ExpensesPage() {
   const [search, setSearch] = useState('');
   const [expenseDialogOpen, setExpenseDialogOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const [detailExpense, setDetailExpense] = useState<Expense | null>(null);
 
   // 1. Fetch Properties
   const { data: properties } = useQuery({
@@ -166,113 +181,175 @@ export default function ExpensesPage() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative w-full sm:max-w-sm">
           <Search className="absolute left-3.5 top-3 h-4 w-4 text-[#9CA3AF]" />
-          <Input placeholder={isEn ? 'Search property, category, description, or voucher' : 'বাড়ি, খাত, বিবরণ বা ভাউচার খুঁজুন'} value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10" />
+          <Input placeholder={isEn ? 'Search property, category, description, or voucher' : 'বাড়ি, খাত, বিবরণ বা ভাউচার খুঁজুন'} value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10" />
         </div>
         <p className="text-xs text-[#6B7280]">{expenses ? `${expenses.length} ${isEn ? 'expenses' : 'টি খরচ'}` : ''}</p>
       </div>
 
-      {/* Expenses Table */}
+      {/* Expenses Responsive Table Container */}
       {isLoading ? (
-        <Table className="min-w-[900px]">
-          <TableHeader>
-            <TableRow>
-              <TableHead align="left" className="min-w-[105px]">{t.date}</TableHead>
-              <TableHead className="min-w-[150px]">{t.propertyName}</TableHead>
-              <TableHead align="left" className="min-w-[110px]">{isEn ? 'Category' : 'খরচের খাত'}</TableHead>
-              <TableHead align="right" className="min-w-[110px]">{t.amount}</TableHead>
-              <TableHead align="left" className="min-w-[180px]">{isEn ? 'Description' : 'বিবরণ'}</TableHead>
-              <TableHead align="center" className="min-w-[100px]">{t.paymentMethod}</TableHead>
-              <TableHead align="left" className="min-w-[110px]">{isEn ? 'Voucher' : 'ভাউচার'}</TableHead>
-              <TableHead align="right" className="min-w-[90px]">{t.actions}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableSkeleton columns={8} rows={5} />
-          </TableBody>
-        </Table>
+        <ResponsiveTableContainer>
+          <div className="hidden md:block">
+            <Table className="min-w-[900px]">
+              <TableHeader>
+                <TableRow>
+                  <TableHead align="left" className="min-w-[105px]">{t.date}</TableHead>
+                  <TableHead className="min-w-[150px]">{t.propertyName}</TableHead>
+                  <TableHead align="left" className="min-w-[110px]">{isEn ? 'Category' : 'খরচের খাত'}</TableHead>
+                  <TableHead align="right" className="min-w-[110px]">{t.amount}</TableHead>
+                  <TableHead align="left" className="min-w-[180px]">{isEn ? 'Description' : 'বিবরণ'}</TableHead>
+                  <TableHead align="center" className="min-w-[100px]">{t.paymentMethod}</TableHead>
+                  <TableHead align="left" className="min-w-[110px]">{isEn ? 'Voucher' : 'ভাউচার'}</TableHead>
+                  <TableHead align="right" className="min-w-[90px]">{t.actions}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableSkeleton columns={8} rows={5} />
+              </TableBody>
+            </Table>
+          </div>
+          <div className="block md:hidden"><MobileTableSkeleton rows={5} /></div>
+        </ResponsiveTableContainer>
       ) : expenses && expenses.length > 0 ? (
-        <Table className="min-w-[900px]">
-          <TableHeader>
-            <TableRow>
-              <TableHead align="left" className="min-w-[105px]">{t.date}</TableHead>
-              <TableHead className="min-w-[150px]">{t.propertyName}</TableHead>
-              <TableHead align="left" className="min-w-[110px]">{isEn ? 'Category' : 'খরচের খাত'}</TableHead>
-              <TableHead align="right" className="min-w-[110px]">{t.amount}</TableHead>
-              <TableHead align="left" className="min-w-[180px]">{isEn ? 'Description' : 'বিবরণ'}</TableHead>
-              <TableHead align="center" className="min-w-[100px]">{t.paymentMethod}</TableHead>
-              <TableHead align="left" className="min-w-[110px]">{isEn ? 'Voucher' : 'ভাউচার'}</TableHead>
-              <TableHead align="right" className="min-w-[90px]">{t.actions}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+        <ResponsiveTableContainer>
+          {/* Desktop Table */}
+          <div className="hidden md:block">
+            <Table className="min-w-[900px]">
+              <TableHeader>
+                <TableRow>
+                  <TableHead align="left" className="min-w-[105px]">{t.date}</TableHead>
+                  <TableHead className="min-w-[150px]">{t.propertyName}</TableHead>
+                  <TableHead align="left" className="min-w-[110px]">{isEn ? 'Category' : 'খরচের খাত'}</TableHead>
+                  <TableHead align="right" className="min-w-[110px]">{t.amount}</TableHead>
+                  <TableHead align="left" className="min-w-[180px]">{isEn ? 'Description' : 'বিবরণ'}</TableHead>
+                  <TableHead align="center" className="min-w-[100px]">{t.paymentMethod}</TableHead>
+                  <TableHead align="left" className="min-w-[110px]">{isEn ? 'Voucher' : 'ভাউচার'}</TableHead>
+                  <TableHead align="right" className="min-w-[90px]">{t.actions}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {expenses.map((expense) => (
+                  <TableRow key={expense.id}>
+                    <TableCell align="left" className="text-xs text-[#64748B] whitespace-nowrap">
+                      {formatBnDate(expense.expenseDate, language)}
+                    </TableCell>
+                    <TableCell className="min-w-[150px]">
+                      <span className="font-semibold text-[#0F172A] block truncate max-w-[160px]" title={expense.property?.name || 'Property'}>
+                        {expense.property?.name || '—'}
+                      </span>
+                    </TableCell>
+                    <TableCell align="left">
+                      <span className="px-2.5 py-0.5 rounded text-[11px] font-semibold bg-[#F8FAFC] text-[#334155] border border-[#E2E8F0] whitespace-nowrap">
+                        {expense.category}
+                      </span>
+                    </TableCell>
+                    <TableCell align="right" className="font-bold text-[#DC2626] text-sm whitespace-nowrap">
+                      {formatCurrency(expense.amount, language)}
+                    </TableCell>
+                    <TableCell align="left" className="min-w-[180px]">
+                      <span className="text-xs text-[#64748B] block truncate max-w-[200px]" title={expense.description || ''}>
+                        {expense.description || '—'}
+                      </span>
+                    </TableCell>
+                    <TableCell align="center" className="text-xs text-[#64748B] whitespace-nowrap">
+                      {expense.paymentMethod || '—'}
+                    </TableCell>
+                    <TableCell align="left" className="font-mono text-xs text-[#64748B] whitespace-nowrap">
+                      {expense.reference || '—'}
+                    </TableCell>
+                    <TableCell align="right">
+                      <div className="flex items-center justify-end gap-1">
+                        <Button size="sm" variant="ghost" onClick={() => handleEdit(expense)} className="h-8 w-8 p-0 text-[#64748B] hover:text-[#0F172A]" title={isEn ? 'Edit' : 'সম্পাদনা'}>
+                          <Edit className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => handleDelete(expense.id)} className="h-8 w-8 p-0 text-[#DC2626] hover:text-[#B91C1C] hover:bg-[#FEF2F2]" title={isEn ? 'Delete' : 'মুছুন'}>
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Mobile 2-Line Rows */}
+          <div className="block md:hidden divide-y divide-[#F1F5F9]">
             {expenses.map((expense) => (
-              <TableRow key={expense.id}>
-                <TableCell align="left" className="text-xs text-[#64748B] whitespace-nowrap">
-                  {formatBnDate(expense.expenseDate, language)}
-                </TableCell>
-                <TableCell className="min-w-[150px]">
-                  <span className="font-semibold text-[#0F172A] block truncate max-w-[160px]" title={expense.property?.name || 'Property'}>
-                    {expense.property?.name || '—'}
-                  </span>
-                </TableCell>
-                <TableCell align="left">
-                  <span className="px-2.5 py-0.5 rounded text-[11px] font-semibold bg-[#F8FAFC] text-[#334155] border border-[#E2E8F0] whitespace-nowrap">
-                    {expense.category}
-                  </span>
-                </TableCell>
-                <TableCell align="right" className="font-bold text-[#DC2626] text-sm whitespace-nowrap">
-                  {formatCurrency(expense.amount, language)}
-                </TableCell>
-                <TableCell align="left" className="min-w-[180px]">
-                  <span className="text-xs text-[#64748B] block truncate max-w-[200px]" title={expense.description || ''}>
-                    {expense.description || '—'}
-                  </span>
-                </TableCell>
-                <TableCell align="center" className="text-xs text-[#64748B] whitespace-nowrap">
-                  {expense.paymentMethod || '—'}
-                </TableCell>
-                <TableCell align="left" className="font-mono text-xs text-[#64748B] whitespace-nowrap">
-                  {expense.reference || '—'}
-                </TableCell>
-                <TableCell align="right">
-                  <div className="flex items-center justify-end gap-1">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleEdit(expense)}
-                      className="h-8 w-8 p-0 text-[#64748B] hover:text-[#0F172A]"
-                      title={isEn ? 'Edit' : 'সম্পাদনা'}
-                    >
-                      <Edit className="w-3.5 h-3.5" />
+              <MobileDataRow
+                key={expense.id}
+                onClick={() => setDetailExpense(expense)}
+                showChevron
+                identity={
+                  <div className="min-w-0">
+                    <span className="font-semibold text-sm text-[#0F172A] truncate block">{expense.category}</span>
+                  </div>
+                }
+                value={formatCurrency(expense.amount, language)}
+                stateAndDetail={
+                  <>
+                    <span className="text-[#64748B]">{expense.property?.name || '—'}</span>
+                    {expense.description && (
+                      <><span className="text-slate-300">·</span><span className="truncate max-w-[140px]">{expense.description}</span></>
+                    )}
+                    <span className="text-slate-300">·</span>
+                    <span>{isEn ? `Paid ${formatBnDate(expense.expenseDate, language)}` : `${formatBnDate(expense.expenseDate, language)}`}</span>
+                  </>
+                }
+                action={
+                  <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                    <Button size="sm" variant="ghost" onClick={() => handleEdit(expense)} className="h-10 w-10 p-0 text-[#64748B] hover:text-[#0F172A]">
+                      <Edit className="w-4 h-4" />
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleDelete(expense.id)}
-                      className="h-8 w-8 p-0 text-[#DC2626] hover:text-[#B91C1C] hover:bg-[#FEF2F2]"
-                      title={isEn ? 'Delete' : 'মুছুন'}
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
+                    <Button size="sm" variant="ghost" onClick={() => handleDelete(expense.id)} className="h-10 w-10 p-0 text-[#DC2626] hover:bg-[#FEF2F2]">
+                      <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
-                </TableCell>
-              </TableRow>
+                }
+              />
             ))}
-          </TableBody>
-        </Table>
+          </div>
+        </ResponsiveTableContainer>
       ) : (
         <Card className="rounded-[10px] border-[#E2E8F0] shadow-none">
           <CardContent className="p-0">
             <EmptyState
               icon={Wallet}
               title={isEn ? 'No Expense Records' : 'কোনো খরচের রেকর্ড নেই'}
-              description={isEn ? 'Track electricity and repair costs by adding your first expense' : 'বাড়ির খরচের হিসাব রাখতে নতুন খরচ যুক্ত করুন'}
+              description={isEn ? 'Track electricity and repair costs by adding your first expense' : 'বাড়ির খরচের হিসাব রাখতে নতুন খরচ যুক্ত করুন'}
               actionLabel={isEn ? 'Add Expense' : 'নতুন খরচ যোগ করুন'}
               onAction={handleCreate}
             />
           </CardContent>
         </Card>
       )}
+
+      {/* Row Details Bottom Sheet */}
+      <BottomSheet open={!!detailExpense} onOpenChange={(open) => !open && setDetailExpense(null)}>
+        {detailExpense && (
+          <BottomSheetContent>
+            <BottomSheetHeader>
+              <BottomSheetTitle>{detailExpense.category}</BottomSheetTitle>
+              <BottomSheetDescription>{detailExpense.property?.name || '—'}</BottomSheetDescription>
+            </BottomSheetHeader>
+            <div className="py-2">
+              <DetailItem label={isEn ? 'Amount' : 'পরিমাণ'} value={formatCurrency(detailExpense.amount, language)} isNumeric highlight />
+              <DetailItem label={isEn ? 'Date' : 'তারিখ'} value={formatBnDate(detailExpense.expenseDate, language)} />
+              <DetailItem label={isEn ? 'Description' : 'বিবরণ'} value={detailExpense.description || '—'} />
+              <DetailItem label={isEn ? 'Payment Method' : 'পেমেন্ট পদ্ধতি'} value={detailExpense.paymentMethod || '—'} />
+              <DetailItem label={isEn ? 'Voucher/Reference' : 'ভাউচার'} value={detailExpense.reference || '—'} />
+            </div>
+            <BottomSheetFooter>
+              <Button onClick={() => { setDetailExpense(null); handleEdit(detailExpense); }} className="w-full sm:w-auto min-h-[44px] bg-[#059669] hover:bg-[#047857]">
+                <Edit className="w-4 h-4 mr-2" />{isEn ? 'Edit Expense' : 'সম্পাদনা'}
+              </Button>
+              <Button variant="outline" onClick={() => { const id = detailExpense.id; setDetailExpense(null); handleDelete(id); }} className="w-full sm:w-auto min-h-[44px] text-[#DC2626] hover:bg-[#FEF2F2] border-[#FCA5A5]">
+                <Trash2 className="w-4 h-4 mr-2" />{isEn ? 'Delete' : 'মুছুন'}
+              </Button>
+            </BottomSheetFooter>
+          </BottomSheetContent>
+        )}
+      </BottomSheet>
 
       {/* Expense Form Modal Dialog */}
       <ExpenseFormDialog

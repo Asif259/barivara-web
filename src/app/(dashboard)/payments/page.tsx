@@ -24,6 +24,21 @@ import {
   TableCell,
   TableSkeleton,
 } from '@/components/ui/table';
+import {
+  MobileDataRow,
+  MobileTableSkeleton,
+  CompactStatus,
+  ResponsiveTableContainer,
+} from '@/components/ui/responsive-table';
+import {
+  BottomSheet,
+  BottomSheetContent,
+  BottomSheetHeader,
+  BottomSheetTitle,
+  BottomSheetDescription,
+  BottomSheetFooter,
+  DetailItem,
+} from '@/components/ui/bottom-sheet';
 import { PaymentReceiptDialog } from '@/components/payments/payment-receipt-dialog';
 import { TenantAvatar } from '@/components/ui/tenant-avatar';
 import {
@@ -31,6 +46,7 @@ import {
   FileText,
   RotateCcw,
   Search,
+  User,
 } from 'lucide-react';
 
 export default function PaymentsPage() {
@@ -42,6 +58,7 @@ export default function PaymentsPage() {
   const [search, setSearch] = useState('');
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
   const [receiptOpen, setReceiptOpen] = useState(false);
+  const [detailPayment, setDetailPayment] = useState<Payment | null>(null);
 
   // 1. Fetch Payments History
   const {
@@ -123,118 +140,197 @@ export default function PaymentsPage() {
         <p className="text-xs text-[#6B7280]">{visiblePayments.length} {isEn ? 'payments' : 'টি পেমেন্ট'}</p>
       </div>
 
-      {/* Payments Table */}
+      {/* Payments Responsive Table Container */}
       {isLoading ? (
-        <Table className="min-w-[950px]">
-          <TableHeader>
-            <TableRow>
-              <TableHead align="left" className="min-w-[105px]">{t.date}</TableHead>
-              <TableHead className="min-w-[220px]">{t.tenantName}</TableHead>
-              <TableHead className="min-w-[120px]">{t.unitNumber}</TableHead>
-              <TableHead align="right" className="min-w-[110px]">{t.amount}</TableHead>
-              <TableHead align="center" className="min-w-[100px]">{t.paymentMethod}</TableHead>
-              <TableHead align="left" className="min-w-[120px]">{t.transactionId}</TableHead>
-              <TableHead align="center" className="min-w-[100px]">{t.status}</TableHead>
-              <TableHead align="right" className="min-w-[150px]">{t.actions}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableSkeleton columns={8} rows={5} />
-          </TableBody>
-        </Table>
+        <ResponsiveTableContainer>
+          <div className="hidden md:block">
+            <Table className="min-w-[950px]">
+              <TableHeader>
+                <TableRow>
+                  <TableHead align="left" className="min-w-[105px]">{t.date}</TableHead>
+                  <TableHead className="min-w-[220px]">{t.tenantName}</TableHead>
+                  <TableHead className="min-w-[120px]">{t.unitNumber}</TableHead>
+                  <TableHead align="right" className="min-w-[110px]">{t.amount}</TableHead>
+                  <TableHead align="center" className="min-w-[100px]">{t.paymentMethod}</TableHead>
+                  <TableHead align="left" className="min-w-[120px]">{t.transactionId}</TableHead>
+                  <TableHead align="center" className="min-w-[100px]">{t.status}</TableHead>
+                  <TableHead align="right" className="min-w-[150px]">{t.actions}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableSkeleton columns={8} rows={5} />
+              </TableBody>
+            </Table>
+          </div>
+          <div className="block md:hidden">
+            <MobileTableSkeleton rows={5} />
+          </div>
+        </ResponsiveTableContainer>
       ) : visiblePayments.length > 0 ? (
-        <Table className="min-w-[950px]">
-          <TableHeader>
-            <TableRow>
-              <TableHead align="left" className="min-w-[105px]">{t.date}</TableHead>
-              <TableHead className="min-w-[220px]">{t.tenantName}</TableHead>
-              <TableHead className="min-w-[120px]">{t.unitNumber}</TableHead>
-              <TableHead align="right" className="min-w-[110px]">{t.amount}</TableHead>
-              <TableHead align="center" className="min-w-[100px]">{t.paymentMethod}</TableHead>
-              <TableHead align="left" className="min-w-[120px]">{t.transactionId}</TableHead>
-              <TableHead align="center" className="min-w-[100px]">{t.status}</TableHead>
-              <TableHead align="right" className="min-w-[150px]">{t.actions}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {visiblePayments.map((payment) => (
-              <TableRow key={payment.id}>
-                <TableCell align="left" className="text-xs text-[#64748B] whitespace-nowrap">
-                  {formatBnDate(payment.paymentDate, language)}
-                </TableCell>
-                <TableCell className="min-w-[220px]">
-                  <div className="flex items-center gap-2.5">
-                    <TenantAvatar
-                      profilePictureId={payment.monthlyRent?.agreement?.tenant?.profilePictureId}
-                      name={payment.monthlyRent?.agreement?.tenant?.name || 'Tenant'}
-                      size="sm"
-                      onClick={() => payment.monthlyRent?.agreement?.tenant?.id && window.open(`/tenants/${payment.monthlyRent.agreement.tenant.id}`, '_blank')}
-                      ariaLabel={isEn ? 'View tenant profile' : 'ভাড়াটিয়ার প্রোফাইল দেখুন'}
-                    />
-                    <div className="min-w-0 max-w-[160px]">
-                      <p className="truncate font-medium text-[#0F172A] text-sm" title={payment.monthlyRent?.agreement?.tenant?.name || 'Tenant'}>
+        <ResponsiveTableContainer>
+          {/* Desktop Table View */}
+          <div className="hidden md:block">
+            <Table className="min-w-[950px]">
+              <TableHeader>
+                <TableRow>
+                  <TableHead align="left" className="min-w-[105px]">{t.date}</TableHead>
+                  <TableHead className="min-w-[220px]">{t.tenantName}</TableHead>
+                  <TableHead className="min-w-[120px]">{t.unitNumber}</TableHead>
+                  <TableHead align="right" className="min-w-[110px]">{t.amount}</TableHead>
+                  <TableHead align="center" className="min-w-[100px]">{t.paymentMethod}</TableHead>
+                  <TableHead align="left" className="min-w-[120px]">{t.transactionId}</TableHead>
+                  <TableHead align="center" className="min-w-[100px]">{t.status}</TableHead>
+                  <TableHead align="right" className="min-w-[150px]">{t.actions}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {visiblePayments.map((payment) => (
+                  <TableRow key={payment.id}>
+                    <TableCell align="left" className="text-xs text-[#64748B] whitespace-nowrap">
+                      {formatBnDate(payment.paymentDate, language)}
+                    </TableCell>
+                    <TableCell className="min-w-[220px]">
+                      <div className="flex items-center gap-2.5">
+                        <TenantAvatar
+                          profilePictureId={payment.monthlyRent?.agreement?.tenant?.profilePictureId}
+                          name={payment.monthlyRent?.agreement?.tenant?.name || 'Tenant'}
+                          size="sm"
+                          onClick={() => payment.monthlyRent?.agreement?.tenant?.id && window.open(`/tenants/${payment.monthlyRent.agreement.tenant.id}`, '_blank')}
+                          ariaLabel={isEn ? 'View tenant profile' : 'ভাড়াটিয়ার প্রোফাইল দেখুন'}
+                        />
+                        <div className="min-w-0 max-w-[160px]">
+                          <p className="truncate font-medium text-[#0F172A] text-sm" title={payment.monthlyRent?.agreement?.tenant?.name || 'Tenant'}>
+                            {payment.monthlyRent?.agreement?.tenant?.name || 'Tenant'}
+                          </p>
+                          <p className="truncate text-xs text-[#64748B]" title={payment.monthlyRent?.agreement?.tenant?.phone || ''}>
+                            {payment.monthlyRent?.agreement?.tenant?.phone || '—'}
+                          </p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="min-w-[120px]">
+                      <div className="min-w-0">
+                        <span className="font-semibold text-[#1E293B] block">
+                          {payment.monthlyRent?.agreement?.unit?.unitNumber || '—'}
+                        </span>
+                        <span className="block text-xs text-[#64748B] truncate max-w-[130px]" title={payment.monthlyRent?.agreement?.unit?.property?.name || ''}>
+                          {payment.monthlyRent?.agreement?.unit?.property?.name || '—'}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell align="right" className="font-semibold text-[#059669] text-sm whitespace-nowrap">
+                      {formatCurrency(payment.amount, language)}
+                    </TableCell>
+                    <TableCell align="center">
+                      <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-[#F8FAFC] text-[#334155] border border-[#E2E8F0] whitespace-nowrap">
+                        {payment.paymentMethod || '—'}
+                      </span>
+                    </TableCell>
+                    <TableCell align="left" className="font-mono text-xs text-[#64748B] whitespace-nowrap">
+                      {payment.transactionId || '—'}
+                    </TableCell>
+                    <TableCell align="center">
+                      <StatusBadge status={payment.status} lang={language} />
+                    </TableCell>
+                    <TableCell align="right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleViewReceipt(payment)}
+                          className="h-8 gap-1.5 text-xs px-2.5 rounded-lg text-[#334155] hover:text-[#059669] hover:bg-[#F0FDF4]"
+                        >
+                          <FileText className="w-3.5 h-3.5 text-[#059669]" />
+                          <span>{t.receipt || (isEn ? 'Receipt' : 'মানি রিসিট')}</span>
+                        </Button>
+
+                        {payment.status === 'COMPLETED' && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleReversePayment(payment.id, payment.amount)}
+                            className="h-8 text-xs text-[#DC2626] hover:text-[#B91C1C] hover:bg-[#FEF2F2] gap-1 px-2"
+                            title={t.reversePayment}
+                          >
+                            <RotateCcw className="w-3.5 h-3.5" />
+                            <span>{isEn ? 'Reverse' : 'রিভার্স'}</span>
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Mobile 2-Line Row Representation */}
+          <div className="block md:hidden divide-y divide-[#F1F5F9]">
+            {visiblePayments.map((payment) => {
+              const statusVariant =
+                payment.status === 'COMPLETED'
+                  ? 'success'
+                  : payment.status === 'REVERSED'
+                  ? 'danger'
+                  : 'warning';
+
+              const statusLabel =
+                payment.status === 'COMPLETED'
+                  ? (isEn ? 'Paid' : 'পরিশোধিত')
+                  : payment.status === 'REVERSED'
+                  ? (isEn ? 'Reversed' : 'রিভার্সড')
+                  : (isEn ? 'Pending' : 'অপেক্ষমাণ');
+
+              return (
+                <MobileDataRow
+                  key={payment.id}
+                  onClick={() => setDetailPayment(payment)}
+                  showChevron
+                  identity={
+                    <div className="flex items-center gap-2">
+                      <TenantAvatar
+                        profilePictureId={payment.monthlyRent?.agreement?.tenant?.profilePictureId}
+                        name={payment.monthlyRent?.agreement?.tenant?.name || 'Tenant'}
+                        size="sm"
+                      />
+                      <span className="font-semibold text-sm text-[#0F172A] truncate">
                         {payment.monthlyRent?.agreement?.tenant?.name || 'Tenant'}
-                      </p>
-                      <p className="truncate text-xs text-[#64748B]" title={payment.monthlyRent?.agreement?.tenant?.phone || ''}>
-                        {payment.monthlyRent?.agreement?.tenant?.phone || '—'}
-                      </p>
+                      </span>
                     </div>
-                  </div>
-                </TableCell>
-                <TableCell className="min-w-[120px]">
-                  <div className="min-w-0">
-                    <span className="font-semibold text-[#1E293B] block">
-                      {payment.monthlyRent?.agreement?.unit?.unitNumber || '—'}
-                    </span>
-                    <span className="block text-xs text-[#64748B] truncate max-w-[130px]" title={payment.monthlyRent?.agreement?.unit?.property?.name || ''}>
-                      {payment.monthlyRent?.agreement?.unit?.property?.name || '—'}
-                    </span>
-                  </div>
-                </TableCell>
-                <TableCell align="right" className="font-semibold text-[#059669] text-sm whitespace-nowrap">
-                  {formatCurrency(payment.amount, language)}
-                </TableCell>
-                <TableCell align="center">
-                  <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-[#F8FAFC] text-[#334155] border border-[#E2E8F0] whitespace-nowrap">
-                    {payment.paymentMethod || '—'}
-                  </span>
-                </TableCell>
-                <TableCell align="left" className="font-mono text-xs text-[#64748B] whitespace-nowrap">
-                  {payment.transactionId || '—'}
-                </TableCell>
-                <TableCell align="center">
-                  <StatusBadge status={payment.status} lang={language} />
-                </TableCell>
-                <TableCell align="right">
-                  <div className="flex items-center justify-end gap-1.5">
+                  }
+                  value={formatCurrency(payment.amount, language)}
+                  stateAndDetail={
+                    <>
+                      <CompactStatus label={statusLabel} variant={statusVariant} />
+                      <span className="text-slate-300">·</span>
+                      <span>{isEn ? `Paid ${formatBnDate(payment.paymentDate, language)}` : `পরিশোধ ${formatBnDate(payment.paymentDate, language)}`}</span>
+                      {payment.monthlyRent?.agreement?.unit?.unitNumber && (
+                        <>
+                          <span className="text-slate-300">·</span>
+                          <span>Unit {payment.monthlyRent.agreement.unit.unitNumber}</span>
+                        </>
+                      )}
+                    </>
+                  }
+                  action={
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => handleViewReceipt(payment)}
-                      className="h-8 gap-1.5 text-xs px-2.5 rounded-lg text-[#334155] hover:text-[#059669] hover:bg-[#F0FDF4]"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleViewReceipt(payment);
+                      }}
+                      className="h-8 min-h-[40px] px-2.5 text-xs text-[#059669] border-[#E2E8F0] hover:bg-[#F0FDF4] gap-1"
                     >
-                      <FileText className="w-3.5 h-3.5 text-[#059669]" />
-                      <span>{t.receipt || (isEn ? 'Receipt' : 'মানি রিসিট')}</span>
+                      <FileText className="w-3.5 h-3.5" />
+                      <span>{isEn ? 'Receipt' : 'রিসিট'}</span>
                     </Button>
-
-                    {payment.status === 'COMPLETED' && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleReversePayment(payment.id, payment.amount)}
-                        className="h-8 text-xs text-[#DC2626] hover:text-[#B91C1C] hover:bg-[#FEF2F2] gap-1 px-2"
-                        title={t.reversePayment}
-                      >
-                        <RotateCcw className="w-3.5 h-3.5" />
-                        <span>{isEn ? 'Reverse' : 'রিভার্স'}</span>
-                      </Button>
-                    )}
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+                  }
+                />
+              );
+            })}
+          </div>
+        </ResponsiveTableContainer>
       ) : (
         <Card className="rounded-[10px] border-[#E2E8F0] shadow-none">
           <CardContent className="p-0">
@@ -246,6 +342,84 @@ export default function PaymentsPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Row Details Bottom Sheet on Mobile */}
+      <BottomSheet open={!!detailPayment} onOpenChange={(open) => !open && setDetailPayment(null)}>
+        {detailPayment && (
+          <BottomSheetContent>
+            <BottomSheetHeader>
+              <BottomSheetTitle>
+                {detailPayment.monthlyRent?.agreement?.tenant?.name || 'Payment Details'}
+              </BottomSheetTitle>
+              <BottomSheetDescription>
+                {detailPayment.monthlyRent?.agreement?.unit?.property?.name ? `${detailPayment.monthlyRent.agreement.unit.property.name} · ` : ''}
+                Unit {detailPayment.monthlyRent?.agreement?.unit?.unitNumber || '—'}
+              </BottomSheetDescription>
+            </BottomSheetHeader>
+
+            <div className="py-2">
+              <DetailItem
+                label={isEn ? 'Payment Amount' : 'পরিশোধের পরিমাণ'}
+                value={formatCurrency(detailPayment.amount, language)}
+                isNumeric
+                highlight
+              />
+              <DetailItem
+                label={isEn ? 'Payment Date' : 'পরিশোধের তারিখ'}
+                value={formatBnDate(detailPayment.paymentDate, language)}
+              />
+              <DetailItem
+                label={isEn ? 'Payment Method' : 'পেমেন্ট পদ্ধতি'}
+                value={detailPayment.paymentMethod || '—'}
+              />
+              <DetailItem
+                label={isEn ? 'Transaction ID' : 'ট্রানজেকশন আইডি'}
+                value={detailPayment.transactionId || '—'}
+              />
+              <DetailItem
+                label={isEn ? 'Status' : 'অবস্থা'}
+                value={<StatusBadge status={detailPayment.status} lang={language} />}
+              />
+              {detailPayment.monthlyRent?.agreement?.tenant?.phone && (
+                <DetailItem
+                  label={isEn ? 'Phone' : 'ফোন'}
+                  value={detailPayment.monthlyRent.agreement.tenant.phone}
+                />
+              )}
+            </div>
+
+            <BottomSheetFooter>
+              <Button
+                onClick={() => {
+                  const p = detailPayment;
+                  setDetailPayment(null);
+                  handleViewReceipt(p);
+                }}
+                className="w-full sm:w-auto bg-[#059669] hover:bg-[#047857] min-h-[44px]"
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                {t.receipt || (isEn ? 'View Receipt' : 'মানি রিসিট')}
+              </Button>
+
+              {detailPayment.status === 'COMPLETED' && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    const id = detailPayment.id;
+                    const amount = detailPayment.amount;
+                    setDetailPayment(null);
+                    handleReversePayment(id, amount);
+                  }}
+                  className="w-full sm:w-auto min-h-[44px] text-[#DC2626] hover:bg-[#FEF2F2] border-[#FCA5A5]"
+                >
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  {isEn ? 'Reverse Payment' : 'রিভার্স করুন'}
+                </Button>
+              )}
+            </BottomSheetFooter>
+          </BottomSheetContent>
+        )}
+      </BottomSheet>
 
       {/* Payment Receipt Modal */}
       <PaymentReceiptDialog
