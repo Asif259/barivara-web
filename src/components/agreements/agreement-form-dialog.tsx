@@ -72,7 +72,7 @@ const defaultAgreementValues: AgreementFormValues = {
   status: 'ACTIVE',
   notes: '',
   agreementDocumentId: '',
-  generateCurrentMonthRent: true,
+  generateCurrentMonthRent: false,
 };
 
 interface AgreementFormDialogProps {
