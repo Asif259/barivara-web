@@ -105,6 +105,13 @@ export interface Property {
   _count?: {
     units: number;
   };
+  owner?: {
+    id: string;
+    name: string;
+    phone?: string | null;
+    email?: string | null;
+    signatureFileId?: string | null;
+  };
 }
 
 export interface PropertySummary {

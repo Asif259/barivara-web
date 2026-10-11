@@ -40,6 +40,8 @@ import {
 } from '@/components/ui/bottom-sheet';
 import { CollectPaymentDialog } from '@/components/payments/collect-payment-dialog';
 import { GenerateRentDialog } from '@/components/rents/generate-rent-dialog';
+import { RentNoticeDialog } from '@/components/rents/rent-notice-dialog';
+import { GenerateRentNoticesDialog } from '@/components/rents/generate-rent-notices-dialog';
 import { TenantAvatar } from '@/components/ui/tenant-avatar';
 import {
   Receipt,
@@ -48,6 +50,7 @@ import {
   Search,
   ChevronRight,
   User,
+  FileText,
 } from 'lucide-react';
 
 export default function MonthlyRentsPage() {
@@ -63,8 +66,11 @@ export default function MonthlyRentsPage() {
   const [search, setSearch] = useState('');
 
   const [generateDialogOpen, setGenerateDialogOpen] = useState(false);
+  const [noticesDialogOpen, setNoticesDialogOpen] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [noticeDialogOpen, setNoticeDialogOpen] = useState(false);
   const [selectedRent, setSelectedRent] = useState<MonthlyRent | null>(null);
+  const [selectedNoticeRent, setSelectedNoticeRent] = useState<MonthlyRent | null>(null);
   const [detailRent, setDetailRent] = useState<MonthlyRent | null>(null);
 
   // 1. Fetch Properties for dropdown
@@ -104,10 +110,20 @@ export default function MonthlyRentsPage() {
         title={t.monthlyRents}
         description={isEn ? 'Manage rent invoices, due dates, and collections' : 'মাসিক ভাড়ার বিল, বকেয়া এবং ভাড়া আদায় পরিচালনা করুন'}
         action={
-          <Button onClick={() => setGenerateDialogOpen(true)} variant="default" className="h-10 gap-2">
-            <Sparkles className="w-4 h-4" />
-            {t.generateMonthlyRent}
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              onClick={() => setNoticesDialogOpen(true)}
+              variant="outline"
+              className="h-10 gap-2 border-emerald-300 text-emerald-800 hover:bg-emerald-50"
+            >
+              <FileText className="w-4 h-4 text-emerald-600" />
+              {isEn ? 'Rent Notices' : 'ভাড়ার নোটিশ'}
+            </Button>
+            <Button onClick={() => setGenerateDialogOpen(true)} variant="default" className="h-10 gap-2">
+              <Sparkles className="w-4 h-4" />
+              {t.generateMonthlyRent}
+            </Button>
+          </div>
         }
       />
 
@@ -298,21 +314,35 @@ export default function MonthlyRentsPage() {
                       <StatusBadge status={rent.status} lang={language} />
                     </TableCell>
                     <TableCell align="right">
-                      {rent.status !== 'PAID' && rent.remainingAmount > 0 ? (
+                      <div className="flex items-center justify-end gap-1.5">
                         <Button
                           size="sm"
-                          variant="default"
-                          onClick={() => handleOpenPayment(rent)}
-                          className="h-8 gap-1.5 text-xs bg-[#059669] hover:bg-[#047857] px-2.5"
+                          variant="ghost"
+                          onClick={() => {
+                            setSelectedNoticeRent(rent);
+                            setNoticeDialogOpen(true);
+                          }}
+                          title={isEn ? 'View Rent Notice' : 'ভাড়ার নোটিশ দেখুন'}
+                          className="h-8 w-8 p-0 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50"
                         >
-                          <Wallet className="w-3.5 h-3.5" />
-                          <span>{t.collectPayment}</span>
+                          <FileText className="w-4 h-4" />
                         </Button>
-                      ) : (
-                        <span className="text-xs font-semibold text-[#059669] inline-flex items-center gap-1">
-                          {isEn ? 'Completed' : 'সম্পূর্ণ'}
-                        </span>
-                      )}
+                        {rent.status !== 'PAID' && rent.remainingAmount > 0 ? (
+                          <Button
+                            size="sm"
+                            variant="default"
+                            onClick={() => handleOpenPayment(rent)}
+                            className="h-8 gap-1.5 text-xs bg-[#059669] hover:bg-[#047857] px-2.5"
+                          >
+                            <Wallet className="w-3.5 h-3.5" />
+                            <span>{t.collectPayment}</span>
+                          </Button>
+                        ) : (
+                          <span className="text-xs font-semibold text-[#059669] inline-flex items-center gap-1 px-1">
+                            {isEn ? 'Completed' : 'সম্পূর্ণ'}
+                          </span>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -475,6 +505,19 @@ export default function MonthlyRentsPage() {
             </div>
 
             <BottomSheetFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  const r = detailRent;
+                  setDetailRent(null);
+                  setSelectedNoticeRent(r);
+                  setNoticeDialogOpen(true);
+                }}
+                className="w-full sm:w-auto min-h-[44px]"
+              >
+                <FileText className="w-4 h-4 mr-2 text-emerald-600" />
+                {isEn ? 'Rent Notice' : 'ভাড়ার নোটিশ'}
+              </Button>
               {detailRent.status !== 'PAID' && detailRent.remainingAmount > 0 && (
                 <Button
                   onClick={() => {
@@ -510,6 +553,19 @@ export default function MonthlyRentsPage() {
         open={generateDialogOpen}
         onOpenChange={setGenerateDialogOpen}
         onSuccess={refetch}
+      />
+
+      {/* Generate & Send Rent Notices Modal Dialog */}
+      <GenerateRentNoticesDialog
+        open={noticesDialogOpen}
+        onOpenChange={setNoticesDialogOpen}
+      />
+
+      {/* Individual Rent Notice Document Dialog */}
+      <RentNoticeDialog
+        rent={selectedNoticeRent}
+        open={noticeDialogOpen}
+        onOpenChange={setNoticeDialogOpen}
       />
 
       {/* Collect Payment Modal Dialog */}
