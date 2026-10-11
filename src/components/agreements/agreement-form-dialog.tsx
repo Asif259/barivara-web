@@ -248,8 +248,11 @@ export function AgreementFormDialog({
         dueDay: data.dueDay,
         securityDeposit: data.securityDeposit,
         startDate: new Date(data.startDate).toISOString(),
-        generateCurrentMonthRent: data.generateCurrentMonthRent,
       };
+
+      if (!isEditing) {
+        payload.generateCurrentMonthRent = data.generateCurrentMonthRent;
+      }
 
       if (data.endDate) {
         payload.endDate = new Date(data.endDate).toISOString();
