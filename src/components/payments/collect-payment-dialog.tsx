@@ -4,12 +4,14 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api';
 import { useLanguageStore } from '@/stores/language-store';
 import { useTranslation } from '@/lib/translations';
 import { MonthlyRent, PaymentMethod, ApiResponse, Payment } from '@/lib/types';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, formatBnDate, formatNumber } from '@/lib/utils';
+import { StatusBadge } from '@/components/ui/status-badge';
 import {
   Dialog,
   DialogContent,
@@ -22,7 +24,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { FileUploader } from '@/components/ui/file-uploader';
-import { Loader2, CreditCard, CheckCircle2, User, Building, Home, DollarSign, Calendar } from 'lucide-react';
+import { Loader2, CreditCard, CheckCircle2, User, Building, Home, DollarSign, Calendar, Clock } from 'lucide-react';
 import { PaymentReceiptDialog } from './payment-receipt-dialog';
 
 const getTodayString = () => {
@@ -60,10 +62,51 @@ export function CollectPaymentDialog({
   const t = useTranslation(language);
   const [isLoading, setIsLoading] = useState(false);
   const [receiptPayment, setReceiptPayment] = useState<Payment | null>(null);
+  const [selectedRentId, setSelectedRentId] = useState<string | null>(rent?.id || null);
 
   const isEn = language === 'en';
 
-  const remaining = rent ? rent.remainingAmount : 0;
+  const tenantId = rent?.agreement?.tenant?.id || rent?.agreement?.tenantId;
+
+  // 1. Fetch all eligible outstanding or partially paid invoices for this tenant
+  const { data: outstandingInvoices, isLoading: isLoadingInvoices } = useQuery({
+    queryKey: ['tenant-outstanding-rents', tenantId],
+    queryFn: async () => {
+      if (!tenantId) return [];
+      const res = await apiClient.get<ApiResponse<MonthlyRent[]>>(
+        `/monthly-rents/outstanding?tenantId=${tenantId}&limit=50`
+      );
+      return res.data?.data || [];
+    },
+    enabled: open && !!tenantId,
+  });
+
+  // Combine query results and passed rent to ensure the active selection is always present
+  const invoiceOptions = React.useMemo(() => {
+    const list = outstandingInvoices ? [...outstandingInvoices] : [];
+    if (rent && !list.some((i) => i.id === rent.id)) {
+      list.unshift(rent);
+    }
+    return list;
+  }, [outstandingInvoices, rent]);
+
+  // The active invoice targeted for this payment
+  const activeRent = React.useMemo(() => {
+    if (selectedRentId) {
+      const found = invoiceOptions.find((i) => i.id === selectedRentId);
+      if (found) return found;
+    }
+    return rent;
+  }, [selectedRentId, invoiceOptions, rent]);
+
+  // Sync selection when dialog opens or incoming rent changes
+  React.useEffect(() => {
+    if (open && rent) {
+      setSelectedRentId(rent.id);
+    }
+  }, [open, rent]);
+
+  const remaining = activeRent ? activeRent.remainingAmount : 0;
 
   const paymentSchema = z.object({
     amount: z
@@ -107,14 +150,29 @@ export function CollectPaymentDialog({
     },
   });
 
+  // Re-populate remaining amount when targeted invoice changes
+  React.useEffect(() => {
+    if (activeRent) {
+      setValue('amount', activeRent.remainingAmount);
+    }
+  }, [activeRent, setValue]);
+
+  const getMonthLabel = (m: number, y: number) => {
+    const monthsEn = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthsBn = ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'];
+    return isEn
+      ? `${monthsEn[m - 1]} ${y}`
+      : `${monthsBn[m - 1]} ${formatNumber(y, 'bn')}`;
+  };
+
   const onSubmit = async (data: PaymentFormValues) => {
-    if (!rent) return;
+    if (!activeRent) return;
     setIsLoading(true);
     try {
       const response = await apiClient.post<ApiResponse<{ payment: Payment; monthlyRent: MonthlyRent }>>(
         '/payments',
         {
-          monthlyRentId: rent.id,
+          monthlyRentId: activeRent.id,
           amount: data.amount,
           paymentMethod: data.paymentMethod,
           paymentDate: data.paymentDate || getTodayString(),
@@ -132,7 +190,7 @@ export function CollectPaymentDialog({
         if (createdPayment) {
           setReceiptPayment({
             ...createdPayment,
-            monthlyRent: response.data.data?.monthlyRent || rent,
+            monthlyRent: response.data.data?.monthlyRent || activeRent,
           });
         } else {
           onOpenChange(false);
@@ -149,12 +207,12 @@ export function CollectPaymentDialog({
     }
   };
 
-  if (!rent) return null;
+  if (!rent || !activeRent) return null;
 
   return (
     <>
       <Dialog open={open && !receiptPayment} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-slate-900">
             <CreditCard className="w-5 h-5 text-emerald-600" />
@@ -162,19 +220,56 @@ export function CollectPaymentDialog({
           </DialogTitle>
           <DialogDescription>
             {isEn
-              ? 'Record a partial or full payment against this rent bill.'
-              : 'এই ভাড়ার বিলের বিপরীতে আংশিক অথবা সম্পূর্ণ ভাড়া গ্রহণ রেকর্ড করুন।'}
+              ? 'Record a payment against an outstanding or partially paid rent invoice.'
+              : 'নির্দিষ্ট বকেয়া বা আংশিক পরিশোধিত ভাড়ার বিলের বিপরীতে পেমেন্ট রেকর্ড করুন।'}
           </DialogDescription>
         </DialogHeader>
 
-        {/* Bill Summary Card */}
+        {/* 1. Explicit Rent Month / Invoice Selector */}
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="invoiceSelect" className="text-xs font-semibold text-slate-800">
+              {isEn ? 'Rent Month / Invoice' : 'ভাড়ার মাস ও বিল নির্বাচন'}
+            </Label>
+            {isLoadingInvoices && (
+              <span className="text-[11px] text-slate-400 flex items-center gap-1">
+                <Loader2 className="w-3 h-3 animate-spin" />
+                {isEn ? 'Loading bills...' : 'বিল খোঁজা হচ্ছে...'}
+              </span>
+            )}
+          </div>
+          <select
+            id="invoiceSelect"
+            value={activeRent.id}
+            onChange={(e) => {
+              const chosenId = e.target.value;
+              setSelectedRentId(chosenId);
+              const chosen = invoiceOptions.find((i) => i.id === chosenId);
+              if (chosen) {
+                setValue('amount', chosen.remainingAmount);
+              }
+            }}
+            disabled={invoiceOptions.length <= 1}
+            className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 font-medium"
+          >
+            {invoiceOptions.map((inv) => (
+              <option key={inv.id} value={inv.id}>
+                {getMonthLabel(inv.month, inv.year)} — {isEn ? 'Due: ' : 'বকেয়া: '}
+                {formatCurrency(inv.remainingAmount, language)}
+                {inv.status ? ` (${inv.status})` : ''}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* 2. Bill Summary Card */}
         <div className="rounded-2xl bg-slate-50 border border-slate-200/80 p-4 space-y-2.5 text-sm">
           <div className="flex items-center justify-between text-slate-600">
             <span className="flex items-center gap-1.5">
               <User className="w-4 h-4 text-slate-400" /> {t.tenantName}:
             </span>
             <span className="font-semibold text-slate-900">
-              {rent.agreement?.tenant?.name || 'Tenant'}
+              {activeRent.agreement?.tenant?.name || 'Tenant'}
             </span>
           </div>
           <div className="flex items-center justify-between text-slate-600">
@@ -182,20 +277,40 @@ export function CollectPaymentDialog({
               <Home className="w-4 h-4 text-slate-400" /> {t.unitNumber}:
             </span>
             <span className="font-semibold text-slate-900">
-              {rent.agreement?.unit?.unitNumber} ({rent.agreement?.unit?.property?.name})
+              {activeRent.agreement?.unit?.unitNumber} ({activeRent.agreement?.unit?.property?.name})
             </span>
+          </div>
+          <div className="flex items-center justify-between text-slate-600">
+            <span className="flex items-center gap-1.5">
+              <Calendar className="w-4 h-4 text-slate-400" /> {isEn ? 'Rent Month' : 'ভাড়ার মাস'}:
+            </span>
+            <span className="font-semibold text-emerald-800">
+              {getMonthLabel(activeRent.month, activeRent.year)}
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-slate-600">
+            <span className="flex items-center gap-1.5">
+              <Clock className="w-4 h-4 text-slate-400" /> {isEn ? 'Due Date' : 'পরিশোধের শেষ তারিখ'}:
+            </span>
+            <span className="font-medium text-slate-900">
+              {formatBnDate(activeRent.dueDate, language)}
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-slate-600">
+            <span>{isEn ? 'Status' : 'বিল স্ট্যাটাস'}:</span>
+            <StatusBadge status={activeRent.status} lang={language} />
           </div>
           <div className="border-t border-slate-200 pt-2 flex items-center justify-between">
             <span className="text-slate-600">{t.total}:</span>
-            <span className="font-bold text-slate-900">{formatCurrency(rent.totalAmount, language)}</span>
+            <span className="font-bold text-slate-900">{formatCurrency(activeRent.totalAmount, language)}</span>
           </div>
           <div className="flex items-center justify-between text-emerald-700 font-medium">
             <span>{t.paid}:</span>
-            <span>{formatCurrency(rent.paidAmount, language)}</span>
+            <span>{formatCurrency(activeRent.paidAmount, language)}</span>
           </div>
           <div className="flex items-center justify-between text-rose-700 font-bold text-base">
             <span>{t.remaining}:</span>
-            <span>{formatCurrency(rent.remainingAmount, language)}</span>
+            <span>{formatCurrency(activeRent.remainingAmount, language)}</span>
           </div>
         </div>
 

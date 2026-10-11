@@ -156,8 +156,8 @@ export function GenerateRentDialog({
           </DialogTitle>
           <DialogDescription>
             {isEn
-              ? 'Automatically generate monthly bills for active rental agreements.'
-              : 'সকল সক্রিয় ভাড়া চুক্তির জন্য এক ক্লিকে স্বয়ংক্রিয়ভাবে মাসিক বিল তৈরি করুন।'}
+              ? 'Generate all missing rent invoices up to the selected Rent Month for active rental agreements.'
+              : 'সকল সক্রিয় চুক্তির জন্য নির্বাচিত মাস পর্যন্ত অপরিশোধিত ও বকেয়া সকল মাসের বিল এক ক্লিকে তৈরি করুন।'}
           </DialogDescription>
         </DialogHeader>
 
