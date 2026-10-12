@@ -5,7 +5,6 @@ import { useQuery } from '@tanstack/react-query';
 import { ApiResponse, MonthlyRent } from '@/lib/types';
 import { apiClient } from '@/lib/api';
 import { useLanguageStore } from '@/stores/language-store';
-import { formatCurrency, formatBnDate } from '@/lib/utils';
 import { getFileDownloadUrl } from '@/lib/file-upload';
 import {
   buildNoticeWhatsAppText,
@@ -32,109 +31,25 @@ import {
   AlertCircle,
   ExternalLink,
 } from 'lucide-react';
-import Image from 'next/image';
 import { toPng } from 'html-to-image';
 import { toast } from 'sonner';
 
-export const CANONICAL_NOTICE_WIDTH = 600;
+import {
+  RentDocument,
+  CANONICAL_DOCUMENT_WIDTH,
+  waitForRenderReady,
+  printImage,
+  WhatsAppIcon,
+} from '@/components/documents/rent-document';
 
-/**
- * Clean SVG icon for WhatsApp branding
- */
-export function WhatsAppIcon({ className = 'w-4 h-4' }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width="24"
-      height="24"
-      fill="currentColor"
-      className={className}
-      aria-hidden="true"
-    >
-      <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2m.01 1.67c2.2 0 4.26.86 5.82 2.42a8.225 8.225 0 0 1 2.41 5.83c0 4.54-3.7 8.24-8.24 8.24-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.19 8.19 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24m4.52 11.66c-.25-.13-1.47-.72-1.7-.81-.23-.08-.39-.13-.56.13-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.13-1.06-.39-2.02-1.25-.75-.67-1.26-1.5-1.41-1.75-.15-.25-.02-.39.11-.51.11-.11.25-.29.37-.44.13-.15.17-.25.25-.42.08-.17.04-.31-.02-.44-.06-.13-.56-1.35-.77-1.85-.2-.49-.41-.42-.56-.43h-.48c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1s.9 2.44 1.02 2.61c.13.17 1.77 2.7 4.29 3.78.6.26 1.07.41 1.44.53.6.19 1.15.16 1.58.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.15-1.18-.06-.1-.23-.17-.48-.29" />
-    </svg>
-  );
-}
+export const CANONICAL_NOTICE_WIDTH = CANONICAL_DOCUMENT_WIDTH;
+export { WhatsAppIcon };
 
 interface NoticeImage {
   dataUrl: string;
   blob: Blob;
   file: File;
   filename: string;
-}
-
-/**
- * Waits until web fonts and every <img> inside `node` (logo, owner signature) are
- * loaded and decoded, so the capture never contains a half-loaded image.
- *
- * Uses addEventListener (not img.onload = ...) so handlers installed by next/image
- * are not overwritten, and gives up after a few seconds so a lazy or stalled image
- * can never leave the dialog stuck in a "preparing" state.
- */
-async function waitForRenderReady(node: HTMLElement): Promise<void> {
-  try {
-    if ('fonts' in document) await document.fonts.ready;
-  } catch (error) {
-    console.warn('Font loading check failed:', error);
-  }
-
-  const images = Array.from(node.querySelectorAll('img'));
-  const imagesReady = Promise.all(
-    images.map((img) => {
-      if (img.complete) {
-        return img.decode ? img.decode().catch(() => undefined) : Promise.resolve();
-      }
-      return new Promise<void>((resolve) => {
-        img.addEventListener('load', () => resolve(), { once: true });
-        img.addEventListener('error', () => resolve(), { once: true });
-      });
-    }),
-  );
-
-  await Promise.race([
-    imagesReady,
-    new Promise<void>((resolve) => window.setTimeout(resolve, 4000)),
-  ]);
-}
-
-/**
- * Prints the exported notice image through a hidden iframe.
- *
- * Printing the exported PNG (instead of window.print() on the page) guarantees
- * print === preview === download, and avoids the fixed-position dialog, the app
- * behind it, and any missing global @media print rules leaking into the printout.
- */
-function printImage(dataUrl: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const iframe = document.createElement('iframe');
-    iframe.setAttribute('aria-hidden', 'true');
-    iframe.style.cssText =
-      'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;';
-
-    const remove = () => iframe.parentNode?.removeChild(iframe);
-
-    iframe.onload = () => {
-      const win = iframe.contentWindow;
-      if (!win) {
-        remove();
-        reject(new Error('Print frame is unavailable'));
-        return;
-      }
-      win.onafterprint = remove;
-      window.setTimeout(remove, 60000); // safety net if afterprint never fires
-      win.focus();
-      win.print();
-      resolve();
-    };
-
-    iframe.srcdoc = `<!doctype html><html><head><meta charset="utf-8"><title></title><style>
-      @page { size: auto; margin: 12mm; }
-      html, body { margin: 0; padding: 0; background: #fff; }
-      img { display: block; width: 100%; max-height: 250mm; object-fit: contain; object-position: top center; }
-    </style></head><body><img src="${dataUrl}" alt=""></body></html>`;
-
-    document.body.appendChild(iframe);
-  });
 }
 
 /** Some devices report file-sharing support in general but reject a specific file. */
@@ -150,15 +65,6 @@ interface RentNoticeDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-type ChargeTone = 'normal' | 'late' | 'discount';
-
-interface ChargeRow {
-  key: string;
-  show: boolean;
-  label: string;
-  amount: string;
-  tone: ChargeTone;
-}
 
 export function RentNoticeDialog({
   rent,
@@ -342,89 +248,7 @@ export function RentNoticeDialog({
   const hasValidPhone = phoneResult.isValid;
 
   const toNum = (value: unknown) => Number(value) || 0;
-  const remainingNum = toNum(effectiveRent.remainingAmount);
   const paidNum = toNum(effectiveRent.paidAmount);
-  const isFullyPaid = remainingNum <= 0;
-
-  const toBnNum = (num: number | string) => {
-    if (isEn) return num.toString();
-    const bnDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
-    return num.toString().replace(/\d/g, (d) => bnDigits[parseInt(d)]);
-  };
-
-  const getMonthLabel = (m: number, y: number) => {
-    const monthsEn = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-    const monthsBn = ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'];
-    if (!Number.isInteger(m) || m < 1 || m > 12) return `${toBnNum(m)}/${toBnNum(y)}`;
-    return isEn ? `${monthsEn[m - 1]} ${y}` : `${monthsBn[m - 1]} ${toBnNum(y)}`;
-  };
-
-  const chargeRows: ChargeRow[] = [
-    {
-      key: 'rent',
-      show: true,
-      label: isEn ? 'Monthly Base Rent' : 'মাসিক মূল ভাড়া',
-      amount: formatCurrency(effectiveRent.rent, language),
-      tone: 'normal',
-    },
-    {
-      key: 'service',
-      show: toNum(effectiveRent.serviceFee) > 0,
-      label: isEn ? 'Service Fee' : 'সার্ভিস চার্জ',
-      amount: formatCurrency(effectiveRent.serviceFee, language),
-      tone: 'normal',
-    },
-    {
-      key: 'parking',
-      show: toNum(effectiveRent.parkingFee) > 0,
-      label: isEn ? 'Parking Fee' : 'পার্কিং ফি',
-      amount: formatCurrency(effectiveRent.parkingFee, language),
-      tone: 'normal',
-    },
-    {
-      key: 'extra',
-      show: toNum(effectiveRent.extraCharge) > 0,
-      label: isEn ? 'Extra Charges' : 'অন্যান্য চার্জ',
-      amount: formatCurrency(effectiveRent.extraCharge, language),
-      tone: 'normal',
-    },
-    {
-      key: 'late',
-      show: toNum(effectiveRent.lateFee) > 0,
-      label: isEn ? 'Late Fee' : 'বিলম্ব ফি',
-      amount: formatCurrency(effectiveRent.lateFee, language),
-      tone: 'late',
-    },
-    {
-      key: 'discount',
-      show: toNum(effectiveRent.discount) > 0,
-      label: isEn ? 'Discount' : 'ডিসকাউন্ট',
-      amount: formatCurrency(effectiveRent.discount, language),
-      tone: 'discount',
-    },
-  ];
-
-  const chargeToneClass: Record<ChargeTone, string> = {
-    normal: 'text-slate-700',
-    late: 'text-rose-700',
-    discount: 'text-emerald-800',
-  };
-  const chargeAmountClass: Record<ChargeTone, string> = {
-    normal: 'font-medium text-slate-900',
-    late: 'font-medium',
-    discount: 'font-medium',
-  };
-  const chargePrefix: Record<ChargeTone, string> = {
-    normal: '',
-    late: '+ ',
-    discount: '- ',
-  };
-
-  // Status colours are inline hex (not only Tailwind classes) so the exported PNG renders
-  // them identically on every browser, matching the payment receipt.
-  const accentColor = isFullyPaid ? '#065f46' : '#b45309';
-  const settlementBg = isFullyPaid ? '#ecfdf5' : '#fffbeb';
-  const settlementText = isFullyPaid ? '#064e3b' : '#78350f';
 
   const buildMessageText = () =>
     buildNoticeWhatsAppText({
@@ -636,210 +460,31 @@ export function RentNoticeDialog({
                    * Fixed width at all times so preview === download === print === WhatsApp image.
                    * No responsive (sm:) or print: classes inside this element.
                    */}
-                  <div
+                  <RentDocument
                     ref={setNoticeNode}
-                    id="canonical-rent-notice"
-                    className="space-y-5 bg-white border border-stone-300 shadow-sm select-none"
-                    style={{ width: CANONICAL_NOTICE_WIDTH, padding: '28px' }}
-                  >
-                    {/* Header */}
-                    <div className="border-y-[3px] border-emerald-800 py-4">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                          <div className="h-11 w-11 shrink-0 overflow-hidden rounded">
-                            <Image
-                              src="/logo.png"
-                              alt="BariVara"
-                              width={44}
-                              height={44}
-                              unoptimized
-                              loading="eager"
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                          <div>
-                            <h2 className="font-serif text-[22px] font-bold text-slate-950 tracking-tight leading-tight">
-                              {property?.name || 'বাড়িভাড়া (BariVara)'}
-                            </h2>
-                            {property?.address && (
-                              <p className="text-[11px] text-slate-600 leading-tight mt-1">{property.address}</p>
-                            )}
-                            {owner?.name && (
-                              <p className="text-[11px] text-slate-600 leading-tight mt-0.5">
-                                {isEn ? 'Landlord' : 'মালিক'}: {owner.name}
-                                {owner.phone ? ` (${toBnNum(owner.phone)})` : ''}
-                              </p>
-                            )}
-                            <p className="text-[10px] font-bold text-emerald-800 uppercase tracking-[0.18em] mt-1.5">
-                              {isEn ? 'Rent Payment Notice' : 'ভাড়া পরিশোধের নোটিশ'}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-right shrink-0">
-                          <span
-                            className="inline-block text-[10px] px-2 py-1 font-bold tracking-[0.14em]"
-                            style={{ backgroundColor: accentColor, color: '#ffffff' }}
-                          >
-                            {isFullyPaid
-                              ? (isEn ? 'FULLY PAID' : 'পরিশোধিত')
-                              : (isEn ? 'PAYMENT DUE' : 'বকেয়া')}
-                          </span>
-                          <p className="text-[10px] text-slate-500 mt-2 font-mono">
-                            {isEn ? 'Notice No.' : 'নোটিশ নং'} #{String(effectiveRent.id).substring(0, 8).toUpperCase()}
-                          </p>
-                          <p className="text-[10px] text-slate-500 mt-0.5">
-                            {isEn ? 'Issued' : 'ইস্যুর তারিখ'}:{' '}
-                            {effectiveRent.createdAt ? formatBnDate(effectiveRent.createdAt, language) : '-'}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Rent period, due date, tenant and unit details */}
-                    <div className="border-y border-stone-300 divide-y divide-stone-300 text-xs">
-                      <div className="grid grid-cols-2 divide-x divide-stone-300">
-                        <div className="space-y-1 py-3 pr-4">
-                          <span className="text-emerald-800 font-bold text-[10px] uppercase tracking-[0.12em] block">
-                            {isEn ? 'Rent Month:' : 'ভাড়ার মাস:'}
-                          </span>
-                          <span className="font-semibold text-slate-950 text-sm block">
-                            {getMonthLabel(effectiveRent.month, effectiveRent.year)}
-                          </span>
-                        </div>
-                        <div className="text-right space-y-1 py-3 pl-4">
-                          <span className="font-bold text-[10px] uppercase tracking-[0.12em] block" style={{ color: '#be123c' }}>
-                            {isEn ? 'Payment Due Date:' : 'পরিশোধের শেষ তারিখ:'}
-                          </span>
-                          <span className="font-semibold text-sm block" style={{ color: '#9f1239' }}>
-                            {effectiveRent.dueDate ? formatBnDate(effectiveRent.dueDate, language) : '-'}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 divide-x divide-stone-300">
-                        <div className="space-y-1 py-3 pr-4">
-                          <span className="text-emerald-800 font-bold text-[10px] uppercase tracking-[0.12em] block">
-                            {isEn ? 'Billed To (Tenant):' : 'ভাড়াটিয়া:'}
-                          </span>
-                          <span className="font-semibold text-slate-950 text-sm block">
-                            {tenantName || (isEn ? 'Tenant' : 'ভাড়াটিয়া')}
-                          </span>
-                          <span className="text-slate-600 text-[11px] block">
-                            {rawPhone ? toBnNum(rawPhone) : '-'}
-                          </span>
-                        </div>
-                        <div className="text-right space-y-1 py-3 pl-4">
-                          <span className="text-emerald-800 font-bold text-[10px] uppercase tracking-[0.12em] block">
-                            {isEn ? 'Unit & Property:' : 'ইউনিট ও বাড়ি:'}
-                          </span>
-                          <span className="font-semibold text-slate-950 text-sm block">
-                            {unit ? `${isEn ? 'Unit' : 'ইউনিট'} ${toBnNum(unit.unitNumber)}` : '-'}
-                          </span>
-                          <span className="text-slate-600 text-[11px] block">
-                            {property?.name}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Itemized Charges Table */}
-                    <div className="border border-stone-300 overflow-hidden text-xs">
-                      <div className="bg-stone-100 px-4 py-2.5 border-b border-stone-300 flex justify-between items-center text-[10px] font-bold text-stone-700 uppercase tracking-[0.16em]">
-                        <span>{isEn ? 'Itemized Charges' : 'ভাড়ার হিসাব ও বিবরণী'}</span>
-                        <span>{isEn ? 'Amount' : 'পরিমাণ'}</span>
-                      </div>
-
-                      <div className="divide-y divide-stone-200 bg-white">
-                        {chargeRows
-                          .filter((row) => row.show)
-                          .map((row) => (
-                            <div
-                              key={row.key}
-                              className={`px-4 py-2 flex justify-between ${chargeToneClass[row.tone]}`}
-                            >
-                              <span>{row.label}:</span>
-                              <span className={chargeAmountClass[row.tone]}>
-                                {chargePrefix[row.tone]}
-                                {row.amount}
-                              </span>
-                            </div>
-                          ))}
-
-                        <div className="px-4 py-2.5 flex justify-between font-semibold text-slate-950 bg-stone-100">
-                          <span>{isEn ? 'Total Bill for Month' : 'এই মাসের মোট বিল'}:</span>
-                          <span>{formatCurrency(effectiveRent.totalAmount, language)}</span>
-                        </div>
-
-                        {paidNum > 0 && (
-                          <div className="px-4 py-2 flex justify-between text-emerald-800 font-medium">
-                            <span>{isEn ? 'Paid So Far' : 'পূর্বে পরিশোধিত ভাড়া'}:</span>
-                            <span>- {formatCurrency(effectiveRent.paidAmount, language)}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Settlement — balance due on the left, owner signature on the right */}
-                    <div
-                      className="flex items-center justify-between px-4 py-3"
-                      style={{ backgroundColor: settlementBg }}
-                    >
-                      <div>
-                        <span
-                          className="text-[10px] block font-bold uppercase tracking-[0.16em]"
-                          style={{ color: settlementText }}
-                        >
-                          {isEn ? 'Total Balance Due' : 'সর্বমোট প্রদেয় বকেয়া'}
-                        </span>
-                        <span className="text-2xl font-bold block" style={{ color: settlementText }}>
-                          {formatCurrency(effectiveRent.remainingAmount, language)}
-                        </span>
-                        <span className="text-[11px] block mt-0.5" style={{ color: accentColor }}>
-                          {isFullyPaid
-                            ? (isEn ? 'Fully paid. No payment required.' : 'সম্পূর্ণ পরিশোধিত। কোনো বকেয়া নেই।')
-                            : (isEn ? 'Please pay before the due date.' : 'অনুগ্রহ করে শেষ তারিখের মধ্যে পরিশোধ করুন।')}
-                        </span>
-                      </div>
-
-                      <div className="text-right text-xs text-slate-600 space-y-1 shrink-0">
-                        {signatureUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={signatureUrl}
-                            alt={isEn ? 'Owner Signature' : 'মালিকের স্বাক্ষর'}
-                            crossOrigin="anonymous"
-                            className="h-7 ml-auto object-contain"
-                            style={{ maxWidth: '9rem' }}
-                          />
-                        ) : null}
-                        <div className="border-t border-stone-400 w-24 ml-auto" />
-                        <span className="font-medium text-[11px] text-slate-800 block">
-                          {owner?.name || (isEn ? 'Landlord' : 'বাড়িওয়ালা')}
-                        </span>
-                        <span className="text-[10px] text-slate-500 block">
-                          {isEn ? 'Authorized Signatory' : 'অনুরোধকারী / বাড়িওয়ালা'}
-                        </span>
-                      </div>
-                    </div>
-
-                    {!isFullyPaid && (
-                      <div className="text-xs bg-stone-50 px-3 py-2.5 border-l-2 border-stone-300 text-slate-700">
-                        <span className="font-semibold text-slate-900">
-                          {isEn ? 'Payment Instructions' : 'পেমেন্ট নির্দেশিকা'}:
-                        </span>{' '}
-                        {isEn
-                          ? 'Please pay via Cash, bKash, Nagad, or Bank Transfer to the landlord directly before the deadline.'
-                          : 'নির্ধারিত শেষ তারিখের মধ্যে ক্যাশ, বিকাশ, নগদ অথবা ব্যাংক ট্রান্সফারের মাধ্যমে বাড়িওয়ালার নিকট ভাড়া পরিশোধ করুন।'}
-                      </div>
-                    )}
-
-                    {/* Footer Note */}
-                    <div className="border-t border-stone-200 pt-3 text-center text-[10px] text-slate-500">
-                      {isEn
-                        ? 'This is an electronic payment notice, not a receipt.'
-                        : 'এটি একটি ইলেকট্রনিক ভাড়ার নোটিশ, রশিদ নয়।'}
-                    </div>
-                  </div>
+                    mode="notice"
+                    noticeId={effectiveRent.id}
+                    createdAt={effectiveRent.createdAt}
+                    month={effectiveRent.month}
+                    year={effectiveRent.year}
+                    dueDate={effectiveRent.dueDate}
+                    property={property}
+                    unit={unit}
+                    tenantName={tenantName}
+                    tenantPhone={rawPhone}
+                    owner={owner}
+                    signatureUrl={signatureUrl}
+                    language={language}
+                    baseRent={effectiveRent.rent}
+                    serviceFee={toNum(effectiveRent.serviceFee)}
+                    parkingFee={toNum(effectiveRent.parkingFee)}
+                    extraCharge={toNum(effectiveRent.extraCharge)}
+                    lateFee={toNum(effectiveRent.lateFee)}
+                    discount={toNum(effectiveRent.discount)}
+                    totalAmount={effectiveRent.totalAmount}
+                    paidAmount={paidNum}
+                    remainingAmount={effectiveRent.remainingAmount}
+                  />
                 </div>
               </div>
             </div>

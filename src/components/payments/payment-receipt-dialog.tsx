@@ -6,7 +6,6 @@ import { ApiResponse, Payment } from '@/lib/types';
 import { apiClient } from '@/lib/api';
 import { useLanguageStore } from '@/stores/language-store';
 import { useTranslation } from '@/lib/translations';
-import { formatCurrency, formatBnDate } from '@/lib/utils';
 import { getFileDownloadUrl } from '@/lib/file-upload';
 import {
   buildReceiptWhatsAppText,
@@ -33,78 +32,16 @@ import {
   AlertCircle,
   ExternalLink,
 } from 'lucide-react';
-import Image from 'next/image';
 import { toPng } from 'html-to-image';
 import { toast } from 'sonner';
+import {
+  RentDocument,
+  CANONICAL_DOCUMENT_WIDTH,
+  waitForRenderReady,
+  printImage,
+} from '@/components/documents/rent-document';
 
-/**
- * Waits until web fonts and every <img> inside `node` (logo, owner signature) are
- * loaded and decoded, so the capture never contains a half-loaded image.
- */
-async function waitForRenderReady(node: HTMLElement): Promise<void> {
-  try {
-    if ('fonts' in document) await document.fonts.ready;
-  } catch (error) {
-    console.warn('Font loading check failed:', error);
-  }
-
-  const images = Array.from(node.querySelectorAll('img'));
-  const imagesReady = Promise.all(
-    images.map((img) => {
-      if (img.complete) {
-        return img.decode ? img.decode().catch(() => undefined) : Promise.resolve();
-      }
-      return new Promise<void>((resolve) => {
-        img.addEventListener('load', () => resolve(), { once: true });
-        img.addEventListener('error', () => resolve(), { once: true });
-      });
-    }),
-  );
-
-  await Promise.race([
-    imagesReady,
-    new Promise<void>((resolve) => window.setTimeout(resolve, 4000)),
-  ]);
-}
-
-/**
- * Prints the exported receipt image through a hidden iframe.
- *
- * Printing the exported PNG guarantees print === preview === download,
- * and avoids the fixed-position dialog and app chrome leaking into the printout.
- */
-function printImage(dataUrl: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const iframe = document.createElement('iframe');
-    iframe.setAttribute('aria-hidden', 'true');
-    iframe.style.cssText =
-      'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;';
-
-    const remove = () => iframe.parentNode?.removeChild(iframe);
-
-    iframe.onload = () => {
-      const win = iframe.contentWindow;
-      if (!win) {
-        remove();
-        reject(new Error('Print frame is unavailable'));
-        return;
-      }
-      win.onafterprint = remove;
-      window.setTimeout(remove, 60000);
-      win.focus();
-      win.print();
-      resolve();
-    };
-
-    iframe.srcdoc = `<!doctype html><html><head><meta charset="utf-8"><title></title><style>
-      @page { size: auto; margin: 12mm; }
-      html, body { margin: 0; padding: 0; background: #fff; }
-      img { display: block; width: 100%; max-height: 250mm; object-fit: contain; object-position: top center; }
-    </style></head><body><img src="${dataUrl}" alt=""></body></html>`;
-
-    document.body.appendChild(iframe);
-  });
-}
+export const CANONICAL_RECEIPT_WIDTH = CANONICAL_DOCUMENT_WIDTH;
 
 /** Some devices report file-sharing support in general but reject a specific file. */
 function canShareFile(file: File): boolean {
@@ -144,7 +81,6 @@ interface PaymentReceiptDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export const CANONICAL_RECEIPT_WIDTH = 600;
 
 export function PaymentReceiptDialog({
   payment,
@@ -339,24 +275,6 @@ export function PaymentReceiptDialog({
   const phoneResult = validateAndNormalizePhone(rawPhone);
   const hasValidPhone = phoneResult.isValid;
 
-  const toBnNum = (num: number | string) => {
-    if (isEn) return num.toString();
-    const bnDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
-    return num.toString().replace(/\d/g, (d) => bnDigits[parseInt(d)]);
-  };
-
-  const translatePaymentMethod = (method: string) => {
-    if (isEn) return method;
-    const methods: Record<string, string> = {
-      CASH: 'ক্যাশ',
-      BANK: 'ব্যাংক',
-      MFS: 'মোবাইল ব্যাংকিং (MFS)',
-      BKASH: 'বিকাশ',
-      NAGAD: 'নগদ',
-      ROCKET: 'রকেট',
-    };
-    return methods[method?.toUpperCase()] || method;
-  };
 
   /**
    * Prints the exact exported image (see printImage)
@@ -565,227 +483,32 @@ export function PaymentReceiptDialog({
                     transformOrigin: 'top left',
                   }}
                 >
-                  {/*
-                   * CANONICAL RECEIPT ELEMENT
-                   * Fixed width at all times so preview === download === WhatsApp image.
-                   * No responsive (sm:) classes inside this element.
-                   */}
-                  <div
+                  <RentDocument
                     ref={setReceiptNode}
-                    id="printable-receipt"
-                    className="space-y-5 bg-white border border-stone-300 shadow-sm"
-                    style={{ width: CANONICAL_RECEIPT_WIDTH, padding: '28px' }}
-                  >
-                    {/* Header */}
-                    <div className="border-y-[3px] border-emerald-800 py-4">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                          <div className="h-11 w-11 shrink-0 overflow-hidden rounded">
-                            <Image
-                              src="/logo.png"
-                              alt="BariVara"
-                              width={44}
-                              height={44}
-                              unoptimized
-                              loading="eager"
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                          <div>
-                            <h2 className="font-serif text-[22px] font-bold text-slate-950 tracking-tight leading-tight">
-                              {property?.name || 'বাড়িভাড়া (BariVara)'}
-                            </h2>
-                            {property?.address && (
-                              <p className="text-[11px] text-slate-600 leading-tight mt-1">{property.address}</p>
-                            )}
-                            <p className="text-[10px] font-bold text-emerald-800 uppercase tracking-[0.18em] mt-1.5">
-                              {isEn ? 'Official Money Receipt' : 'ভাড়া আদায়ের মানি রিসিট'}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-right shrink-0">
-                          <span
-                            className="inline-block text-[10px] px-2 py-1 bg-emerald-800 text-white font-bold tracking-[0.14em]"
-                            style={{ backgroundColor: '#065f46', color: '#ffffff' }}
-                          >
-                            {isEn ? 'PAID' : 'পরিশোধিত'}
-                          </span>
-                          <p className="text-[10px] text-slate-500 mt-2 font-mono">
-                            {isEn ? 'Receipt No.' : 'রশিদ নং'} #{effectivePayment.id.substring(0, 8).toUpperCase()}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Tenant and unit details */}
-                    <div
-                      className="grid grid-cols-2 divide-x divide-stone-300 border-y border-stone-300 text-xs"
-                    >
-                      <div className="space-y-1 py-3 pr-4">
-                        <span className="text-emerald-800 font-bold text-[10px] uppercase tracking-[0.12em] block">
-                          {isEn ? 'Tenant Information:' : 'ভাড়াটিয়ার তথ্য:'}
-                        </span>
-                        <span className="font-semibold text-slate-950 text-sm block">
-                          {tenantName || (isEn ? 'Tenant' : 'ভাড়াটিয়া')}
-                        </span>
-                        <div className="flex items-center gap-1 text-slate-600 text-[11px]">
-                          {/* Phone number only — no WhatsApp badge inside the receipt */}
-                          <span>{rawPhone ? toBnNum(rawPhone) : '-'}</span>
-                        </div>
-                      </div>
-                      <div className="text-right space-y-1 py-3 pl-4">
-                        <span className="text-emerald-800 font-bold text-[10px] uppercase tracking-[0.12em] block">
-                          {isEn ? 'Unit & Property:' : 'ইউনিট ও বাড়ি:'}
-                        </span>
-                        <span className="font-semibold text-slate-950 text-sm block">
-                          {unit ? `${isEn ? 'Unit' : 'ইউনিট'} ${toBnNum(unit.unitNumber)}` : '-'}
-                        </span>
-                        <span className="text-slate-600 text-[11px] block">
-                          {property?.name}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Detailed Breakdown Table */}
-                    <div className="border border-stone-300 overflow-hidden text-xs">
-                      <div
-                        className="bg-stone-100 px-4 py-2.5 border-b border-stone-300 flex justify-between items-center text-[10px] font-bold text-stone-700 uppercase tracking-[0.16em]"
-                      >
-                        <span>{isEn ? 'Description' : 'বিবরণ'}</span>
-                        <span>{isEn ? 'Amount' : 'পরিমাণ'}</span>
-                      </div>
-
-                      <div className="divide-y divide-stone-200 bg-white">
-                        {/* Rent Period */}
-                        <div className="px-4 py-2.5 flex justify-between text-slate-700">
-                          <span>{isEn ? 'Rent Period' : 'ভাড়ার মাস ও সাল'}:</span>
-                          <span className="font-semibold text-slate-950 font-mono">
-                            {monthlyRent ? `${toBnNum(monthlyRent.month)}/${toBnNum(monthlyRent.year)}` : '-'}
-                          </span>
-                        </div>
-
-                        {monthlyRent && (
-                          <>
-                            <div className="px-4 py-2 flex justify-between text-slate-700">
-                              <span>{isEn ? 'Base Rent' : 'মূল ভাড়া'}:</span>
-                              <span className="font-medium text-slate-900">{formatCurrency(monthlyRent.rent, language)}</span>
-                            </div>
-
-                            {monthlyRent.serviceFee > 0 && (
-                              <div className="px-4 py-2 flex justify-between text-slate-700">
-                                <span>{isEn ? 'Service Fee' : 'সার্ভিস চার্জ'}:</span>
-                                <span className="font-medium text-slate-900">{formatCurrency(monthlyRent.serviceFee, language)}</span>
-                              </div>
-                            )}
-
-                            {monthlyRent.parkingFee > 0 && (
-                              <div className="px-4 py-2 flex justify-between text-slate-700">
-                                <span>{isEn ? 'Parking Fee' : 'পার্কিং চার্জ'}:</span>
-                                <span className="font-medium text-slate-900">{formatCurrency(monthlyRent.parkingFee, language)}</span>
-                              </div>
-                            )}
-
-                            {monthlyRent.extraCharge > 0 && (
-                              <div className="px-4 py-2 flex justify-between text-slate-700">
-                                <span>{isEn ? 'Extra Charge' : 'অন্যান্য চার্জ'}:</span>
-                                <span className="font-medium text-slate-900">{formatCurrency(monthlyRent.extraCharge, language)}</span>
-                              </div>
-                            )}
-
-                            {monthlyRent.discount > 0 && (
-                              <div className="px-4 py-2 flex justify-between text-emerald-800 font-medium">
-                                <span>{isEn ? 'Discount' : 'ছাড়'}:</span>
-                                <span>- {formatCurrency(monthlyRent.discount, language)}</span>
-                              </div>
-                            )}
-
-                            <div
-                              className="px-4 py-2.5 flex justify-between font-semibold text-slate-950 bg-stone-100"
-                            >
-                              <span>{isEn ? 'Total Monthly Bill' : 'মোট মাসিক বিল'}:</span>
-                              <span>{formatCurrency(monthlyRent.totalAmount, language)}</span>
-                            </div>
-                          </>
-                        )}
-
-                        {/* Payment Details */}
-                        <div className="px-4 py-2 flex justify-between text-slate-700">
-                          <span>{isEn ? 'Payment Receiving Date' : 'টাকা গ্রহণের তারিখ'}:</span>
-                          <span className="font-medium text-slate-900">{formatBnDate(effectivePayment.paymentDate, language)}</span>
-                        </div>
-
-                        <div className="px-4 py-2 flex justify-between text-slate-700">
-                          <span>{t.paymentMethod}:</span>
-                          <span className="font-medium text-slate-900">{translatePaymentMethod(effectivePayment.paymentMethod)}</span>
-                        </div>
-
-                        {effectivePayment.transactionId && (
-                          <div className="px-4 py-2 flex justify-between text-slate-700">
-                            <span>{t.transactionId}:</span>
-                            <span className="font-mono text-slate-900 font-medium">{toBnNum(effectivePayment.transactionId)}</span>
-                          </div>
-                        )}
-
-                        {monthlyRent && (
-                          <div className="px-4 py-2 flex justify-between text-slate-700">
-                            <span>{isEn ? 'Remaining Due' : 'অবশিষ্ট বকেয়া'}:</span>
-                            <span className={`font-bold ${monthlyRent.remainingAmount > 0 ? 'text-amber-600' : 'text-emerald-700'}`}>
-                              {formatCurrency(monthlyRent.remainingAmount, language)}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Settlement — signature replaces the ✓ circle on the right */}
-                    <div
-                      className="flex items-center justify-between bg-emerald-50 px-4 py-3"
-                      style={{ backgroundColor: '#ecfdf5' }}
-                    >
-                      {/* Left: amount */}
-                      <div>
-                        <span className="text-[10px] text-emerald-900 block font-bold uppercase tracking-[0.16em]">
-                          {isEn ? 'Amount Paid (Received)' : 'পরিশোধিত টাকার পরিমাণ (প্রাপ্ত)'}
-                        </span>
-                        <span className="text-2xl font-bold text-emerald-950">
-                          {formatCurrency(effectivePayment.amount, language)}
-                        </span>
-                      </div>
-
-                      {/* Right: owner signature */}
-                      <div className="text-right text-xs text-slate-600 space-y-1 shrink-0">
-                        {signatureUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={signatureUrl}
-                            alt={t.ownerSignature || (isEn ? 'Owner Signature' : 'মালিকের স্বাক্ষর')}
-                            crossOrigin="anonymous"
-                            className="h-7 ml-auto object-contain"
-                            style={{ maxWidth: '9rem' }}
-                          />
-                        ) : null}
-                        <div className="border-t border-stone-400 w-24 ml-auto" />
-                        {effectivePayment.owner?.name && (
-                          <span className="font-medium text-[11px] text-slate-800 block">
-                            {effectivePayment.owner.name}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {effectivePayment.note && (
-                      <div className="text-xs bg-stone-50 px-3 py-2.5 border-l-2 border-stone-300 text-slate-700">
-                        <span className="font-semibold text-slate-900">{t.note}:</span> {effectivePayment.note}
-                      </div>
-                    )}
-
-                    {/* Footer Note */}
-                    <div className="border-t border-stone-200 pt-3 text-center text-[10px] text-slate-500">
-                      {isEn
-                        ? 'Thank you for your payment. This is an electronic receipt.'
-                        : 'ভাড়া প্রদানের জন্য ধন্যবাদ। এটি একটি ইলেকট্রনিক রশিদ।'}
-                    </div>
-                  </div>
+                    mode="payment-receipt"
+                    property={property}
+                    unit={unit}
+                    tenantName={tenantName}
+                    tenantPhone={rawPhone}
+                    owner={effectivePayment.owner}
+                    signatureUrl={signatureUrl}
+                    language={language}
+                    receiptId={effectivePayment.id}
+                    paymentDate={effectivePayment.paymentDate}
+                    paymentMethod={effectivePayment.paymentMethod}
+                    transactionId={effectivePayment.transactionId}
+                    amountPaid={effectivePayment.amount}
+                    month={monthlyRent?.month}
+                    year={monthlyRent?.year}
+                    baseRent={monthlyRent?.rent}
+                    serviceFee={monthlyRent?.serviceFee}
+                    parkingFee={monthlyRent?.parkingFee}
+                    extraCharge={monthlyRent?.extraCharge}
+                    discount={monthlyRent?.discount}
+                    totalAmount={monthlyRent?.totalAmount}
+                    remainingAmount={monthlyRent?.remainingAmount}
+                    note={effectivePayment.note}
+                  />
                 </div>
               </div>
             </div>
