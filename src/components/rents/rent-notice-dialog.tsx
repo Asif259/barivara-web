@@ -681,8 +681,8 @@ export function RentNoticeDialog({
                             style={{ backgroundColor: accentColor, color: '#ffffff' }}
                           >
                             {isFullyPaid
-                              ? (isEn ? 'FULLY PAID' : 'সম্পূর্ণ পরিশোধিত')
-                              : (isEn ? 'PAYMENT DUE' : 'পরিশোধযোগ্য')}
+                              ? (isEn ? 'FULLY PAID' : 'পরিশোধিত')
+                              : (isEn ? 'PAYMENT DUE' : 'বকেয়া')}
                           </span>
                           <p className="text-[10px] text-slate-500 mt-2 font-mono">
                             {isEn ? 'Notice No.' : 'নোটিশ নং'} #{String(effectiveRent.id).substring(0, 8).toUpperCase()}

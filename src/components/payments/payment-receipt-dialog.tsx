@@ -608,7 +608,7 @@ export function PaymentReceiptDialog({
                             className="inline-block text-[10px] px-2 py-1 bg-emerald-800 text-white font-bold tracking-[0.14em]"
                             style={{ backgroundColor: '#065f46', color: '#ffffff' }}
                           >
-                            {isEn ? 'PAID / সম্পন্ন' : 'পরিশোধিত'}
+                            {isEn ? 'PAID' : 'পরিশোধিত'}
                           </span>
                           <p className="text-[10px] text-slate-500 mt-2 font-mono">
                             {isEn ? 'Receipt No.' : 'রশিদ নং'} #{effectivePayment.id.substring(0, 8).toUpperCase()}
