@@ -24,18 +24,94 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import {
-  CheckCircle2,
   Download,
   Loader2,
   Copy,
   Check,
   Share2,
+  Printer,
   AlertCircle,
   ExternalLink,
 } from 'lucide-react';
 import Image from 'next/image';
 import { toPng } from 'html-to-image';
 import { toast } from 'sonner';
+
+/**
+ * Waits until web fonts and every <img> inside `node` (logo, owner signature) are
+ * loaded and decoded, so the capture never contains a half-loaded image.
+ */
+async function waitForRenderReady(node: HTMLElement): Promise<void> {
+  try {
+    if ('fonts' in document) await document.fonts.ready;
+  } catch (error) {
+    console.warn('Font loading check failed:', error);
+  }
+
+  const images = Array.from(node.querySelectorAll('img'));
+  const imagesReady = Promise.all(
+    images.map((img) => {
+      if (img.complete) {
+        return img.decode ? img.decode().catch(() => undefined) : Promise.resolve();
+      }
+      return new Promise<void>((resolve) => {
+        img.addEventListener('load', () => resolve(), { once: true });
+        img.addEventListener('error', () => resolve(), { once: true });
+      });
+    }),
+  );
+
+  await Promise.race([
+    imagesReady,
+    new Promise<void>((resolve) => window.setTimeout(resolve, 4000)),
+  ]);
+}
+
+/**
+ * Prints the exported receipt image through a hidden iframe.
+ *
+ * Printing the exported PNG guarantees print === preview === download,
+ * and avoids the fixed-position dialog and app chrome leaking into the printout.
+ */
+function printImage(dataUrl: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const iframe = document.createElement('iframe');
+    iframe.setAttribute('aria-hidden', 'true');
+    iframe.style.cssText =
+      'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;';
+
+    const remove = () => iframe.parentNode?.removeChild(iframe);
+
+    iframe.onload = () => {
+      const win = iframe.contentWindow;
+      if (!win) {
+        remove();
+        reject(new Error('Print frame is unavailable'));
+        return;
+      }
+      win.onafterprint = remove;
+      window.setTimeout(remove, 60000);
+      win.focus();
+      win.print();
+      resolve();
+    };
+
+    iframe.srcdoc = `<!doctype html><html><head><meta charset="utf-8"><title></title><style>
+      @page { size: auto; margin: 12mm; }
+      html, body { margin: 0; padding: 0; background: #fff; }
+      img { display: block; width: 100%; max-height: 250mm; object-fit: contain; object-position: top center; }
+    </style></head><body><img src="${dataUrl}" alt=""></body></html>`;
+
+    document.body.appendChild(iframe);
+  });
+}
+
+/** Some devices report file-sharing support in general but reject a specific file. */
+function canShareFile(file: File): boolean {
+  return typeof navigator.canShare !== 'function' || navigator.canShare({ files: [file] });
+}
+
+const emptySubscribe = () => () => {};
 
 /**
  * Clean SVG icon for WhatsApp branding
@@ -53,6 +129,13 @@ export function WhatsAppIcon({ className = 'w-4 h-4' }: { className?: string }) 
       <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2m.01 1.67c2.2 0 4.26.86 5.82 2.42a8.225 8.225 0 0 1 2.41 5.83c0 4.54-3.7 8.24-8.24 8.24-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.19 8.19 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24m4.52 11.66c-.25-.13-1.47-.72-1.7-.81-.23-.08-.39-.13-.56.13-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.13-1.06-.39-2.02-1.25-.75-.67-1.26-1.5-1.41-1.75-.15-.25-.02-.39.11-.51.11-.11.25-.29.37-.44.13-.15.17-.25.25-.42.08-.17.04-.31-.02-.44-.06-.13-.56-1.35-.77-1.85-.2-.49-.41-.42-.56-.43h-.48c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1s.9 2.44 1.02 2.61c.13.17 1.77 2.7 4.29 3.78.6.26 1.07.41 1.44.53.6.19 1.15.16 1.58.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.15-1.18-.06-.1-.23-.17-.48-.29" />
     </svg>
   );
+}
+
+interface ReceiptImage {
+  dataUrl: string;
+  blob: Blob;
+  file: File;
+  filename: string;
 }
 
 interface PaymentReceiptDialogProps {
@@ -74,6 +157,7 @@ export function PaymentReceiptDialog({
 
   const [isDownloading, setIsDownloading] = React.useState(false);
   const [isSharing, setIsSharing] = React.useState(false);
+  const [isPrinting, setIsPrinting] = React.useState(false);
 
   const [fallbackOpen, setFallbackOpen] = React.useState(false);
   const [fallbackData, setFallbackData] = React.useState<{
@@ -84,19 +168,27 @@ export function PaymentReceiptDialog({
     popupBlocked?: boolean;
   } | null>(null);
 
-  // Detect Web Share API file-sharing support on this device (client-side only).
-  const [canShareImageNatively, setCanShareImageNatively] = React.useState(false);
-  React.useEffect(() => {
-    setCanShareImageNatively(canShareFilesCapability());
-  }, []);
+  // Detect Web Share API file-sharing support without cascading renders or hydration mismatch.
+  const canShareImageNatively = React.useSyncExternalStore(
+    emptySubscribe,
+    () => canShareFilesCapability(),
+    () => false
+  );
 
   const [scale, setScale] = React.useState(1);
   const [receiptHeight, setReceiptHeight] = React.useState<number | null>(null);
 
-  const receiptRef = React.useRef<HTMLDivElement>(null);
-  const receiptContainerRef = React.useRef<HTMLDivElement>(null);
+  // DOM nodes are held in state (via callback refs) instead of useRef so effects re-run
+  // the moment Radix mounts the dialog content into its portal.
+  const [receiptNode, setReceiptNode] = React.useState<HTMLDivElement | null>(null);
+  const [containerNode, setContainerNode] = React.useState<HTMLDivElement | null>(null);
 
-  const { data: paymentDetails } = useQuery({
+  // Receipt image generated ahead of time so navigator.share() can run synchronously
+  // inside the click handler (keeps the user gesture alive on Safari/iOS).
+  const [preparedReceipt, setPreparedReceipt] = React.useState<ReceiptImage | null>(null);
+  const [prepareFailed, setPrepareFailed] = React.useState(false);
+
+  const detailsQuery = useQuery({
     queryKey: ['payment-receipt-details', payment?.id],
     queryFn: async () => {
       const response = await apiClient.get<ApiResponse<Payment>>(`/payments/${payment!.id}`);
@@ -104,62 +196,143 @@ export function PaymentReceiptDialog({
     },
     enabled: open && !!payment?.id,
   });
+  const paymentDetails = detailsQuery.data;
 
   const effectivePayment = paymentDetails || payment;
-  const currentSignatureId = effectivePayment?.owner?.signatureFileId ?? null;
+  // Prioritize the immutable signature snapshot made at payment time for historical audit consistency
+  const currentSignatureId =
+    effectivePayment?.ownerSignatureSnapshotId ??
+    effectivePayment?.owner?.signatureFileId ??
+    null;
 
-  const { data: signatureUrl } = useQuery({
+  const signatureQuery = useQuery({
     queryKey: ['payment-signature-url', effectivePayment?.id, currentSignatureId],
     queryFn: () => getFileDownloadUrl(currentSignatureId!),
     enabled: open && !!currentSignatureId,
     retry: false,
   });
+  const signatureUrl = signatureQuery.data;
 
-  // Measure available container width and calculate scale factor for responsive preview
+  // The receipt is only exportable once the full payment record and (if the owner has one)
+  // the signature URL have settled; otherwise the image could be captured without them.
+  const detailsSettled = detailsQuery.isSuccess || detailsQuery.isError;
+  const signatureSettled =
+    !currentSignatureId || signatureQuery.isSuccess || signatureQuery.isError;
+  const isReceiptDataReady = open && detailsSettled && signatureSettled;
+
+  // Native share needs a pre-built image; true while it is still being generated.
+  const isPreparing =
+    canShareImageNatively && isReceiptDataReady && !preparedReceipt && !prepareFailed;
+
+  // Measure available container width and calculate scale factor for responsive preview.
+  // Depends on the actual DOM nodes rather than just `open`: Radix mounts dialog content
+  // through a portal AFTER the first commit, so with plain refs this effect could run while
+  // both nodes were still null and never attach its observers (scale would stay at 1).
   React.useLayoutEffect(() => {
-    if (!open) return;
+    if (!open || !containerNode || !receiptNode) return;
 
     const updateDimensions = () => {
-      if (receiptContainerRef.current) {
-        const containerWidth = receiptContainerRef.current.clientWidth;
-        if (containerWidth > 0) {
-          const newScale = Math.min(1, containerWidth / CANONICAL_RECEIPT_WIDTH);
-          setScale(newScale);
-        }
+      const containerWidth = containerNode.clientWidth;
+      if (containerWidth > 0) {
+        setScale(Math.min(1, containerWidth / CANONICAL_RECEIPT_WIDTH));
       }
-      if (receiptRef.current) {
-        setReceiptHeight(receiptRef.current.offsetHeight);
-      }
+      setReceiptHeight(receiptNode.offsetHeight);
     };
 
     updateDimensions();
 
-    const resizeObserver = new ResizeObserver(() => {
-      updateDimensions();
-    });
-
-    if (receiptContainerRef.current) {
-      resizeObserver.observe(receiptContainerRef.current);
-    }
-    if (receiptRef.current) {
-      resizeObserver.observe(receiptRef.current);
-    }
-
+    const resizeObserver = new ResizeObserver(updateDimensions);
+    resizeObserver.observe(containerNode);
+    resizeObserver.observe(receiptNode);
     window.addEventListener('resize', updateDimensions);
 
     return () => {
       resizeObserver.disconnect();
       window.removeEventListener('resize', updateDimensions);
     };
-  }, [open, effectivePayment]);
+  }, [open, containerNode, receiptNode]);
 
-  if (!payment || !effectivePayment) return null;
-
-  const monthlyRent = effectivePayment.monthlyRent;
+  const monthlyRent = effectivePayment?.monthlyRent;
   const agreement = monthlyRent?.agreement;
   const tenant = agreement?.tenant;
   const unit = agreement?.unit;
   const property = unit?.property;
+
+  const unitNumber = unit?.unitNumber;
+  const rentMonth = monthlyRent?.month;
+  const rentYear = monthlyRent?.year;
+
+  /**
+   * Generates a high-res PNG image from the receipt DOM element
+   */
+  const generateReceiptImage = React.useCallback(async (): Promise<ReceiptImage> => {
+    if (!receiptNode) {
+      throw new Error('Receipt DOM element not found');
+    }
+
+    await waitForRenderReady(receiptNode);
+
+    const dataUrl = await toPng(receiptNode, {
+      quality: 1,
+      pixelRatio: 2, // Crisp 2x retina export
+      backgroundColor: '#ffffff',
+      cacheBust: true,
+      skipFonts: true, // Prevents SecurityError from cross-origin Google Fonts CSS
+    });
+
+    const unitNum = unitNumber || 'Rent';
+    const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sept', 'oct', 'nov', 'dec'];
+    const monthNum = rentMonth;
+    const monthStr = typeof monthNum === 'number' && monthNum >= 1 && monthNum <= 12
+      ? monthNames[monthNum - 1]
+      : (monthNum || 'Month');
+    const year = rentYear || 'Year';
+    const filename = `BariVara_Receipt_${unitNum}_${monthStr}_${year}.png`;
+
+    const res = await fetch(dataUrl);
+    const blob = await res.blob();
+    const file = new File([blob], filename, { type: 'image/png' });
+
+    return { dataUrl, blob, file, filename };
+  }, [receiptNode, unitNumber, rentMonth, rentYear]);
+
+  // Pre-generate the receipt image for native sharing once everything it shows has loaded.
+  // Re-runs (and discards the old image in cleanup) whenever the receipt content could change.
+  React.useEffect(() => {
+    if (!canShareImageNatively || !isReceiptDataReady || !receiptNode) return;
+
+    let cancelled = false;
+    generateReceiptImage()
+      .then((image) => {
+        if (!cancelled) {
+          setPreparedReceipt(image);
+          setPrepareFailed(false);
+        }
+      })
+      .catch((error) => {
+        console.error('Failed to pre-generate receipt image:', error);
+        if (!cancelled) {
+          setPreparedReceipt(null);
+          setPrepareFailed(true);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+      setPreparedReceipt(null);
+      setPrepareFailed(false);
+    };
+  }, [
+    canShareImageNatively,
+    isReceiptDataReady,
+    receiptNode,
+    generateReceiptImage,
+    effectivePayment,
+    signatureUrl,
+    language,
+  ]);
+
+  if (!payment || !effectivePayment) return null;
 
   const tenantName = tenant?.name?.trim() || '';
   const rawPhone = tenant?.phone || '';
@@ -186,42 +359,19 @@ export function PaymentReceiptDialog({
   };
 
   /**
-   * Generates a high-res PNG image from the receipt DOM element
+   * Prints the exact exported image (see printImage)
    */
-  const generateReceiptImage = async (): Promise<{
-    dataUrl: string;
-    blob: Blob;
-    file: File;
-    filename: string;
-  }> => {
-    if (!receiptRef.current) {
-      throw new Error('Receipt DOM element not found');
+  const handlePrint = async () => {
+    try {
+      setIsPrinting(true);
+      const { dataUrl } = preparedReceipt ?? (await generateReceiptImage());
+      await printImage(dataUrl);
+    } catch (error) {
+      console.error('Failed to print receipt:', error);
+      toast.error(isEn ? 'Failed to print receipt' : 'রশিদ প্রিন্ট করতে ব্যর্থ হয়েছে');
+    } finally {
+      setIsPrinting(false);
     }
-
-    const dataUrl = await toPng(receiptRef.current, {
-      quality: 1,
-      pixelRatio: 2, // Crisp 2x retina export
-      backgroundColor: '#ffffff',
-      cacheBust: true,
-      skipFonts: true, // Prevents SecurityError from cross-origin Google Fonts CSS
-    });
-
-    console.log(`[Receipt Export Verification] Canonical Width: ${CANONICAL_RECEIPT_WIDTH}px, Exported Image generated successfully.`);
-
-    const unitNum = unit?.unitNumber || 'Rent';
-    const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sept', 'oct', 'nov', 'dec'];
-    const monthNum = monthlyRent?.month;
-    const monthStr = typeof monthNum === 'number' && monthNum >= 1 && monthNum <= 12
-      ? monthNames[monthNum - 1]
-      : (monthNum || 'Month');
-    const year = monthlyRent?.year || 'Year';
-    const filename = `BariVara_Receipt_${unitNum}_${monthStr}_${year}.png`;
-
-    const res = await fetch(dataUrl);
-    const blob = await res.blob();
-    const file = new File([blob], filename, { type: 'image/png' });
-
-    return { dataUrl, blob, file, filename };
   };
 
   /**
@@ -230,7 +380,7 @@ export function PaymentReceiptDialog({
   const handleDownloadImage = async () => {
     try {
       setIsDownloading(true);
-      const { dataUrl, filename } = await generateReceiptImage();
+      const { dataUrl, filename } = preparedReceipt ?? (await generateReceiptImage());
 
       const link = document.createElement('a');
       link.download = filename;
@@ -312,38 +462,53 @@ export function PaymentReceiptDialog({
 
   /**
    * Combined "Share Receipt" flow:
-   * 1. Try native share sheet (attaches image).
-   * 2. If unsupported or fails (non-abort), fallback to text-only exact-contact wa.me link.
+   * 1. If the receipt image was pre-generated, open the native share sheet with it.
+   *    navigator.share() is called synchronously (before any await) so the click's
+   *    user activation is still valid — Safari/iOS rejects it otherwise.
+   * 2. If native sharing is unavailable, the image isn't ready, or sharing fails
+   *    (non-abort), fall back to the text-only exact-contact wa.me link.
    */
   const handleSendReceipt = async () => {
+    const notifyTextOnly = () =>
+      toast.info(
+        isEn
+          ? "Couldn't attach the receipt image. Opening WhatsApp with the message only."
+          : 'রশিদের ছবি যুক্ত করা যায়নি। শুধু বার্তা দিয়ে হোয়াটসঅ্যাপ খোলা হচ্ছে।'
+      );
+
     if (canShareImageNatively) {
-      try {
-        setIsSharing(true);
+      if (preparedReceipt && canShareFile(preparedReceipt.file)) {
+        try {
+          setIsSharing(true);
 
-        const messageText = buildReceiptWhatsAppText({
-          tenantName,
-          unitNumber: unit?.unitNumber || '',
-          month: monthlyRent?.month,
-          year: monthlyRent?.year,
-          amount: effectivePayment.amount,
-          isEn,
-        });
+          const messageText = buildReceiptWhatsAppText({
+            tenantName,
+            unitNumber: unit?.unitNumber || '',
+            month: monthlyRent?.month,
+            year: monthlyRent?.year,
+            amount: effectivePayment.amount,
+            isEn,
+          });
 
-        const { file } = await generateReceiptImage();
+          await navigator.share({
+            files: [preparedReceipt.file],
+            title: isEn ? 'Rent Payment Receipt' : 'ভাড়া পরিশোধের রশিদ',
+            text: messageText,
+          });
 
-        await navigator.share({
-          files: [file],
-          title: isEn ? 'Rent Payment Receipt' : 'ভাড়া পরিশোধের রশিদ',
-          text: messageText,
-        });
-
-        return; // Success
-      } catch (err: unknown) {
-        if ((err as Error)?.name === 'AbortError') return;
-        console.error('Failed to share receipt natively, falling back to text:', err);
-        // fall through to wa.me on failure
-      } finally {
-        setIsSharing(false);
+          return; // Success
+        } catch (err: unknown) {
+          if ((err as Error)?.name === 'AbortError') return;
+          console.error('Failed to share receipt natively, falling back to text:', err);
+          notifyTextOnly();
+          // fall through to wa.me on failure
+        } finally {
+          setIsSharing(false);
+        }
+      } else {
+        // The button is disabled while the image is being prepared, so reaching here
+        // means pre-generation failed or file type is rejected.
+        notifyTextOnly();
       }
     }
 
@@ -353,7 +518,7 @@ export function PaymentReceiptDialog({
 
   // Button Label
   const getButtonText = () => {
-    if (isSharing) {
+    if (isSharing || isPreparing) {
       return t.sendingReceipt || (isEn ? 'Preparing...' : 'প্রস্তুত হচ্ছে...');
     }
     if (canShareImageNatively) {
@@ -368,6 +533,8 @@ export function PaymentReceiptDialog({
     return isEn ? 'Send in WhatsApp' : 'হোয়াটসঅ্যাপে পাঠান';
   };
 
+  const actionsDisabled = isDownloading || isSharing || isPrinting || !isReceiptDataReady;
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -375,7 +542,7 @@ export function PaymentReceiptDialog({
           {/* Scrollable Receipt Body — overflow-y-auto and overflow-x-hidden to avoid horizontal scrollbar */}
           <div className="overflow-y-auto overflow-x-hidden flex-1 bg-stone-100/70 p-4 sm:p-7">
             {/* Invisible measurement anchor to get available container width without being distorted by 600px receipt */}
-            <div ref={receiptContainerRef} className="w-full h-0 pointer-events-none" />
+            <div ref={setContainerNode} className="w-full h-0 pointer-events-none" />
 
             {/* Scaled Preview Wrapper & Centering Box */}
             <div className="flex justify-center w-full min-h-full items-start">
@@ -404,7 +571,7 @@ export function PaymentReceiptDialog({
                    * No responsive (sm:) classes inside this element.
                    */}
                   <div
-                    ref={receiptRef}
+                    ref={setReceiptNode}
                     id="printable-receipt"
                     className="space-y-5 bg-white border border-stone-300 shadow-sm"
                     style={{ width: CANONICAL_RECEIPT_WIDTH, padding: '28px' }}
@@ -414,7 +581,15 @@ export function PaymentReceiptDialog({
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex items-center gap-3">
                           <div className="h-11 w-11 shrink-0 overflow-hidden rounded">
-                            <Image src="/logo.png" alt="BariVara" width={44} height={44} className="w-full h-full object-cover" />
+                            <Image
+                              src="/logo.png"
+                              alt="BariVara"
+                              width={44}
+                              height={44}
+                              unoptimized
+                              loading="eager"
+                              className="w-full h-full object-cover"
+                            />
                           </div>
                           <div>
                             <h2 className="font-serif text-[22px] font-bold text-slate-950 tracking-tight leading-tight">
@@ -619,6 +794,7 @@ export function PaymentReceiptDialog({
           {/* Sticky Action Buttons Footer */}
           <DialogFooter className="p-3.5 px-4 sm:px-6 bg-stone-50 border-t border-stone-300 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2.5 shrink-0">
             <Button
+              type="button"
               variant="outline"
               size="sm"
               onClick={() => onOpenChange(false)}
@@ -627,12 +803,30 @@ export function PaymentReceiptDialog({
               {t.cancel}
             </Button>
             <div className="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
+              {/* Print: prints the exact exported image */}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handlePrint}
+                disabled={actionsDisabled}
+                className="gap-1.5 shadow-xs font-medium text-slate-700 hover:text-slate-900 border-stone-300 flex-1 sm:flex-none cursor-pointer"
+              >
+                {isPrinting ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-slate-600" />
+                ) : (
+                  <Printer className="w-4 h-4 text-slate-600" />
+                )}
+                {isEn ? 'Print' : 'প্রিন্ট'}
+              </Button>
+
               {/* Download: generates and saves the receipt image */}
               <Button
+                type="button"
                 variant="outline"
                 size="sm"
                 onClick={handleDownloadImage}
-                disabled={isDownloading || isSharing}
+                disabled={actionsDisabled}
                 className="gap-1.5 shadow-xs font-medium text-slate-700 hover:text-slate-900 border-stone-300 flex-1 sm:flex-none cursor-pointer"
               >
                 {isDownloading ? (
@@ -646,9 +840,10 @@ export function PaymentReceiptDialog({
               {/* Primary Action: Share / Send to WhatsApp */}
               <div className="flex flex-col items-center flex-1 sm:flex-none">
                 <Button
+                  type="button"
                   size="sm"
                   onClick={handleSendReceipt}
-                  disabled={isDownloading || isSharing}
+                  disabled={actionsDisabled || isPreparing}
                   className="gap-2 shadow-xs font-semibold bg-[#25D366] hover:bg-[#20ba59] text-white border-0 transition-colors w-full cursor-pointer"
                   title={
                     canShareImageNatively
@@ -658,7 +853,7 @@ export function PaymentReceiptDialog({
                         : (isEn ? 'No WhatsApp number for this tenant' : 'ভাড়াটিয়ার হোয়াটসঅ্যাপ নম্বর নেই'))
                   }
                 >
-                  {isSharing ? (
+                  {isSharing || isPreparing ? (
                     <Loader2 className="w-4 h-4 animate-spin shrink-0 text-white" />
                   ) : canShareImageNatively ? (
                     <Share2 className="w-4 h-4 shrink-0" />
@@ -712,14 +907,23 @@ function WhatsAppShareFallbackDialog({
   isEn,
 }: WhatsAppShareFallbackProps) {
   const [copiedText, setCopiedText] = React.useState(false);
+  const copyTimerRef = React.useRef<number | undefined>(undefined);
+
+  React.useEffect(() => () => window.clearTimeout(copyTimerRef.current), []);
 
   if (!data) return null;
 
-  const handleCopyText = () => {
-    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(data.messageText);
-      setCopiedText(true);
-      setTimeout(() => setCopiedText(false), 2500);
+  const handleCopyText = async () => {
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(data.messageText);
+        setCopiedText(true);
+        window.clearTimeout(copyTimerRef.current);
+        copyTimerRef.current = window.setTimeout(() => setCopiedText(false), 2500);
+      }
+    } catch (error) {
+      console.error('Failed to copy message text:', error);
+      toast.error(isEn ? 'Could not copy the message' : 'বার্তা কপি করা যায়নি');
     }
   };
 
