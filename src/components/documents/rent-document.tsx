@@ -27,7 +27,23 @@ export function WhatsAppIcon({ className = 'w-4 h-4' }: { className?: string }) 
  */
 export async function waitForRenderReady(node: HTMLElement): Promise<void> {
   try {
-    if ('fonts' in document) await document.fonts.ready;
+    if ('fonts' in document) {
+      await document.fonts.ready;
+      // Guarantee explicit weights 400, 500, 600, 700 of both Inter and Noto Sans Bengali are ready:
+      await Promise.race([
+        Promise.all([
+          document.fonts.load('400 12px "Inter"'),
+          document.fonts.load('500 12px "Inter"'),
+          document.fonts.load('600 12px "Inter"'),
+          document.fonts.load('700 12px "Inter"'),
+          document.fonts.load('400 12px "Noto Sans Bengali"'),
+          document.fonts.load('500 12px "Noto Sans Bengali"'),
+          document.fonts.load('600 12px "Noto Sans Bengali"'),
+          document.fonts.load('700 12px "Noto Sans Bengali"'),
+        ]),
+        new Promise<void>((resolve) => window.setTimeout(resolve, 3000)),
+      ]);
+    }
   } catch (error) {
     console.warn('Font loading check failed:', error);
   }
@@ -237,8 +253,13 @@ export const RentDocument = forwardRef<HTMLDivElement, RentDocumentProps>(functi
       <div
         ref={ref}
         id="printable-receipt"
-        className={`space-y-5 bg-white border border-stone-300 shadow-sm ${className}`}
-        style={{ width: CANONICAL_DOCUMENT_WIDTH, padding: '28px' }}
+        className={`space-y-5 bg-white border border-stone-300 shadow-sm font-document ${className}`}
+        style={{
+          width: CANONICAL_DOCUMENT_WIDTH,
+          padding: '28px',
+          fontFamily: 'var(--font-inter, "Inter"), var(--font-bengali, "Noto Sans Bengali"), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+          textRendering: 'optimizeLegibility',
+        }}
       >
         {/* Header */}
         <div className="border-y-[3px] border-emerald-800 py-4">
@@ -256,8 +277,8 @@ export const RentDocument = forwardRef<HTMLDivElement, RentDocumentProps>(functi
                 />
               </div>
               <div>
-                <h2 className="font-serif text-[22px] font-bold text-slate-950 tracking-tight leading-tight">
-                  {property?.name || 'বাড়িভাড়া (BariVara)'}
+                <h2 className="text-[22px] font-bold text-slate-950 tracking-tight leading-tight">
+                  {property?.name || (isEn ? 'BariVara' : 'বাড়িভাড়া (BariVara)')}
                 </h2>
                 {property?.address && (
                   <p className="text-[11px] text-slate-600 leading-tight mt-1">{property.address}</p>
@@ -483,8 +504,13 @@ export const RentDocument = forwardRef<HTMLDivElement, RentDocumentProps>(functi
     <div
       ref={ref}
       id="canonical-rent-notice"
-      className={`space-y-5 bg-white border border-stone-300 shadow-sm select-none ${className}`}
-      style={{ width: CANONICAL_DOCUMENT_WIDTH, padding: '28px' }}
+      className={`space-y-5 bg-white border border-stone-300 shadow-sm select-none font-document ${className}`}
+      style={{
+        width: CANONICAL_DOCUMENT_WIDTH,
+        padding: '28px',
+        fontFamily: 'var(--font-inter, "Inter"), var(--font-bengali, "Noto Sans Bengali"), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        textRendering: 'optimizeLegibility',
+      }}
     >
       {/* Header */}
       <div className="border-y-[3px] border-emerald-800 py-4">
@@ -502,8 +528,8 @@ export const RentDocument = forwardRef<HTMLDivElement, RentDocumentProps>(functi
               />
             </div>
             <div>
-              <h2 className="font-serif text-[22px] font-bold text-slate-950 tracking-tight leading-tight">
-                {property?.name || 'বাড়িভাড়া (BariVara)'}
+              <h2 className="text-[22px] font-bold text-slate-950 tracking-tight leading-tight">
+                {property?.name || (isEn ? 'BariVara' : 'বাড়িভাড়া (BariVara)')}
               </h2>
               {property?.address && (
                 <p className="text-[11px] text-slate-600 leading-tight mt-1">{property.address}</p>
