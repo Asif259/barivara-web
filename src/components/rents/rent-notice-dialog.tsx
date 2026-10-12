@@ -377,7 +377,7 @@ export function RentNoticeDialog({
                     <div>
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white font-bold text-lg">
-                          {property?.name.slice(0, 1).toUpperCase()}
+                          {property?.name ? property.name.slice(0, 1).toUpperCase() : 'বা'}
                         </div>
                         <span className="font-extrabold text-xl tracking-tight text-slate-900">
                           {property?.name}

@@ -11,6 +11,7 @@ import { ApiResponse, User } from '@/lib/types';
 import { getFileDownloadUrl, deleteFileRecord } from '@/lib/file-upload';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +29,9 @@ import {
   ImageIcon,
   Upload,
   Info,
+  Check,
+  X,
+  Loader2,
 } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -41,6 +45,10 @@ export default function SettingsPage() {
   const [signaturePreviewUrl, setSignaturePreviewUrl] = useState<string | null>(null);
   const [pendingFileId, setPendingFileId] = useState<string | null>(null);
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
+
+  // Profile name editing state
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [nameInput, setNameInput] = useState('');
 
   // Fetch the latest profile (includes signatureFileId)
   const { data: profile, isLoading: isProfileLoading } = useQuery({
@@ -121,6 +129,40 @@ export default function SettingsPage() {
     },
   });
 
+  // Mutation: update user profile (name)
+  const updateNameMutation = useMutation({
+    mutationFn: async (newName: string) => {
+      const res = await apiClient.patch<ApiResponse<User>>('/users/profile', {
+        name: newName,
+      });
+      return res.data?.data;
+    },
+    onSuccess: (updated) => {
+      if (updated) {
+        setUser(updated);
+        queryClient.setQueryData(['user-profile'], updated);
+        queryClient.invalidateQueries({ queryKey: ['user-profile'] });
+        setIsEditingName(false);
+        toast.success(t.nameUpdated);
+      }
+    },
+    onError: (err: unknown) => {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data
+          ?.message || (isEn ? 'Failed to update name' : 'নাম পরিবর্তন করতে ব্যর্থ হয়েছে');
+      toast.error(msg);
+    },
+  });
+
+  const handleSaveName = () => {
+    const trimmed = nameInput.trim();
+    if (trimmed.length < 2) {
+      toast.error(t.nameMinLength);
+      return;
+    }
+    updateNameMutation.mutate(trimmed);
+  };
+
   /**
    * Called by FileUploader whenever the user picks/replaces/removes a file.
    * We intentionally do NOT auto-save — we wait for the user to click
@@ -190,12 +232,89 @@ export default function SettingsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-1.5">
-            <Label className="text-xs text-[#6B7280] flex items-center gap-1.5">
-              <UserIcon className="w-3.5 h-3.5" />
-              {t.fullName}
-            </Label>
-            <p className="font-semibold text-[#171717]">{currentUser.name}</p>
+          <div className={`space-y-1.5 transition-all ${isEditingName ? 'sm:col-span-2' : ''}`}>
+            <div className="flex items-center justify-between">
+              <Label className="text-xs text-[#6B7280] flex items-center gap-1.5">
+                <UserIcon className="w-3.5 h-3.5" />
+                {t.fullName}
+              </Label>
+              {!isEditingName && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setNameInput(currentUser.name || '');
+                    setIsEditingName(true);
+                  }}
+                  className="h-6 px-2 text-xs text-[#12664F] hover:text-[#0D4D3B] hover:bg-[#12664F]/5 font-medium gap-1"
+                >
+                  <Pencil className="w-3 h-3" />
+                  {t.editName}
+                </Button>
+              )}
+            </div>
+
+            {isEditingName ? (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSaveName();
+                }}
+                className="space-y-1.5 pt-0.5"
+              >
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={nameInput}
+                    onChange={(e) => setNameInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Escape') {
+                        setIsEditingName(false);
+                        setNameInput(currentUser.name || '');
+                      }
+                    }}
+                    placeholder={t.enterYourName}
+                    disabled={updateNameMutation.isPending}
+                    className="h-9 text-sm font-medium"
+                    autoFocus
+                  />
+                  <Button
+                    type="submit"
+                    size="sm"
+                    disabled={updateNameMutation.isPending || !nameInput.trim()}
+                    className="h-9 px-3 gap-1.5 bg-[#12664F] hover:bg-[#0D4D3B] text-white shrink-0"
+                  >
+                    {updateNameMutation.isPending ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Check className="w-3.5 h-3.5" />
+                    )}
+                    <span>{t.save}</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setIsEditingName(false);
+                      setNameInput(currentUser.name || '');
+                    }}
+                    disabled={updateNameMutation.isPending}
+                    className="h-9 px-3 gap-1 text-[#6B7280] hover:text-[#171717] shrink-0"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                    <span>{t.cancel}</span>
+                  </Button>
+                </div>
+                {nameInput.trim().length > 0 && nameInput.trim().length < 2 && (
+                  <p className="text-[11px] text-rose-500 font-medium">
+                    {t.nameMinLength}
+                  </p>
+                )}
+              </form>
+            ) : (
+              <p className="font-semibold text-[#171717]">{currentUser.name}</p>
+            )}
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs text-[#6B7280] flex items-center gap-1.5">

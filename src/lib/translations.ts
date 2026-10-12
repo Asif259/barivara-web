@@ -205,6 +205,10 @@ export const translations = {
     accountInformation: 'অ্যাকাউন্ট তথ্য',
     role: 'ভূমিকা',
     memberSince: 'যোগদানের তারিখ',
+    nameUpdated: 'নাম সফলভাবে আপডেট করা হয়েছে',
+    editName: 'নাম পরিবর্তন করুন',
+    enterYourName: 'আপনার নাম লিখুন',
+    nameMinLength: 'নাম অন্তত ২ অক্ষরের হতে হবে',
 
     // Receipt WhatsApp Sharing
     sendReceipt: 'রশিদ পাঠান',
@@ -434,6 +438,10 @@ export const translations = {
     accountInformation: 'Account Information',
     role: 'Role',
     memberSince: 'Member Since',
+    nameUpdated: 'Name updated successfully',
+    editName: 'Edit Name',
+    enterYourName: 'Enter your name',
+    nameMinLength: 'Name must be at least 2 characters',
 
     // Receipt WhatsApp Sharing
     sendReceipt: 'Send Receipt',
