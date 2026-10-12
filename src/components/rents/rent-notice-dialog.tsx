@@ -82,6 +82,7 @@ export function RentNoticeDialog({
 
   const noticeRef = React.useRef<HTMLDivElement>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const scrollViewportRef = React.useRef<HTMLDivElement>(null);
 
   // Fetch complete details if rent is open
   const { data: rentDetails } = useQuery({
@@ -104,7 +105,7 @@ export function RentNoticeDialog({
     retry: false,
   });
 
-  // Responsive scaling matching canonical width
+  // Responsive scaling matching canonical width using measurement anchor
   React.useLayoutEffect(() => {
     if (!open) return;
 
@@ -161,25 +162,83 @@ export function RentNoticeDialog({
   }> => {
     if (!noticeRef.current) throw new Error('Notice DOM element not found');
 
-    const dataUrl = await toPng(noticeRef.current, {
-      pixelRatio: 2,
-      cacheBust: true,
-      backgroundColor: '#ffffff',
-      width: CANONICAL_NOTICE_WIDTH,
-      style: {
-        transform: 'none',
-        margin: '0',
-        maxWidth: 'none',
-      },
-    });
+    const node = noticeRef.current;
 
-    const res = await fetch(dataUrl);
-    const blob = await res.blob();
-    const cleanUnit = (unit?.unitNumber || 'unit').replace(/[^a-zA-Z0-9_-]/g, '_');
-    const filename = `rent-notice-${cleanUnit}-${effectiveRent.month}-${effectiveRent.year}.png`;
-    const file = new File([blob], filename, { type: 'image/png' });
+    // 1. Wait for document web fonts to complete loading
+    if (typeof document !== 'undefined' && 'fonts' in document && document.fonts.ready) {
+      try {
+        await document.fonts.ready;
+      } catch (e) {
+        console.warn('Font loading check error:', e);
+      }
+    }
 
-    return { dataUrl, blob, file, filename };
+    // 2. Wait for images inside notice (e.g. owner signature) to load and decode
+    const imgElements = Array.from(node.querySelectorAll('img'));
+    await Promise.all(
+      imgElements.map((img) => {
+        if (img.complete) {
+          return img.decode ? img.decode().catch(() => {}) : Promise.resolve();
+        }
+        return new Promise<void>((resolve) => {
+          img.onload = () => resolve();
+          img.onerror = () => resolve();
+        });
+      }),
+    );
+
+    // 3. Temporarily reset scroll to guarantee scroll-independent full capture
+    const scrollContainer = scrollViewportRef.current;
+    const prevScrollTop = scrollContainer?.scrollTop ?? 0;
+    if (scrollContainer && prevScrollTop > 0) {
+      scrollContainer.scrollTop = 0;
+    }
+
+    try {
+      // 4. Measure exact full unscaled dimensions
+      const targetWidth = CANONICAL_NOTICE_WIDTH;
+      const targetHeight = Math.max(
+        node.scrollHeight,
+        node.offsetHeight,
+        node.clientHeight,
+        noticeHeight || 0,
+        700
+      );
+
+      // 5. Generate high-resolution 2x retina PNG covering the complete document
+      const dataUrl = await toPng(node, {
+        quality: 1,
+        pixelRatio: 2,
+        backgroundColor: '#ffffff',
+        cacheBust: true,
+        skipFonts: true, // Prevents SecurityError from cross-origin CSS while preserving system font glyphs
+        width: targetWidth,
+        height: targetHeight,
+        canvasWidth: targetWidth,
+        canvasHeight: targetHeight,
+        style: {
+          transform: 'none',
+          margin: '0',
+          width: `${targetWidth}px`,
+          height: `${targetHeight}px`,
+          maxHeight: 'none',
+          maxWidth: 'none',
+        },
+      });
+
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+      const cleanUnit = (unit?.unitNumber || 'unit').replace(/[^a-zA-Z0-9_-]/g, '_');
+      const filename = `rent-notice-${cleanUnit}-${effectiveRent.month}-${effectiveRent.year}.png`;
+      const file = new File([blob], filename, { type: 'image/png' });
+
+      return { dataUrl, blob, file, filename };
+    } finally {
+      // Restore scroll position
+      if (scrollContainer && prevScrollTop > 0) {
+        scrollContainer.scrollTop = prevScrollTop;
+      }
+    }
   };
 
   const handleDownload = async () => {
@@ -260,8 +319,8 @@ export function RentNoticeDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl max-h-[92vh] overflow-y-auto p-4 sm:p-6">
-        <DialogHeader className="pb-2">
+      <DialogContent className="sm:max-w-2xl p-0 bg-white max-h-[92vh] flex flex-col overflow-hidden rounded-2xl shadow-2xl border border-slate-200">
+        <DialogHeader className="p-4 sm:p-6 pb-3 border-b border-slate-100 shrink-0 print:hidden">
           <DialogTitle className="flex items-center gap-2 text-slate-900">
             <FileText className="w-5 h-5 text-emerald-600" />
             {isEn ? 'Monthly Rent Payment Notice' : 'মাসিক ভাড়ার নোটিশ ও পেমেন্ট অনুরোধ'}
@@ -273,222 +332,248 @@ export function RentNoticeDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {/* Scaled Notice Document Preview */}
+        {/* Scaled Notice Document Preview inside vertically scrollable viewport */}
         <div
-          ref={containerRef}
-          className="w-full flex justify-center overflow-hidden bg-slate-100/70 p-2 sm:p-4 rounded-2xl border border-slate-200"
-          style={{
-            height: noticeHeight ? `${noticeHeight * scale}px` : 'auto',
-          }}
+          ref={scrollViewportRef}
+          className="overflow-y-auto overflow-x-hidden flex-1 bg-slate-100/70 p-3 sm:p-6 print:p-0 print:bg-white print:overflow-visible"
         >
-          <div
-            ref={noticeRef}
-            className="bg-white text-slate-900 rounded-2xl shadow-md border border-slate-200/90 p-6 sm:p-8 shrink-0 select-none print:shadow-none print:border-none"
-            style={{
-              width: `${CANONICAL_NOTICE_WIDTH}px`,
-              transform: `scale(${scale})`,
-              transformOrigin: 'top center',
-            }}
-          >
-            {/* Header: BariVara branding + Document Type */}
-            <div className="flex items-start justify-between border-b border-slate-200 pb-5">
-              <div>
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white font-bold text-lg">
-                    বা
+          {/* Invisible measurement anchor to get available container width without interference */}
+          <div ref={containerRef} className="w-full h-0 pointer-events-none" />
+
+          {/* Scaled Preview Wrapper & Centering Box */}
+          <div className="flex justify-center w-full min-h-full items-start print:block">
+            <div
+              className="relative shrink-0 transition-all duration-75 print:w-full print:h-auto"
+              style={{
+                width: Math.min(CANONICAL_NOTICE_WIDTH, CANONICAL_NOTICE_WIDTH * scale),
+                height: noticeHeight ? Math.ceil(noticeHeight * scale) + 2 : 'auto',
+                overflow: 'hidden',
+              }}
+            >
+              {/* Scale transformation wrapper */}
+              <div
+                className="print:transform-none"
+                style={{
+                  width: `${CANONICAL_NOTICE_WIDTH}px`,
+                  transform: `scale(${scale})`,
+                  transformOrigin: 'top left',
+                }}
+              >
+                {/* 
+                 * CANONICAL NOTICE DOCUMENT
+                 * Fixed at 600px width with natural document height.
+                 * Used identically for preview, PNG export, and printing.
+                 */}
+                <div
+                  ref={noticeRef}
+                  id="canonical-rent-notice"
+                  className="bg-white text-slate-900 rounded-2xl shadow-md border border-slate-200/90 p-6 sm:p-8 select-none print:shadow-none print:border-none print:w-full print:p-0 print:rounded-none"
+                  style={{
+                    width: `${CANONICAL_NOTICE_WIDTH}px`,
+                  }}
+                >
+                  {/* Header: BariVara branding + Document Type */}
+                  <div className="flex items-start justify-between border-b border-slate-200 pb-5">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white font-bold text-lg">
+                          বা
+                        </div>
+                        <span className="font-extrabold text-xl tracking-tight text-slate-900">
+                          BariVara <span className="text-emerald-600 font-normal text-sm">বাড়িভাড়া</span>
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1">
+                        {property?.name} • {property?.address || 'Bangladesh'}
+                      </p>
+                      {owner && (
+                        <p className="text-xs text-slate-500">
+                          {isEn ? 'Landlord' : 'মালিক'}: {owner.name} {owner.phone ? `(${owner.phone})` : ''}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="text-right">
+                      <span className="inline-block px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase bg-emerald-50 text-emerald-800 border border-emerald-200">
+                        {isEn ? 'Rent Payment Notice' : 'ভাড়া পরিশোধের নোটিশ'}
+                      </span>
+                      <p className="text-[11px] text-slate-500 mt-1.5">
+                        {isEn ? 'Notice Date' : 'ইস্যুর তারিখ'}: {formatBnDate(effectiveRent.createdAt, language)}
+                      </p>
+                    </div>
                   </div>
-                  <span className="font-extrabold text-xl tracking-tight text-slate-900">
-                    BariVara <span className="text-emerald-600 font-normal text-sm">বাড়িভাড়া</span>
-                  </span>
-                </div>
-                <p className="text-xs text-slate-500 mt-1">
-                  {property?.name} • {property?.address || 'Bangladesh'}
-                </p>
-                {owner && (
-                  <p className="text-xs text-slate-500">
-                    {isEn ? 'Landlord' : 'মালিক'}: {owner.name} {owner.phone ? `(${owner.phone})` : ''}
-                  </p>
-                )}
-              </div>
 
-              <div className="text-right">
-                <span className="inline-block px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase bg-emerald-50 text-emerald-800 border border-emerald-200">
-                  {isEn ? 'Rent Payment Notice' : 'ভাড়া পরিশোধের নোটিশ'}
-                </span>
-                <p className="text-[11px] text-slate-500 mt-1.5">
-                  {isEn ? 'Notice Date' : 'ইস্যুর তারিখ'}: {formatBnDate(effectiveRent.createdAt, language)}
-                </p>
-              </div>
-            </div>
-
-            {/* Notice Context Banner */}
-            <div className="my-5 p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
-              <div>
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block">
-                  {isEn ? 'Rent Month' : 'ভাড়ার মাস'}
-                </span>
-                <span className="text-lg font-bold text-slate-900">
-                  {getMonthLabel(effectiveRent.month, effectiveRent.year)}
-                </span>
-              </div>
-              <div className="text-right">
-                <span className="text-xs font-semibold text-rose-600 uppercase tracking-wider block flex items-center gap-1 justify-end">
-                  <Clock className="w-3.5 h-3.5" />
-                  {isEn ? 'Payment Due Date' : 'পরিশোধের শেষ তারিখ'}
-                </span>
-                <span className="text-base font-bold text-rose-700">
-                  {formatBnDate(effectiveRent.dueDate, language)}
-                </span>
-              </div>
-            </div>
-
-            {/* Tenant & Property Overview */}
-            <div className="grid grid-cols-2 gap-4 pb-4 border-b border-slate-100 text-sm">
-              <div className="space-y-1">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
-                  {isEn ? 'Billed To (Tenant)' : 'ভাড়াটিয়া'}
-                </span>
-                <p className="font-bold text-slate-900 flex items-center gap-1.5">
-                  <User className="w-4 h-4 text-slate-400" />
-                  {tenantName || 'Tenant'}
-                </p>
-                {rawPhone && <p className="text-xs text-slate-600 pl-5">{rawPhone}</p>}
-              </div>
-
-              <div className="space-y-1 text-right">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
-                  {isEn ? 'Unit / Flat' : 'ফ্ল্যাট ও বাড়ি'}
-                </span>
-                <p className="font-bold text-slate-900 flex items-center gap-1.5 justify-end">
-                  <Home className="w-4 h-4 text-slate-400" />
-                  {unit?.unitNumber}
-                </p>
-                <p className="text-xs text-slate-600">{property?.name}</p>
-              </div>
-            </div>
-
-            {/* Itemized Charges Table */}
-            <div className="py-4 space-y-2">
-              <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider pb-1">
-                {isEn ? 'Itemized Charges' : 'ভাড়ার হিসাব ও বিবরণী'}
-              </h4>
-
-              <div className="space-y-1.5 text-sm">
-                <div className="flex justify-between py-1 border-b border-slate-100">
-                  <span className="text-slate-600">{isEn ? 'Monthly Base Rent' : 'মাসিক মূল ভাড়া'}</span>
-                  <span className="font-semibold text-slate-900">{formatCurrency(effectiveRent.rent, language)}</span>
-                </div>
-
-                {Number(effectiveRent.serviceFee) > 0 && (
-                  <div className="flex justify-between py-1 border-b border-slate-100">
-                    <span className="text-slate-600">{isEn ? 'Service Fee' : 'সার্ভিস চার্জ'}</span>
-                    <span className="font-semibold text-slate-900">{formatCurrency(effectiveRent.serviceFee, language)}</span>
+                  {/* Notice Context Banner */}
+                  <div className="my-5 p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+                    <div>
+                      <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block">
+                        {isEn ? 'Rent Month' : 'ভাড়ার মাস'}
+                      </span>
+                      <span className="text-lg font-bold text-slate-900">
+                        {getMonthLabel(effectiveRent.month, effectiveRent.year)}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xs font-semibold text-rose-600 uppercase tracking-wider block flex items-center gap-1 justify-end">
+                        <Clock className="w-3.5 h-3.5" />
+                        {isEn ? 'Payment Due Date' : 'পরিশোধের শেষ তারিখ'}
+                      </span>
+                      <span className="text-base font-bold text-rose-700">
+                        {formatBnDate(effectiveRent.dueDate, language)}
+                      </span>
+                    </div>
                   </div>
-                )}
 
-                {Number(effectiveRent.parkingFee) > 0 && (
-                  <div className="flex justify-between py-1 border-b border-slate-100">
-                    <span className="text-slate-600">{isEn ? 'Parking Fee' : 'পার্কিং ফি'}</span>
-                    <span className="font-semibold text-slate-900">{formatCurrency(effectiveRent.parkingFee, language)}</span>
+                  {/* Tenant & Property Overview */}
+                  <div className="grid grid-cols-2 gap-4 pb-4 border-b border-slate-100 text-sm">
+                    <div className="space-y-1">
+                      <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
+                        {isEn ? 'Billed To (Tenant)' : 'ভাড়াটিয়া'}
+                      </span>
+                      <p className="font-bold text-slate-900 flex items-center gap-1.5">
+                        <User className="w-4 h-4 text-slate-400" />
+                        {tenantName || 'Tenant'}
+                      </p>
+                      {rawPhone && <p className="text-xs text-slate-600 pl-5">{rawPhone}</p>}
+                    </div>
+
+                    <div className="space-y-1 text-right">
+                      <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
+                        {isEn ? 'Unit / Flat' : 'ফ্ল্যাট ও বাড়ি'}
+                      </span>
+                      <p className="font-bold text-slate-900 flex items-center gap-1.5 justify-end">
+                        <Home className="w-4 h-4 text-slate-400" />
+                        {unit?.unitNumber}
+                      </p>
+                      <p className="text-xs text-slate-600">{property?.name}</p>
+                    </div>
                   </div>
-                )}
 
-                {Number(effectiveRent.extraCharge) > 0 && (
-                  <div className="flex justify-between py-1 border-b border-slate-100">
-                    <span className="text-slate-600">{isEn ? 'Extra Charges' : 'অন্যান্য চার্জ'}</span>
-                    <span className="font-semibold text-slate-900">{formatCurrency(effectiveRent.extraCharge, language)}</span>
+                  {/* Itemized Charges Table */}
+                  <div className="py-4 space-y-2">
+                    <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider pb-1">
+                      {isEn ? 'Itemized Charges' : 'ভাড়ার হিসাব ও বিবরণী'}
+                    </h4>
+
+                    <div className="space-y-1.5 text-sm">
+                      <div className="flex justify-between py-1 border-b border-slate-100">
+                        <span className="text-slate-600">{isEn ? 'Monthly Base Rent' : 'মাসিক মূল ভাড়া'}</span>
+                        <span className="font-semibold text-slate-900">{formatCurrency(effectiveRent.rent, language)}</span>
+                      </div>
+
+                      {Number(effectiveRent.serviceFee) > 0 && (
+                        <div className="flex justify-between py-1 border-b border-slate-100">
+                          <span className="text-slate-600">{isEn ? 'Service Fee' : 'সার্ভিস চার্জ'}</span>
+                          <span className="font-semibold text-slate-900">{formatCurrency(effectiveRent.serviceFee, language)}</span>
+                        </div>
+                      )}
+
+                      {Number(effectiveRent.parkingFee) > 0 && (
+                        <div className="flex justify-between py-1 border-b border-slate-100">
+                          <span className="text-slate-600">{isEn ? 'Parking Fee' : 'পার্কিং ফি'}</span>
+                          <span className="font-semibold text-slate-900">{formatCurrency(effectiveRent.parkingFee, language)}</span>
+                        </div>
+                      )}
+
+                      {Number(effectiveRent.extraCharge) > 0 && (
+                        <div className="flex justify-between py-1 border-b border-slate-100">
+                          <span className="text-slate-600">{isEn ? 'Extra Charges' : 'অন্যান্য চার্জ'}</span>
+                          <span className="font-semibold text-slate-900">{formatCurrency(effectiveRent.extraCharge, language)}</span>
+                        </div>
+                      )}
+
+                      {Number(effectiveRent.lateFee) > 0 && (
+                        <div className="flex justify-between py-1 border-b border-slate-100 text-rose-600">
+                          <span>{isEn ? 'Late Fee' : 'বিলম্ব ফি'}</span>
+                          <span className="font-semibold">+{formatCurrency(effectiveRent.lateFee, language)}</span>
+                        </div>
+                      )}
+
+                      {Number(effectiveRent.discount) > 0 && (
+                        <div className="flex justify-between py-1 border-b border-slate-100 text-emerald-600">
+                          <span>{isEn ? 'Discount' : 'ডিসকাউন্ট'}</span>
+                          <span className="font-semibold">-{formatCurrency(effectiveRent.discount, language)}</span>
+                        </div>
+                      )}
+
+                      {/* Total Rent Bill */}
+                      <div className="flex justify-between py-2 border-t-2 border-slate-200 text-base font-bold text-slate-900">
+                        <span>{isEn ? 'Total Bill for Month' : 'এই মাসের মোট বিল'}</span>
+                        <span>{formatCurrency(effectiveRent.totalAmount, language)}</span>
+                      </div>
+
+                      {/* Prior Payment Row */}
+                      {paidNum > 0 && (
+                        <div className="flex justify-between py-1 text-emerald-700 font-semibold">
+                          <span>{isEn ? 'Paid So Far' : 'পূর্বে পরিশোধিত ভাড়া'}</span>
+                          <span>-{formatCurrency(effectiveRent.paidAmount, language)}</span>
+                        </div>
+                      )}
+
+                      {/* Outstanding Balance Highlight Box */}
+                      <div className="mt-3 p-3.5 rounded-xl bg-amber-50/80 border border-amber-200/90 flex items-center justify-between">
+                        <div>
+                          <span className="text-xs font-bold text-amber-900 uppercase tracking-wide block">
+                            {isEn ? 'Total Balance Due' : 'সর্বমোট প্রদেয় বকেয়া'}
+                          </span>
+                          <span className="text-[11px] text-amber-700">
+                            {remainingNum === 0
+                              ? (isEn ? 'Fully paid. No payment required.' : 'সম্পূর্ণ পরিশোধিত। কোনো বকেয়া নেই।')
+                              : (isEn ? 'Please pay before due date' : 'অনুগ্রহ করে শেষ তারিখের মধ্যে পরিশোধ করুন')}
+                          </span>
+                        </div>
+                        <span className="text-2xl font-extrabold text-amber-900">
+                          {formatCurrency(effectiveRent.remainingAmount, language)}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                )}
 
-                {Number(effectiveRent.lateFee) > 0 && (
-                  <div className="flex justify-between py-1 border-b border-slate-100 text-rose-600">
-                    <span>{isEn ? 'Late Fee' : 'বিলম্ব ফি'}</span>
-                    <span className="font-semibold">+{formatCurrency(effectiveRent.lateFee, language)}</span>
+                  {/* Footer Notice & Landlord Signature */}
+                  <div className="mt-6 pt-5 border-t border-slate-200 flex items-end justify-between">
+                    <div className="space-y-1 text-xs text-slate-500 max-w-[320px]">
+                      <p className="font-semibold text-slate-700">
+                        {isEn ? 'Payment Instructions:' : 'পেমেন্ট নির্দেশিকা:'}
+                      </p>
+                      <p>
+                        {isEn
+                          ? 'Please pay via Cash, bKash, Nagad, or Bank Transfer to the landlord directly before the deadline.'
+                          : 'নির্ধারিত শেষ তারিখের মধ্যে নগদ, বিকাশ, নগদ অথবা ব্যাংক ট্রান্সফারের মাধ্যমে বাড়িওয়ালার নিকট ভাড়া পরিশোধ করুন।'}
+                      </p>
+                    </div>
+
+                    <div className="text-right flex flex-col items-end">
+                      {signatureUrl ? (
+                        <div className="h-12 w-32 relative mb-1 flex items-end justify-end">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={signatureUrl}
+                            alt={isEn ? 'Owner Signature' : 'মালিকের স্বাক্ষর'}
+                            crossOrigin="anonymous"
+                            className="max-h-12 max-w-[8rem] object-contain object-bottom"
+                          />
+                        </div>
+                      ) : (
+                        <div className="h-10" />
+                      )}
+                      <div className="w-36 border-t border-slate-400 pt-1 text-center">
+                        <span className="text-[11px] text-slate-600 font-medium block">
+                          {isEn ? 'Authorized Signatory' : 'অনুরোধকারী / বাড়িওয়ালা'}
+                        </span>
+                        <span className="text-[10px] text-slate-400 block">
+                          {owner?.name || 'Landlord'}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                )}
-
-                {Number(effectiveRent.discount) > 0 && (
-                  <div className="flex justify-between py-1 border-b border-slate-100 text-emerald-600">
-                    <span>{isEn ? 'Discount' : 'ডিসকাউন্ট'}</span>
-                    <span className="font-semibold">-{formatCurrency(effectiveRent.discount, language)}</span>
-                  </div>
-                )}
-
-                {/* Total Rent Bill */}
-                <div className="flex justify-between py-2 border-t-2 border-slate-200 text-base font-bold text-slate-900">
-                  <span>{isEn ? 'Total Bill for Month' : 'এই মাসের মোট বিল'}</span>
-                  <span>{formatCurrency(effectiveRent.totalAmount, language)}</span>
-                </div>
-
-                {/* Prior Payment Row */}
-                {paidNum > 0 && (
-                  <div className="flex justify-between py-1 text-emerald-700 font-semibold">
-                    <span>{isEn ? 'Paid So Far' : 'পূর্বে পরিশোধিত ভাড়া'}</span>
-                    <span>-{formatCurrency(effectiveRent.paidAmount, language)}</span>
-                  </div>
-                )}
-
-                {/* Outstanding Balance Highlight Box */}
-                <div className="mt-3 p-3.5 rounded-xl bg-amber-50/80 border border-amber-200/90 flex items-center justify-between">
-                  <div>
-                    <span className="text-xs font-bold text-amber-900 uppercase tracking-wide block">
-                      {isEn ? 'Total Balance Due' : 'সর্বমোট প্রদেয় বকেয়া'}
-                    </span>
-                    <span className="text-[11px] text-amber-700">
-                      {remainingNum === 0
-                        ? (isEn ? 'Fully paid. No payment required.' : 'সম্পূর্ণ পরিশোধিত। কোনো বকেয়া নেই।')
-                        : (isEn ? 'Please pay before due date' : 'অনুগ্রহ করে শেষ তারিখের মধ্যে পরিশোধ করুন')}
-                    </span>
-                  </div>
-                  <span className="text-2xl font-extrabold text-amber-900">
-                    {formatCurrency(effectiveRent.remainingAmount, language)}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Footer Notice & Landlord Signature */}
-            <div className="mt-6 pt-5 border-t border-slate-200 flex items-end justify-between">
-              <div className="space-y-1 text-xs text-slate-500 max-w-[320px]">
-                <p className="font-semibold text-slate-700">
-                  {isEn ? 'Payment Instructions:' : 'পেমেন্ট নির্দেশিকা:'}
-                </p>
-                <p>
-                  {isEn
-                    ? 'Please pay via Cash, bKash, Nagad, or Bank Transfer to the landlord directly before the deadline.'
-                    : 'নির্ধারিত শেষ তারিখের মধ্যে নগদ, বিকাশ, নগদ অথবা ব্যাংক ট্রান্সফারের মাধ্যমে বাড়িওয়ালার নিকট ভাড়া পরিশোধ করুন।'}
-                </p>
-              </div>
-
-              <div className="text-right flex flex-col items-end">
-                {signatureUrl ? (
-                  <div className="h-12 w-32 relative mb-1">
-                    <Image
-                      src={signatureUrl}
-                      alt="Owner Signature"
-                      fill
-                      className="object-contain object-bottom"
-                      unoptimized
-                    />
-                  </div>
-                ) : (
-                  <div className="h-10" />
-                )}
-                <div className="w-36 border-t border-slate-400 pt-1 text-center">
-                  <span className="text-[11px] text-slate-600 font-medium block">
-                    {isEn ? 'Authorized Signatory' : 'অনুরোধকারী / বাড়িওয়ালা'}
-                  </span>
-                  <span className="text-[10px] text-slate-400 block">
-                    {owner?.name || 'Landlord'}
-                  </span>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Dialog Actions */}
-        <DialogFooter className="flex-col sm:flex-row gap-2 pt-3">
+        {/* Dialog Actions — Pinned Footer */}
+        <DialogFooter className="p-4 sm:p-6 pt-3 border-t border-slate-100 shrink-0 bg-slate-50/50 flex-col sm:flex-row gap-2 print:hidden">
           <Button
             type="button"
             variant="outline"
