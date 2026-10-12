@@ -377,14 +377,14 @@ export function RentNoticeDialog({
                     <div>
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white font-bold text-lg">
-                          বা
+                          {property?.name.slice(0, 1).toUpperCase()}
                         </div>
                         <span className="font-extrabold text-xl tracking-tight text-slate-900">
-                          BariVara <span className="text-emerald-600 font-normal text-sm">বাড়িভাড়া</span>
+                          {property?.name}
                         </span>
                       </div>
                       <p className="text-xs text-slate-500 mt-1">
-                        {property?.name} • {property?.address || 'Bangladesh'}
+                        {property?.address || 'Bangladesh'}
                       </p>
                       {owner && (
                         <p className="text-xs text-slate-500">
