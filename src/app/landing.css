@@ -1,0 +1,51 @@
+/* Barivara Dark Architectural Landing Page Styles */
+
+@keyframes landingFloat {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.landing-float-1 {
+  animation: landingFloat 7s ease-in-out infinite;
+}
+
+.landing-float-2 {
+  animation: landingFloat 7s ease-in-out infinite -2.3s;
+}
+
+.landing-float-3 {
+  animation: landingFloat 7s ease-in-out infinite -4.6s;
+}
+
+.landing-grid-pattern {
+  background-image: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.045) 0 1px, transparent 1px 34px);
+  -webkit-mask-image: radial-gradient(ellipse 70% 70% at 70% 35%, #000, transparent 75%);
+  mask-image: radial-gradient(ellipse 70% 70% at 70% 35%, #000, transparent 75%);
+}
+
+.landing-aurora-glow {
+  background: radial-gradient(circle, rgba(18, 102, 79, 0.55), rgba(48, 116, 115, 0.18) 45%, transparent 70%);
+}
+
+.landing-check-icon::before {
+  content: "";
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  border-radius: 50%;
+  background: #12664F url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Cpath d='M5 9.5l2.5 2.5L13 6.5' fill='none' stroke='%23F2F5F4' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat center;
+  background-size: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-float-1,
+  .landing-float-2,
+  .landing-float-3 {
+    animation: none !important;
+  }
+}
