@@ -32,8 +32,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="bn" suppressHydrationWarning className={`${inter.variable} ${notoSansBengali.variable}`}>
-      <body className="min-h-screen bg-slate-50 text-slate-900 antialiased selection:bg-emerald-500 selection:text-white" suppressHydrationWarning>
+    <html lang="bn" suppressHydrationWarning className={`${inter.variable} ${notoSansBengali.variable} bg-[#060807]`}>
+      <body className="min-h-screen bg-[#060807] text-[#F2F5F4] antialiased selection:bg-[#12664F] selection:text-white" suppressHydrationWarning>
         <Providers>{children}</Providers>
       </body>
     </html>
