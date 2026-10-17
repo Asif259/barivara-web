@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'sonner';
-import { apiClient } from '@/lib/api';
+import { apiClient, getApiErrorMessage } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth-store';
 import { useLanguageStore } from '@/stores/language-store';
 import { useTranslation } from '@/lib/translations';
@@ -57,10 +57,11 @@ export default function LoginPage() {
         toast.success(response.data.message || (language === 'bn' ? 'লগইন সফল হয়েছে!' : 'Login successful!'));
         router.push('/dashboard');
       }
-    } catch (error: any) {
-      const errorMsg =
-        error.response?.data?.message ||
-        (language === 'bn' ? 'লগইন ব্যর্থ হয়েছে। তথ্য যাচাই করুন।' : 'Login failed. Please check credentials.');
+    } catch (error: unknown) {
+      const errorMsg = getApiErrorMessage(
+        error,
+        language === 'bn' ? 'লগইন ব্যর্থ হয়েছে। তথ্য যাচাই করুন।' : 'Login failed. Please check credentials.'
+      );
       toast.error(errorMsg);
     } finally {
       setIsLoading(false);

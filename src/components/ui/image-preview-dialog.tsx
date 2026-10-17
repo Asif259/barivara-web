@@ -27,26 +27,24 @@ export function ImagePreviewDialog({
   const t = useTranslation(language);
   const isEn = language === 'en';
 
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [loadedUrl, setLoadedUrl] = React.useState<string | null>(null);
   const [hasError, setHasError] = React.useState(false);
+  const [prevUrl, setPrevUrl] = React.useState<string | null>(null);
 
-  React.useEffect(() => {
-    if (open && imageUrl) {
-      setIsLoading(true);
-      setHasError(false);
-    } else {
-      setIsLoading(false);
-      setHasError(false);
-    }
-  }, [open, imageUrl]);
+  if (open && imageUrl !== prevUrl) {
+    setPrevUrl(imageUrl);
+    setHasError(false);
+  }
+
+  const isCurrentLoaded = open && imageUrl ? loadedUrl === imageUrl : true;
+  const isLoading = open && !!imageUrl && !isCurrentLoaded && !hasError;
 
   const handleImageLoad = () => {
-    setIsLoading(false);
+    setLoadedUrl(imageUrl || null);
     setHasError(false);
   };
 
   const handleImageError = () => {
-    setIsLoading(false);
     setHasError(true);
   };
 
@@ -130,6 +128,7 @@ export function ImagePreviewDialog({
 
           {/* Image */}
           {imageUrl && (
+            // eslint-disable-next-line @next/next/no-img-element -- Dynamic presigned Supabase storage URL
             <img
               key={imageUrl}
               src={imageUrl}

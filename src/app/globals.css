@@ -104,6 +104,13 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+.font-heading {
+  font-family: var(--font-heading, "Plus Jakarta Sans"), var(--font-inter, "Inter"), var(--font-bengali, "Noto Sans Bengali"), sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 .pacifico-regular {
   font-family: "Pacifico", cursive;
   font-weight: 400;

@@ -39,6 +39,7 @@ export function TenantAvatar({ profilePictureId, name, size = 'md', onClick, dis
       {isLoading ? (
         <div className="h-5 w-5 animate-pulse rounded bg-[#CDE4DA]" />
       ) : imageUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element -- Dynamic presigned Supabase storage URL
         <img src={imageUrl} alt={name} className="h-full w-full object-cover" />
       ) : (
         fallback

@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'sonner';
-import { apiClient } from '@/lib/api';
+import { apiClient, getApiErrorMessage } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth-store';
 import { useLanguageStore } from '@/stores/language-store';
 import { useTranslation } from '@/lib/translations';
@@ -53,7 +53,7 @@ export default function RegisterPage() {
   const onSubmit = async (data: RegisterFormValues) => {
     setIsLoading(true);
     try {
-      const payload: any = {
+      const payload: { name: string; password: string; role: string; email?: string; phone?: string } = {
         name: data.name,
         password: data.password,
         role: 'OWNER',
@@ -69,10 +69,11 @@ export default function RegisterPage() {
         toast.success(response.data.message || (language === 'bn' ? 'অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে!' : 'Account created successfully!'));
         router.push('/dashboard');
       }
-    } catch (error: any) {
-      const errorMsg =
-        error.response?.data?.message ||
-        (language === 'bn' ? 'রেজিস্ট্রেশন ব্যর্থ হয়েছে। তথ্য যাচাই করুন।' : 'Registration failed. Please check your info.');
+    } catch (error: unknown) {
+      const errorMsg = getApiErrorMessage(
+        error,
+        language === 'bn' ? 'রেজিস্ট্রেশন ব্যর্থ হয়েছে। তথ্য যাচাই করুন।' : 'Registration failed. Please check your info.'
+      );
       toast.error(errorMsg);
     } finally {
       setIsLoading(false);

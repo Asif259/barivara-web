@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { apiClient } from '@/lib/api';
+import { apiClient, getApiErrorMessage } from '@/lib/api';
 import { useLanguageStore } from '@/stores/language-store';
 import { useTranslation } from '@/lib/translations';
 import { Property, Expense, ExpenseCategory, PaymentMethod, ApiResponse } from '@/lib/types';
@@ -126,12 +126,18 @@ export function ExpenseFormDialog({
   const onSubmit = async (data: ExpenseFormValues) => {
     setIsLoading(true);
     try {
-      const payload: any = {
+      const payload: Partial<Expense> & {
+        propertyId: string;
+        category: ExpenseCategory;
+        amount: number;
+        expenseDate: string;
+        paymentMethod: PaymentMethod;
+      } = {
         propertyId: data.propertyId,
-        category: data.category,
+        category: data.category as ExpenseCategory,
         amount: data.amount,
         expenseDate: new Date(data.expenseDate).toISOString(),
-        paymentMethod: data.paymentMethod,
+        paymentMethod: data.paymentMethod as PaymentMethod,
         description: data.description || undefined,
         reference: data.reference || undefined,
         receiptFileId: data.receiptFileId || undefined,
@@ -148,9 +154,11 @@ export function ExpenseFormDialog({
       reset();
       onOpenChange(false);
       if (onSuccess) onSuccess();
-    } catch (error: any) {
-      const errorMsg =
-        error.response?.data?.message || (isEn ? 'Failed to save expense' : 'খরচ সংরক্ষণ সম্ভব হয়নি।');
+    } catch (error: unknown) {
+      const errorMsg = getApiErrorMessage(
+        error,
+        isEn ? 'Failed to save expense' : 'খরচ সংরক্ষণ সম্ভব হয়নি।'
+      );
       toast.error(errorMsg);
     } finally {
       setIsLoading(false);

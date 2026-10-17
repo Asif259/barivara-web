@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'sonner';
-import { apiClient } from '@/lib/api';
+import { apiClient, getApiErrorMessage } from '@/lib/api';
 import { useLanguageStore } from '@/stores/language-store';
 import { useTranslation } from '@/lib/translations';
 import { Property, ApiResponse } from '@/lib/types';
@@ -94,9 +94,11 @@ export function PropertyFormDialog({
       reset();
       onOpenChange(false);
       if (onSuccess) onSuccess();
-    } catch (error: any) {
-      const errorMsg =
-        error.response?.data?.message || (isEn ? 'Failed to save property' : 'বাড়ি সংরক্ষণ ব্যর্থ হয়েছে।');
+    } catch (error: unknown) {
+      const errorMsg = getApiErrorMessage(
+        error,
+        isEn ? 'Failed to save property' : 'বাড়ি সংরক্ষণ ব্যর্থ হয়েছে।'
+      );
       toast.error(errorMsg);
     } finally {
       setIsLoading(false);

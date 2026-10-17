@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { apiClient } from '@/lib/api';
+import { apiClient, getApiErrorMessage } from '@/lib/api';
 import { useLanguageStore } from '@/stores/language-store';
 import { useTranslation } from '@/lib/translations';
 import { MonthlyRent, PaymentMethod, ApiResponse, Payment } from '@/lib/types';
@@ -24,7 +24,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { FileUploader } from '@/components/ui/file-uploader';
-import { Loader2, CreditCard, CheckCircle2, User, Building, Home, DollarSign, Calendar, Clock } from 'lucide-react';
+import { Loader2, CreditCard, CheckCircle2, User, Home, DollarSign, Calendar, Clock } from 'lucide-react';
 import { PaymentReceiptDialog } from './payment-receipt-dialog';
 
 const getTodayString = () => {
@@ -63,6 +63,12 @@ export function CollectPaymentDialog({
   const [isLoading, setIsLoading] = useState(false);
   const [receiptPayment, setReceiptPayment] = useState<Payment | null>(null);
   const [selectedRentId, setSelectedRentId] = useState<string | null>(rent?.id || null);
+  const [prevRentId, setPrevRentId] = useState<string | null>(rent?.id || null);
+
+  if (open && rent && rent.id !== prevRentId) {
+    setPrevRentId(rent.id);
+    setSelectedRentId(rent.id);
+  }
 
   const isEn = language === 'en';
 
@@ -99,12 +105,6 @@ export function CollectPaymentDialog({
     return rent;
   }, [selectedRentId, invoiceOptions, rent]);
 
-  // Sync selection when dialog opens or incoming rent changes
-  React.useEffect(() => {
-    if (open && rent) {
-      setSelectedRentId(rent.id);
-    }
-  }, [open, rent]);
 
   const remaining = activeRent ? activeRent.remainingAmount : 0;
 
@@ -197,10 +197,11 @@ export function CollectPaymentDialog({
           if (onSuccess) onSuccess();
         }
       }
-    } catch (error: any) {
-      const errorMsg =
-        error.response?.data?.message ||
-        (isEn ? 'Failed to record payment' : 'পেমেন্ট গ্রহণ ব্যর্থ হয়েছে।');
+    } catch (error: unknown) {
+      const errorMsg = getApiErrorMessage(
+        error,
+        isEn ? 'Failed to record payment' : 'পেমেন্ট গ্রহণ ব্যর্থ হয়েছে।'
+      );
       toast.error(errorMsg);
     } finally {
       setIsLoading(false);

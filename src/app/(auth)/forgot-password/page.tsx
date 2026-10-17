@@ -160,7 +160,7 @@ function ForgotPasswordContent() {
         response.data?.message || (isBn ? 'পাসওয়ার্ড সফলভাবে পরিবর্তন হয়েছে!' : 'Password changed successfully!'),
       );
       router.push('/login');
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMsg = getApiErrorMessage(
         error,
         isBn ? 'পাসওয়ার্ড পরিবর্তন ব্যর্থ হয়েছে। তথ্য যাচাই করুন।' : 'Password change failed. Please check your credentials.',
@@ -182,7 +182,7 @@ function ForgotPasswordContent() {
         response.data?.message ||
           (isBn ? 'পাসওয়ার্ড রিসেট ওটিপি আপনার ইমেইলে পাঠানো হয়েছে।' : 'Password reset OTP has been sent to your email.'),
       );
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMsg = getApiErrorMessage(
         error,
         isBn ? 'ওটিপি পাঠাতে সমস্যা হয়েছে। পুনরায় চেষ্টা করুন।' : 'Failed to send OTP. Please try again.',
@@ -207,7 +207,7 @@ function ForgotPasswordContent() {
       toast.success(
         response.data?.message || (isBn ? 'ওটিপি কোড যাচাই সফল হয়েছে!' : 'OTP verified successfully!'),
       );
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMsg = getApiErrorMessage(
         error,
         isBn ? 'ভুল বা মেয়াদোত্তীর্ণ ওটিপি কোড।' : 'Invalid or expired OTP code.',
@@ -232,7 +232,7 @@ function ForgotPasswordContent() {
         response.data?.message || (isBn ? 'পাসওয়ার্ড সফলভাবে রিসেট হয়েছে!' : 'Password reset successfully!'),
       );
       router.push('/login');
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMsg = getApiErrorMessage(
         error,
         isBn ? 'পাসওয়ার্ড রিসেট ব্যর্থ হয়েছে। পুনরায় চেষ্টা করুন।' : 'Password reset failed. Please try again.',
@@ -252,7 +252,7 @@ function ForgotPasswordContent() {
       toast.success(
         response.data?.message || (isBn ? 'নতুন ওটিপি কোড পাঠানো হয়েছে।' : 'New OTP code sent.'),
       );
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMsg = getApiErrorMessage(
         error,
         isBn ? 'ওটিপি পাঠাতে সমস্যা হয়েছে।' : 'Failed to resend OTP.',
