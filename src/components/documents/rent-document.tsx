@@ -723,8 +723,8 @@ export const RentDocument = forwardRef<HTMLDivElement, RentDocumentProps>(functi
             {isEn ? 'Payment Instructions' : 'পেমেন্ট নির্দেশিকা'}:
           </span>{' '}
           {isEn
-            ? 'Please pay via Cash, bKash, Nagad, or Bank Transfer to the landlord directly before the deadline.'
-            : 'নির্ধারিত শেষ তারিখের মধ্যে ক্যাশ, বিকাশ, নগদ অথবা ব্যাংক ট্রান্সফারের মাধ্যমে বাড়িওয়ালার নিকট ভাড়া পরিশোধ করুন।'}
+            ? 'Please pay via Cash or Bank Transfer to the landlord directly before the deadline.'
+            : 'নির্ধারিত শেষ তারিখের মধ্যে ক্যাশ অথবা ব্যাংক ট্রান্সফারের মাধ্যমে বাড়িওয়ালার নিকট ভাড়া পরিশোধ করুন।'}
         </div>
       )}
 
