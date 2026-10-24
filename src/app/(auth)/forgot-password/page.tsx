@@ -104,6 +104,16 @@ function ForgotPasswordContent() {
   // Loading flags
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  // Timer effect for resend cooldown countdown
+  React.useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setInterval(() => {
+      setResendCooldown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
 
   const toggleLanguage = () => {
     setLanguage(language === 'bn' ? 'en' : 'bn');
@@ -178,6 +188,7 @@ function ForgotPasswordContent() {
       const response = await authApi.forgotPassword({ identifier: data.identifier });
       setOtpIdentifier(data.identifier);
       setOtpStep(2);
+      setResendCooldown(60);
       toast.success(
         response.data?.message ||
           (isBn ? 'পাসওয়ার্ড রিসেট ওটিপি আপনার ইমেইলে পাঠানো হয়েছে।' : 'Password reset OTP has been sent to your email.'),
@@ -245,10 +256,11 @@ function ForgotPasswordContent() {
 
   // Resend OTP handler
   const handleResendOtp = async () => {
-    if (!otpIdentifier) return;
+    if (!otpIdentifier || resendCooldown > 0) return;
     setIsResending(true);
     try {
       const response = await authApi.forgotPassword({ identifier: otpIdentifier });
+      setResendCooldown(60);
       toast.success(
         response.data?.message || (isBn ? 'নতুন ওটিপি কোড পাঠানো হয়েছে।' : 'New OTP code sent.'),
       );
@@ -517,12 +529,19 @@ function ForgotPasswordContent() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="otpCodeInput">{t.otpLabel}</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="otpCodeInput">{t.otpLabel}</Label>
+                  <span className="text-xs text-slate-500 font-medium">
+                    {isBn ? 'মেয়াদ: ৫ মিনিট' : 'Expires in: 5 mins'}
+                  </span>
+                </div>
                 <div className="relative">
                   <KeyRound className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
                   <Input
                     id="otpCodeInput"
                     type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
                     maxLength={6}
                     placeholder={t.otpPlaceholder}
                     className="pl-10 text-center tracking-widest text-lg font-bold"
@@ -562,11 +581,15 @@ function ForgotPasswordContent() {
                   variant="ghost"
                   size="sm"
                   onClick={handleResendOtp}
-                  disabled={isResending}
-                  className="text-xs font-medium text-slate-600 hover:text-emerald-600 gap-1.5"
+                  disabled={isResending || resendCooldown > 0}
+                  className="text-xs font-medium text-slate-600 hover:text-emerald-600 gap-1.5 disabled:opacity-60"
                 >
                   <RefreshCw className={`w-3.5 h-3.5 ${isResending ? 'animate-spin' : ''}`} />
-                  {t.resendOtp}
+                  {resendCooldown > 0
+                    ? isBn
+                      ? `পুনরায় ওটিপি পাঠান (${resendCooldown} সে.)`
+                      : `Resend OTP in ${resendCooldown}s`
+                    : t.resendOtp}
                 </Button>
               </div>
             </form>
