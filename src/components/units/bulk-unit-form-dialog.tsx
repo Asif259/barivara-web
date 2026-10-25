@@ -77,7 +77,7 @@ export function BulkUnitFormDialog({ propertyId, units: existingUnits, open, onO
   const copyPreviousFloor = () => {
     const previousUnits = existingUnits.filter((unit) => unit.floor === floor - 1);
     if (!previousUnits.length) {
-      toast.error(isEn ? 'No units found on the previous floor.' : 'আগের তলায় কোনো ইউনিট পাওয়া যায়নি।');
+      toast.warning(isEn ? 'No units found on the previous floor.' : 'আগের তলায় কোনো ইউনিট পাওয়া যায়নি।');
       return;
     }
     const first = previousUnits[0];
@@ -98,23 +98,35 @@ export function BulkUnitFormDialog({ propertyId, units: existingUnits, open, onO
 
   const submit = async () => {
     if (hasInvalidNumbers) {
-      toast.error(isEn ? 'Resolve duplicate, existing, or blank unit numbers first.' : 'ডুপ্লিকেট, বিদ্যমান অথবা খালি ইউনিট নম্বর ঠিক করুন।');
+      toast.warning(isEn ? 'Resolve duplicate, existing, or blank unit numbers first.' : 'ডুপ্লিকেট, বিদ্যমান অথবা খালি ইউনিট নম্বর ঠিক করুন।');
       return;
     }
     setIsSubmitting(true);
+    const actionPromise = unitsApi.bulkCreate(propertyId, {
+      floor,
+      units: unitNumbers.map((unitNumber) => ({ ...defaults, unitNumber: unitNumber.trim() })),
+    });
+
+    toast.promise(actionPromise, {
+      loading: isEn ? `Creating ${unitNumbers.length} units...` : `${unitNumbers.length}টি ইউনিট তৈরি করা হচ্ছে...`,
+      success: (response) => {
+        onOpenChange(false);
+        onSuccess();
+        return response.data.message || (isEn ? `${unitNumbers.length} units created successfully.` : `${unitNumbers.length}টি ইউনিট সফলভাবে তৈরি হয়েছে।`);
+      },
+      error: (error: unknown) => {
+        const message =
+          typeof error === 'object' && error !== null && 'response' in error
+            ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
+            : undefined;
+        return message || (isEn ? 'Could not create units.' : 'ইউনিট তৈরি করা সম্ভব হয়নি।');
+      },
+    });
+
     try {
-      const response = await unitsApi.bulkCreate(propertyId, {
-        floor,
-        units: unitNumbers.map((unitNumber) => ({ ...defaults, unitNumber: unitNumber.trim() })),
-      });
-      toast.success(response.data.message || (isEn ? `${unitNumbers.length} units created successfully.` : `${unitNumbers.length}টি ইউনিট সফলভাবে তৈরি হয়েছে।`));
-      onOpenChange(false);
-      onSuccess();
-    } catch (error: unknown) {
-      const message = typeof error === 'object' && error !== null && 'response' in error
-        ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
-        : undefined;
-      toast.error(message || (isEn ? 'Could not create units.' : 'ইউনিট তৈরি করা সম্ভব হয়নি।'));
+      await actionPromise;
+    } catch {
+      // toast.promise displays error notification
     } finally {
       setIsSubmitting(false);
     }

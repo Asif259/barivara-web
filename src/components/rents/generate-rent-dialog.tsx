@@ -121,26 +121,33 @@ export function GenerateRentDialog({
         payload.propertyId = data.propertyId;
       }
 
-      const res = await apiClient.post<ApiResponse<{ generatedCount: number; message?: string }>>(
+      const generatePromise = apiClient.post<ApiResponse<{ generatedCount: number; message?: string }>>(
         '/monthly-rents/generate',
         payload
       );
 
-      const count = res.data?.data?.generatedCount ?? 0;
-      toast.success(
-        res.data?.message ||
-          (isEn
-            ? `Generated ${count} monthly rent invoices successfully!`
-            : `মোট ${count} টি ফ্ল্যাটের মাসিক ভাড়ার বিল সফলভাবে তৈরি করা হয়েছে!`)
-      );
+      toast.promise(generatePromise, {
+        loading: isEn ? 'Generating monthly rent invoices...' : 'মাসিক ভাড়ার বিল তৈরি করা হচ্ছে...',
+        success: (res) => {
+          const count = res.data?.data?.generatedCount ?? 0;
+          return (
+            res.data?.message ||
+            (isEn
+              ? `Generated ${count} monthly rent invoices successfully!`
+              : `মোট ${count} টি ফ্ল্যাটের মাসিক ভাড়ার বিল সফলভাবে তৈরি করা হয়েছে!`)
+          );
+        },
+        error: (err) =>
+          (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+          (isEn ? 'Failed to generate rent notice' : 'ভাড়া তৈরি করতে সমস্যা হয়েছে।'),
+      });
+
+      await generatePromise;
       reset();
       onOpenChange(false);
       if (onSuccess) onSuccess();
-    } catch (error: unknown) {
-      const errorMsg =
-        (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-        (isEn ? 'Failed to generate rents' : 'ভাড়া তৈরি করতে সমস্যা হয়েছে।');
-      toast.error(errorMsg);
+    } catch {
+      // toast.promise displays error
     } finally {
       setIsLoading(false);
     }

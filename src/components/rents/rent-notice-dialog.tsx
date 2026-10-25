@@ -272,21 +272,26 @@ export function RentNoticeDialog({
   const handleDownload = async () => {
     try {
       setIsDownloading(true);
-      const { dataUrl, filename } = preparedNotice ?? (await generateNoticeImage());
+      const downloadPromise = (async () => {
+        const { dataUrl, filename } = preparedNotice ?? (await generateNoticeImage());
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = dataUrl;
+        link.click();
+        return filename;
+      })();
 
-      const link = document.createElement('a');
-      link.download = filename;
-      link.href = dataUrl;
-      link.click();
-
-      toast.success(
-        isEn
+      toast.promise(downloadPromise, {
+        loading: isEn ? 'Generating notice image...' : 'নোটিশ ইমেজ প্রস্তুত করা হচ্ছে...',
+        success: isEn
           ? 'Rent notice downloaded. Attach the image in WhatsApp if needed.'
-          : 'ভাড়ার নোটিশ ডাউনলোড হয়েছে। হোয়াটসঅ্যাপে প্রয়োজন অনুযায়ী ছবিটি যুক্ত করে দিন।'
-      );
+          : 'ভাড়ার নোটিশ ডাউনলোড হয়েছে। হোয়াটসঅ্যাপে প্রয়োজন অনুযায়ী ছবিটি যুক্ত করে দিন।',
+        error: isEn ? 'Failed to download notice' : 'নোটিশ ডাউনলোড করতে ব্যর্থ হয়েছে',
+      });
+
+      await downloadPromise;
     } catch (error) {
       console.error('Failed to export notice image:', error);
-      toast.error(isEn ? 'Failed to download notice' : 'নোটিশ ডাউনলোড করতে ব্যর্থ হয়েছে');
     } finally {
       setIsDownloading(false);
     }
@@ -339,7 +344,7 @@ export function RentNoticeDialog({
             : `${tenantName || targetPhone}-এর হোয়াটসঅ্যাপ চ্যাট খোলা হয়েছে`
         );
       } else {
-        toast.info(
+        toast.warning(
           isEn
             ? 'Tenant has no phone number recorded. Opening WhatsApp contact selector...'
             : 'ভাড়াটিয়ার ফোন নম্বর নেই। কন্টাক্ট নির্বাচন করতে হোয়াটসঅ্যাপ খোলা হচ্ছে...'

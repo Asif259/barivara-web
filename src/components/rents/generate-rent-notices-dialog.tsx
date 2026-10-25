@@ -145,7 +145,7 @@ export function GenerateRentNoticesDialog({
             : `${tenant?.name || phoneResult.normalizedPhone}-এর হোয়াটসঅ্যাপ চ্যাট খোলা হচ্ছে...`
         );
       } else {
-        toast.info(
+        toast.warning(
           isEn
             ? 'Tenant has no phone number recorded. Opening WhatsApp contact selector...'
             : 'ভাড়াটিয়ার ফোন নম্বর নেই। কন্টাক্ট নির্বাচন করতে হোয়াটসঅ্যাপ খোলা হচ্ছে...'

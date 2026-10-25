@@ -96,22 +96,31 @@ export function TenantFormDialog({
       notes: data.notes?.trim() || undefined,
     };
 
+    const savePromise = isEditing && tenant
+      ? apiClient.patch<ApiResponse<Tenant>>(`/tenants/${tenant.id}`, payload)
+      : apiClient.post<ApiResponse<Tenant>>('/tenants', payload);
+
+    toast.promise(savePromise, {
+      loading: isEn
+        ? (isEditing ? 'Updating tenant details...' : 'Adding new tenant...')
+        : (isEditing ? 'ভাড়াটিয়ার তথ্য হালনাগাদ করা হচ্ছে...' : 'নতুন ভাড়াটিয়া যুক্ত করা হচ্ছে...'),
+      success: (res) =>
+        res.data?.message ||
+        (isEn
+          ? (isEditing ? 'Tenant updated successfully!' : 'Tenant added successfully!')
+          : (isEditing ? 'ভাড়াটিয়ার তথ্য সফলভাবে হালনাগাদ করা হয়েছে!' : 'নতুন ভাড়াটিয়া সফলভাবে যুক্ত করা হয়েছে!')),
+      error: (err) =>
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        (isEn ? 'Failed to save tenant' : 'ভাড়াটিয়ার তথ্য সংরক্ষণ ব্যর্থ হয়েছে।'),
+    });
+
     try {
-      if (isEditing && tenant) {
-        const res = await apiClient.patch<ApiResponse<Tenant>>(`/tenants/${tenant.id}`, payload);
-        toast.success(res.data.message || (isEn ? 'Tenant updated successfully!' : 'ভাড়াটিয়ার তথ্য সফলভাবে হালনাগাদ করা হয়েছে!'));
-      } else {
-        const res = await apiClient.post<ApiResponse<Tenant>>('/tenants', payload);
-        toast.success(res.data.message || (isEn ? 'Tenant created successfully!' : 'নতুন ভাড়াটিয়া যুক্ত করা হয়েছে!'));
-      }
+      await savePromise;
       reset();
       onOpenChange(false);
       if (onSuccess) onSuccess();
-    } catch (error: unknown) {
-      const axiosError = error as { response?: { data?: { message?: string } } };
-      const errorMsg =
-        axiosError.response?.data?.message || (isEn ? 'Failed to save tenant' : 'ভাড়াটিয়ার তথ্য সংরক্ষণ ব্যর্থ হয়েছে।');
-      toast.error(errorMsg);
+    } catch {
+      // toast.promise displays error
     } finally {
       setIsLoading(false);
     }

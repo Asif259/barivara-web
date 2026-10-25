@@ -125,41 +125,59 @@ export function ExpenseFormDialog({
 
   const onSubmit = async (data: ExpenseFormValues) => {
     setIsLoading(true);
-    try {
-      const payload: Partial<Expense> & {
-        propertyId: string;
-        category: ExpenseCategory;
-        amount: number;
-        expenseDate: string;
-        paymentMethod: PaymentMethod;
-      } = {
-        propertyId: data.propertyId,
-        category: data.category as ExpenseCategory,
-        amount: data.amount,
-        expenseDate: new Date(data.expenseDate).toISOString(),
-        paymentMethod: data.paymentMethod as PaymentMethod,
-        description: data.description || undefined,
-        reference: data.reference || undefined,
-        receiptFileId: data.receiptFileId || undefined,
-        createdBy: data.createdBy || undefined,
-      };
+    const payload: Partial<Expense> & {
+      propertyId: string;
+      category: ExpenseCategory;
+      amount: number;
+      expenseDate: string;
+      paymentMethod: PaymentMethod;
+    } = {
+      propertyId: data.propertyId,
+      category: data.category as ExpenseCategory,
+      amount: data.amount,
+      expenseDate: new Date(data.expenseDate).toISOString(),
+      paymentMethod: data.paymentMethod as PaymentMethod,
+      description: data.description || undefined,
+      reference: data.reference || undefined,
+      receiptFileId: data.receiptFileId || undefined,
+      createdBy: data.createdBy || undefined,
+    };
 
-      if (isEditing && expense) {
-        const res = await apiClient.patch<ApiResponse<Expense>>(`/expenses/${expense.id}`, payload);
-        toast.success(res.data.message || (isEn ? 'Expense updated!' : 'খরচের তথ্য হালনাগাদ করা হয়েছে!'));
-      } else {
-        const res = await apiClient.post<ApiResponse<Expense>>('/expenses', payload);
-        toast.success(res.data.message || (isEn ? 'Expense recorded!' : 'খরচের রেকর্ড যুক্ত করা হয়েছে!'));
-      }
-      reset();
-      onOpenChange(false);
-      if (onSuccess) onSuccess();
-    } catch (error: unknown) {
-      const errorMsg = getApiErrorMessage(
-        error,
-        isEn ? 'Failed to save expense' : 'খরচ সংরক্ষণ সম্ভব হয়নি।'
-      );
-      toast.error(errorMsg);
+    const actionPromise = isEditing && expense
+      ? apiClient.patch<ApiResponse<Expense>>(`/expenses/${expense.id}`, payload)
+      : apiClient.post<ApiResponse<Expense>>('/expenses', payload);
+
+    toast.promise(actionPromise, {
+      loading: isEditing
+        ? (isEn ? 'Updating expense...' : 'খরচ হালনাগাদ করা হচ্ছে...')
+        : (isEn ? 'Recording expense...' : 'নতুন খরচ যুক্ত করা হচ্ছে...'),
+      success: (res) => {
+        reset();
+        onOpenChange(false);
+        if (onSuccess) onSuccess();
+        return (
+          res.data.message ||
+          (isEditing
+            ? isEn
+              ? 'Expense updated!'
+              : 'খরচের তথ্য হালনাগাদ করা হয়েছে!'
+            : isEn
+              ? 'Expense recorded!'
+              : 'খরচের রেকর্ড যুক্ত করা হয়েছে!')
+        );
+      },
+      error: (error: unknown) => {
+        return getApiErrorMessage(
+          error,
+          isEn ? 'Failed to save expense' : 'খরচ সংরক্ষণ সম্ভব হয়নি।'
+        );
+      },
+    });
+
+    try {
+      await actionPromise;
+    } catch {
+      // toast.promise displays error notification
     } finally {
       setIsLoading(false);
     }

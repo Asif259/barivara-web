@@ -194,16 +194,25 @@ export default function TenantDetailPage() {
   });
 
   const handleEndAgreement = async (agreementId: string) => {
+    setEndingAgreementId(agreementId);
+    const endPromise = apiClient.post(`/rental-agreements/${agreementId}/end`);
+
+    toast.promise(endPromise, {
+      loading: isEn ? 'Ending agreement...' : 'চুক্তি সমাপ্ত করা হচ্ছে...',
+      success: () => {
+        refetch();
+        return isEn ? 'Agreement ended successfully.' : 'চুক্তি সফলভাবে সমাপ্ত হয়েছে।';
+      },
+      error: (error: unknown) => {
+        console.error('Failed to end agreement:', error);
+        return isEn ? 'Failed to end agreement. Please try again.' : 'চুক্তি সমাপ্ত করা যায়নি। আবার চেষ্টা করুন।';
+      },
+    });
+
     try {
-      setEndingAgreementId(agreementId);
-      await apiClient.post(`/rental-agreements/${agreementId}/end`);
-      toast.success(isEn ? 'Agreement ended successfully.' : 'চুক্তি সফলভাবে সমাপ্ত হয়েছে।');
-      await refetch();
-    } catch (error) {
-      console.error('Failed to end agreement:', error);
-      toast.error(
-        isEn ? 'Failed to end agreement. Please try again.' : 'চুক্তি সমাপ্ত করা যায়নি। আবার চেষ্টা করুন।'
-      );
+      await endPromise;
+    } catch {
+      // toast.promise displays error notification
     } finally {
       setEndingAgreementId(null);
       setConfirmEndAgreementId(null);

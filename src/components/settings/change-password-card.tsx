@@ -76,22 +76,30 @@ export function ChangePasswordCard() {
 
   const onSubmit = async (data: ChangePasswordFormData) => {
     setIsLoading(true);
-    try {
-      const response = await authApi.changePassword({
-        currentPassword: data.currentPassword,
-        newPassword: data.newPassword,
-        confirmPassword: data.confirmPassword,
-      });
+    const changePromise = authApi.changePassword({
+      currentPassword: data.currentPassword,
+      newPassword: data.newPassword,
+      confirmPassword: data.confirmPassword,
+    });
 
-      const message = response.data?.message || t.passwordChangedSuccess;
-      toast.success(message);
-      reset();
-    } catch (error) {
-      const errorMsg = getApiErrorMessage(
-        error,
-        isEn ? 'Failed to change password.' : 'পাসওয়ার্ড পরিবর্তন ব্যর্থ হয়েছে।',
-      );
-      toast.error(errorMsg);
+    toast.promise(changePromise, {
+      loading: isEn ? 'Changing password...' : 'পাসওয়ার্ড পরিবর্তন করা হচ্ছে...',
+      success: (response) => {
+        reset();
+        return response.data?.message || t.passwordChangedSuccess;
+      },
+      error: (error) => {
+        return getApiErrorMessage(
+          error,
+          isEn ? 'Failed to change password.' : 'পাসওয়ার্ড পরিবর্তন ব্যর্থ হয়েছে।'
+        );
+      },
+    });
+
+    try {
+      await changePromise;
+    } catch {
+      // toast.promise displays error notification
     } finally {
       setIsLoading(false);
     }

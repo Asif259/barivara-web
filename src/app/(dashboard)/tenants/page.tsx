@@ -78,15 +78,25 @@ export default function TenantsPage() {
 
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(isEn ? `Are you sure you want to delete "${name}"?` : `আপনি কি নিশ্চিতভাবে "${name}" মুছে ফেলতে চান?`)) return;
+    const deletePromise = apiClient.delete(`/tenants/${id}`);
+    toast.promise(deletePromise, {
+      loading: isEn ? 'Deleting tenant...' : 'ভাড়াটিয়া মুছে ফেলা হচ্ছে...',
+      success: () => {
+        refetch();
+        return isEn ? 'Tenant removed' : 'ভাড়াটিয়া মুছে ফেলা হয়েছে';
+      },
+      error: (error: unknown) => {
+        const message = typeof error === 'object' && error !== null && 'response' in error
+          ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
+          : undefined;
+        return message || (isEn ? 'Failed to delete' : 'মুছে ফেলা সম্ভব হয়নি');
+      },
+    });
+
     try {
-      await apiClient.delete(`/tenants/${id}`);
-      toast.success(isEn ? 'Tenant removed' : 'ভাড়াটিয়া মুছে ফেলা হয়েছে');
-      refetch();
-    } catch (error: unknown) {
-      const message = typeof error === 'object' && error !== null && 'response' in error
-        ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
-        : undefined;
-      toast.error(message || (isEn ? 'Failed to delete' : 'মুছে ফেলা সম্ভব হয়নি'));
+      await deletePromise;
+    } catch {
+      // toast.promise displays error notification
     }
   };
 

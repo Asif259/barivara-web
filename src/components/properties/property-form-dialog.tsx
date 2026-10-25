@@ -83,23 +83,30 @@ export function PropertyFormDialog({
 
   const onSubmit = async (data: PropertyFormValues) => {
     setIsLoading(true);
+    const savePromise = isEditing && property
+      ? apiClient.patch<ApiResponse<Property>>(`/properties/${property.id}`, data)
+      : apiClient.post<ApiResponse<Property>>('/properties', data);
+
+    toast.promise(savePromise, {
+      loading: isEn
+        ? (isEditing ? 'Updating property...' : 'Creating property...')
+        : (isEditing ? 'বাড়ির তথ্য হালনাগাদ করা হচ্ছে...' : 'নতুন বাড়ি যুক্ত করা হচ্ছে...'),
+      success: (res) =>
+        res.data?.message ||
+        (isEn
+          ? (isEditing ? 'Property updated successfully!' : 'Property created successfully!')
+          : (isEditing ? 'বাড়ির তথ্য সফলভাবে হালনাগাদ করা হয়েছে!' : 'নতুন বাড়ি সফলভাবে যুক্ত করা হয়েছে!')),
+      error: (err) =>
+        getApiErrorMessage(err, isEn ? 'Failed to save property' : 'বাড়ি সংরক্ষণ ব্যর্থ হয়েছে।'),
+    });
+
     try {
-      if (isEditing && property) {
-        const res = await apiClient.patch<ApiResponse<Property>>(`/properties/${property.id}`, data);
-        toast.success(res.data.message || (isEn ? 'Property updated successfully!' : 'বাড়ির তথ্য সফলভাবে হালনাগাদ করা হয়েছে!'));
-      } else {
-        const res = await apiClient.post<ApiResponse<Property>>('/properties', data);
-        toast.success(res.data.message || (isEn ? 'Property created successfully!' : 'নতুন বাড়ি সফলভাবে যুক্ত করা হয়েছে!'));
-      }
+      await savePromise;
       reset();
       onOpenChange(false);
       if (onSuccess) onSuccess();
-    } catch (error: unknown) {
-      const errorMsg = getApiErrorMessage(
-        error,
-        isEn ? 'Failed to save property' : 'বাড়ি সংরক্ষণ ব্যর্থ হয়েছে।'
-      );
-      toast.error(errorMsg);
+    } catch {
+      // toast.promise displays error
     } finally {
       setIsLoading(false);
     }

@@ -109,7 +109,7 @@ export function FileUploader({
   const handleUpload = async (file: File) => {
     const errorMsg = validateFile(file);
     if (errorMsg) {
-      toast.error(errorMsg);
+      toast.warning(errorMsg);
       return;
     }
 
@@ -123,30 +123,45 @@ export function FileUploader({
     setIsUploading(true);
     setProgress(0);
 
+    const isSignature = category === 'OWNER_SIGNATURE' || file.name.toLowerCase().includes('signature');
+    const uploadPromise = uploadFileDirectly({
+      file,
+      category,
+      entityType,
+      entityId,
+      onProgress: (p) => setProgress(p),
+    });
+
+    toast.promise(uploadPromise, {
+      loading: isSignature
+        ? isEn
+          ? 'Uploading signature...'
+          : 'স্বাক্ষর আপলোড করা হচ্ছে...'
+        : isEn
+        ? 'Uploading file...'
+        : 'ফাইল আপলোড করা হচ্ছে...',
+      success: (media) => {
+        setFileId(media.id);
+        onChange?.(media.id, media);
+        return isEn
+          ? isSignature
+            ? 'Signature uploaded successfully!'
+            : 'File uploaded successfully!'
+          : isSignature
+          ? 'স্বাক্ষর সফলভাবে আপলোড সম্পন্ন হয়েছে!'
+          : 'ফাইল সফলভাবে আপলোড সম্পন্ন হয়েছে!';
+      },
+      error: (err: unknown) => {
+        setPreviewUrl(null);
+        setFileInfo(null);
+        return getApiErrorMessage(err, isEn ? 'Failed to upload file' : 'ফাইল আপলোড ব্যর্থ হয়েছে');
+      },
+    });
+
     try {
-      const media = await uploadFileDirectly({
-        file,
-        category,
-        entityType,
-        entityId,
-        onProgress: (p) => setProgress(p),
-      });
-
-      setFileId(media.id);
-      onChange?.(media.id, media);
-
-      toast.success(
-        isEn
-          ? 'File uploaded successfully!'
-          : 'ফাইল সফলভাবে আপলোড সম্পন্ন হয়েছে!'
-      );
+      await uploadPromise;
     } catch (err: unknown) {
       console.error('File upload failed:', err);
-      setPreviewUrl(null);
-      setFileInfo(null);
-      toast.error(
-        getApiErrorMessage(err, isEn ? 'Failed to upload file' : 'ফাইল আপলোড ব্যর্থ হয়েছে')
-      );
     } finally {
       setIsUploading(false);
       setProgress(0);

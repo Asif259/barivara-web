@@ -95,15 +95,28 @@ export default function PaymentsPage() {
     ) {
       return;
     }
+
+    const reversePromise = apiClient.post<ApiResponse<unknown>>(`/payments/${id}/reverse`);
+
+    toast.promise(reversePromise, {
+      loading: isEn ? 'Reversing payment...' : 'পেমেন্ট বাতিল (রিভার্স) করা হচ্ছে...',
+      success: (res) => {
+        refetch();
+        return res.data.message || (isEn ? 'Payment reversed successfully' : 'পেমেন্ট সফলভাবে রিভার্স করা হয়েছে');
+      },
+      error: (error: unknown) => {
+        const message =
+          typeof error === 'object' && error !== null && 'response' in error
+            ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
+            : undefined;
+        return message || (isEn ? 'Failed to reverse payment' : 'পেমেন্ট বাতিল সম্ভব হয়নি');
+      },
+    });
+
     try {
-      const res = await apiClient.post<ApiResponse<unknown>>(`/payments/${id}/reverse`);
-      toast.success(res.data.message || (isEn ? 'Payment reversed successfully' : 'পেমেন্ট সফলভাবে রিভার্স করা হয়েছে'));
-      refetch();
-    } catch (error: unknown) {
-      const message = typeof error === 'object' && error !== null && 'response' in error
-        ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
-        : undefined;
-      toast.error(message || (isEn ? 'Failed to reverse payment' : 'পেমেন্ট বাতিল সম্ভব হয়নি'));
+      await reversePromise;
+    } catch {
+      // toast.promise displays error notification
     }
   };
 

@@ -272,44 +272,57 @@ export function AgreementFormDialog({
         payload.status = data.status;
       }
 
-      let res;
-      if (isEditing && agreement) {
-        res = await apiClient.patch<ApiResponse<RentalAgreement>>(
-          `/rental-agreements/${agreement.id}`,
-          payload
-        );
-      } else {
-        res = await apiClient.post<ApiResponse<RentalAgreement>>(
-          '/rental-agreements',
-          payload
-        );
-      }
+      const actionPromise = isEditing && agreement
+        ? apiClient.patch<ApiResponse<RentalAgreement>>(
+            `/rental-agreements/${agreement.id}`,
+            payload
+          )
+        : apiClient.post<ApiResponse<RentalAgreement>>(
+            '/rental-agreements',
+            payload
+          );
 
-      toast.success(
-        res.data.message ||
-          (isEn
-            ? isEditing
-              ? 'Rental agreement updated successfully!'
-              : 'Rental agreement created successfully!'
-            : isEditing
-            ? 'ভাড়া চুক্তি সফলভাবে হালনাগাদ করা হয়েছে!'
-            : 'ভাড়া চুক্তি সফলভাবে সম্পন্ন হয়েছে!')
-      );
-      reset();
-      onOpenChange(false);
-      if (onSuccess) onSuccess();
-    } catch (error: unknown) {
-      const errorMsg =
-        (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-        (isEn
-          ? isEditing
-            ? 'Failed to update agreement'
-            : 'Failed to create agreement'
-          : isEditing
-          ? 'চুক্তি হালনাগাদ করা সম্ভব হয়নি।'
-          : 'ভাড়া চুক্তি তৈরি করা সম্ভব হয়নি।');
-      toast.error(errorMsg);
-    } finally {
+      toast.promise(actionPromise, {
+        loading: isEditing
+          ? (isEn ? 'Updating rental agreement...' : 'ভাড়া চুক্তি হালনাগাদ করা হচ্ছে...')
+          : (isEn ? 'Creating rental agreement...' : 'ভাড়া চুক্তি তৈরি করা হচ্ছে...'),
+        success: (res) => {
+          reset();
+          onOpenChange(false);
+          if (onSuccess) onSuccess();
+          return (
+            res.data.message ||
+            (isEn
+              ? isEditing
+                ? 'Rental agreement updated successfully!'
+                : 'Rental agreement created successfully!'
+              : isEditing
+              ? 'ভাড়া চুক্তি সফলভাবে হালনাগাদ করা হয়েছে!'
+              : 'ভাড়া চুক্তি সফলভাবে সম্পন্ন হয়েছে!')
+          );
+        },
+        error: (error: unknown) => {
+          return (
+            (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+            (isEn
+              ? isEditing
+                ? 'Failed to update agreement'
+                : 'Failed to create agreement'
+              : isEditing
+              ? 'চুক্তি হালনাগাদ করা সম্ভব হয়নি।'
+              : 'ভাড়া চুক্তি তৈরি করা সম্ভব হয়নি।')
+          );
+        },
+      });
+
+      try {
+        await actionPromise;
+      } catch {
+        // toast.promise displays error notification
+      } finally {
+        setIsLoading(false);
+      }
+    } catch {
       setIsLoading(false);
     }
   };

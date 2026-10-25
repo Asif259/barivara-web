@@ -169,7 +169,7 @@ export function CollectPaymentDialog({
     if (!activeRent) return;
     setIsLoading(true);
     try {
-      const response = await apiClient.post<ApiResponse<{ payment: Payment; monthlyRent: MonthlyRent }>>(
+      const savePaymentPromise = apiClient.post<ApiResponse<{ payment: Payment; monthlyRent: MonthlyRent }>>(
         '/payments',
         {
           monthlyRentId: activeRent.id,
@@ -181,10 +181,17 @@ export function CollectPaymentDialog({
         }
       );
 
+      toast.promise(savePaymentPromise, {
+        loading: isEn ? 'Recording payment...' : 'পেমেন্ট রেকর্ড করা হচ্ছে...',
+        success: (res) =>
+          res.data?.message || (isEn ? 'Rent payment recorded successfully' : 'পেমেন্ট সফলভাবে গ্রহণ করা হয়েছে!'),
+        error: (err) =>
+          getApiErrorMessage(err, isEn ? 'Failed to record payment' : 'পেমেন্ট গ্রহণ ব্যর্থ হয়েছে।'),
+      });
+
+      const response = await savePaymentPromise;
+
       if (response.data.success) {
-        toast.success(
-          response.data.message || (isEn ? 'Payment recorded successfully!' : 'পেমেন্ট সফলভাবে গ্রহণ করা হয়েছে!')
-        );
         reset();
         const createdPayment = response.data.data?.payment;
         if (createdPayment) {
@@ -197,12 +204,8 @@ export function CollectPaymentDialog({
           if (onSuccess) onSuccess();
         }
       }
-    } catch (error: unknown) {
-      const errorMsg = getApiErrorMessage(
-        error,
-        isEn ? 'Failed to record payment' : 'পেমেন্ট গ্রহণ ব্যর্থ হয়েছে।'
-      );
-      toast.error(errorMsg);
+    } catch {
+      // toast.promise displays the error feedback
     } finally {
       setIsLoading(false);
     }

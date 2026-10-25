@@ -94,15 +94,7 @@ export default function SettingsPage() {
         setUser(updated);
         queryClient.setQueryData(['user-profile'], updated);
         setPendingFileId(null);
-        toast.success(t.signatureUpdated);
       }
-    },
-    onError: (err: unknown) => {
-      const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message || t.uploadFailed;
-      toast.error(msg);
-      setPendingFileId(null);
     },
   });
 
@@ -118,14 +110,7 @@ export default function SettingsPage() {
         queryClient.setQueryData(['user-profile'], updated);
         setSignaturePreviewUrl(null);
         setShowRemoveConfirm(false);
-        toast.success(t.signatureRemoved);
       }
-    },
-    onError: (err: unknown) => {
-      const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message || t.uploadFailed;
-      toast.error(msg);
     },
   });
 
@@ -143,24 +128,27 @@ export default function SettingsPage() {
         queryClient.setQueryData(['user-profile'], updated);
         queryClient.invalidateQueries({ queryKey: ['user-profile'] });
         setIsEditingName(false);
-        toast.success(t.nameUpdated);
       }
-    },
-    onError: (err: unknown) => {
-      const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message || (isEn ? 'Failed to update name' : 'নাম পরিবর্তন করতে ব্যর্থ হয়েছে');
-      toast.error(msg);
     },
   });
 
   const handleSaveName = () => {
     const trimmed = nameInput.trim();
     if (trimmed.length < 2) {
-      toast.error(t.nameMinLength);
+      toast.warning(t.nameMinLength);
       return;
     }
-    updateNameMutation.mutate(trimmed);
+    const namePromise = updateNameMutation.mutateAsync(trimmed);
+    toast.promise(namePromise, {
+      loading: isEn ? 'Updating name...' : 'নাম পরিবর্তন করা হচ্ছে...',
+      success: t.nameUpdated,
+      error: (err: unknown) => {
+        return (
+          (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+          (isEn ? 'Failed to update name' : 'নাম পরিবর্তন করতে ব্যর্থ হয়েছে')
+        );
+      },
+    });
   };
 
   /**
@@ -177,19 +165,41 @@ export default function SettingsPage() {
    */
   const handleSaveSignature = () => {
     if (!pendingFileId) return;
-    setSignatureMutation.mutate(pendingFileId);
+    const savePromise = setSignatureMutation.mutateAsync(pendingFileId);
+    toast.promise(savePromise, {
+      loading: isEn ? 'Saving signature...' : 'স্বাক্ষর সংরক্ষণ করা হচ্ছে...',
+      success: t.signatureUpdated,
+      error: (err: unknown) => {
+        setPendingFileId(null);
+        return (
+          (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+          t.uploadFailed
+        );
+      },
+    });
   };
 
   const handleRemoveSignature = async () => {
     if (!currentSignatureFileId) return;
-    // Best-effort: try to delete the underlying media record too,
-    // so the orphaned file is cleaned from storage metadata.
-    try {
-      await deleteFileRecord(currentSignatureFileId);
-    } catch {
-      // Non-fatal; proceed to unlink the reference from the user.
-    }
-    removeSignatureMutation.mutate();
+    const removePromise = (async () => {
+      try {
+        await deleteFileRecord(currentSignatureFileId);
+      } catch {
+        // Non-fatal; proceed to unlink the reference from the user.
+      }
+      return await removeSignatureMutation.mutateAsync();
+    })();
+
+    toast.promise(removePromise, {
+      loading: isEn ? 'Removing signature...' : 'স্বাক্ষর মুছে ফেলা হচ্ছে...',
+      success: t.signatureRemoved,
+      error: (err: unknown) => {
+        return (
+          (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+          t.uploadFailed
+        );
+      },
+    });
   };
 
   if (isProfileLoading && !storeUser) {

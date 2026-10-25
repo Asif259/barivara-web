@@ -105,15 +105,25 @@ export default function ExpensesPage() {
     if (!confirm(isEn ? 'Are you sure you want to delete this expense record?' : 'আপনি কি নিশ্চিতভাবে এই খরচের হিসাবটি মুছে ফেলতে চান?')) {
       return;
     }
+    const deletePromise = apiClient.delete(`/expenses/${id}`);
+    toast.promise(deletePromise, {
+      loading: isEn ? 'Deleting expense...' : 'খরচের হিসাব মুছে ফেলা হচ্ছে...',
+      success: () => {
+        refetch();
+        return isEn ? 'Expense deleted successfully' : 'খরচের হিসাব মুছে ফেলা হয়েছে';
+      },
+      error: (error: unknown) => {
+        const message = typeof error === 'object' && error !== null && 'response' in error
+          ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
+          : undefined;
+        return message || (isEn ? 'Failed to delete' : 'মুছে ফেলা সম্ভব হয়নি');
+      },
+    });
+
     try {
-      await apiClient.delete(`/expenses/${id}`);
-      toast.success(isEn ? 'Expense deleted successfully' : 'খরচের হিসাব মুছে ফেলা হয়েছে');
-      refetch();
-    } catch (error: unknown) {
-      const message = typeof error === 'object' && error !== null && 'response' in error
-        ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
-        : undefined;
-      toast.error(message || (isEn ? 'Failed to delete' : 'মুছে ফেলা সম্ভব হয়নি'));
+      await deletePromise;
+    } catch {
+      // toast.promise displays error notification
     }
   };
 

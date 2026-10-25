@@ -99,23 +99,40 @@ export function UnitFormDialog({
 
   const onSubmit = async (data: UnitFormValues) => {
     setIsLoading(true);
+    const actionPromise = isEditing && unit ? unitsApi.update(unit.id, data) : unitsApi.create(propertyId, data);
+
+    toast.promise(actionPromise, {
+      loading: isEditing
+        ? (isEn ? 'Updating unit...' : 'ইউনিট হালনাগাদ করা হচ্ছে...')
+        : (isEn ? 'Adding unit...' : 'নতুন ইউনিট যুক্ত করা হচ্ছে...'),
+      success: (res) => {
+        reset();
+        onOpenChange(false);
+        if (onSuccess) onSuccess();
+        return (
+          res.data.message ||
+          (isEditing
+            ? isEn
+              ? 'Unit updated successfully!'
+              : 'ইউনিট সফলভাবে হালনাগাদ করা হয়েছে!'
+            : isEn
+              ? 'Unit added successfully!'
+              : 'নতুন ইউনিট সফলভাবে যুক্ত করা হয়েছে!')
+        );
+      },
+      error: (error: unknown) => {
+        return (
+          (typeof error === 'object' && error !== null && 'response' in error
+            ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
+            : undefined) || (isEn ? 'Failed to save unit' : 'ইউনিট সংরক্ষণ ব্যর্থ হয়েছে।')
+        );
+      },
+    });
+
     try {
-      if (isEditing && unit) {
-        const res = await unitsApi.update(unit.id, data);
-        toast.success(res.data.message || (isEn ? 'Unit updated successfully!' : 'ইউনিট সফলভাবে হালনাগাদ করা হয়েছে!'));
-      } else {
-        const res = await unitsApi.create(propertyId, data);
-        toast.success(res.data.message || (isEn ? 'Unit added successfully!' : 'নতুন ইউনিট সফলভাবে যুক্ত করা হয়েছে!'));
-      }
-      reset();
-      onOpenChange(false);
-      if (onSuccess) onSuccess();
-    } catch (error: unknown) {
-      const errorMsg =
-        (typeof error === 'object' && error !== null && 'response' in error
-          ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
-          : undefined) || (isEn ? 'Failed to save unit' : 'ইউনিট সংরক্ষণ ব্যর্থ হয়েছে।');
-      toast.error(errorMsg);
+      await actionPromise;
+    } catch {
+      // toast.promise displays error notification
     } finally {
       setIsLoading(false);
     }

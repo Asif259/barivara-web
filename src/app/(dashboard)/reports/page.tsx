@@ -62,24 +62,31 @@ export default function ReportsPage() {
   // Export CSV
   const handleExportCSV = async () => {
     setIsExporting(true);
-    try {
-      let url = `/reports/monthly/export?year=${selectedYear}&month=${selectedMonth}`;
-      if (selectedPropertyId) url += `&propertyId=${selectedPropertyId}`;
+    let url = `/reports/monthly/export?year=${selectedYear}&month=${selectedMonth}`;
+    if (selectedPropertyId) url += `&propertyId=${selectedPropertyId}`;
 
-      const response = await apiClient.get(url, {
-        responseType: 'blob',
+    const exportPromise = apiClient
+      .get(url, { responseType: 'blob' })
+      .then((response) => {
+        const blob = new Blob([response.data], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.setAttribute('download', `BariVara_Report_${selectedYear}_${selectedMonth}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
       });
 
-      const blob = new Blob([response.data], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.setAttribute('download', `BariVara_Report_${selectedYear}_${selectedMonth}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      toast.success(isEn ? 'CSV Report downloaded!' : 'রিপোর্ট CSV ফাইলে ডাউনলোড হয়েছে!');
+    toast.promise(exportPromise, {
+      loading: isEn ? 'Generating CSV report...' : 'CSV রিপোর্ট প্রস্তুত করা হচ্ছে...',
+      success: isEn ? 'CSV Report downloaded!' : 'রিপোর্ট CSV ফাইলে ডাউনলোড হয়েছে!',
+      error: isEn ? 'Failed to export CSV' : 'CSV ডাউনলোড করা সম্ভব হয়নি',
+    });
+
+    try {
+      await exportPromise;
     } catch {
-      toast.error(isEn ? 'Failed to export CSV' : 'CSV ডাউনলোড করা সম্ভব হয়নি');
+      // toast.promise displays error notification
     } finally {
       setIsExporting(false);
     }

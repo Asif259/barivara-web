@@ -102,13 +102,23 @@ export default function AgreementsPage() {
     if (!confirm(isEn ? `Are you sure you want to end the agreement for ${tenantName}? The unit will be marked VACANT.` : `আপনি কি ${tenantName}-এর চুক্তি সমাপ্ত করতে চান? ফ্ল্যাটটি পুনরায় খালি (VACANT) হিসেবে চিহ্নিত হবে।`)) {
       return;
     }
+    const endPromise = apiClient.post(`/rental-agreements/${id}/end`);
+    toast.promise(endPromise, {
+      loading: isEn ? 'Ending agreement...' : 'চুক্তি সমাপ্ত করা হচ্ছে...',
+      success: () => {
+        refetch();
+        return isEn ? 'Agreement terminated successfully' : 'ভাড়া চুক্তি সমাপ্ত করা হয়েছে';
+      },
+      error: (error: unknown) => {
+        const axiosError = error as { response?: { data?: { message?: string } } };
+        return axiosError.response?.data?.message || (isEn ? 'Failed to end agreement' : 'চুক্তি সমাপ্ত করা সম্ভব হয়নি');
+      },
+    });
+
     try {
-      await apiClient.post(`/rental-agreements/${id}/end`);
-      toast.success(isEn ? 'Agreement terminated successfully' : 'ভাড়া চুক্তি সমাপ্ত করা হয়েছে');
-      refetch();
-    } catch (error: unknown) {
-      const axiosError = error as { response?: { data?: { message?: string } } };
-      toast.error(axiosError.response?.data?.message || (isEn ? 'Failed to end agreement' : 'চুক্তি সমাপ্ত করা সম্ভব হয়নি'));
+      await endPromise;
+    } catch {
+      // toast.promise displays error notification
     }
   };
 

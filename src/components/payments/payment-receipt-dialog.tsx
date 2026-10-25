@@ -300,22 +300,29 @@ export function PaymentReceiptDialog({
   const handleDownloadImage = async () => {
     try {
       setIsDownloading(true);
-      const { dataUrl, filename } = preparedReceipt ?? (await generateReceiptImage());
+      const downloadPromise = (async () => {
+        const { dataUrl, filename } = preparedReceipt ?? (await generateReceiptImage());
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = dataUrl;
+        link.click();
+        return filename;
+      })();
 
-      const link = document.createElement('a');
-      link.download = filename;
-      link.href = dataUrl;
-      link.click();
-
-      toast.success(
-        t.receiptDownloadedForWhatsapp ||
+      toast.promise(downloadPromise, {
+        loading: isEn ? 'Generating receipt image...' : 'রশিদ ইমেজ তৈরি করা হচ্ছে...',
+        success:
+          t.receiptDownloadedForWhatsapp ||
           (isEn
             ? 'Receipt image downloaded. Please attach the image in WhatsApp and send.'
-            : 'রশিদ ইমেজ ডাউনলোড হয়েছে। হোয়াটসঅ্যাপ চ্যাটে রশিদটি যুক্ত করে পাঠিয়ে দিন।')
-      );
+            : 'রশিদ ইমেজ ডাউনলোড হয়েছে। হোয়াটসঅ্যাপ চ্যাটে রশিদটি যুক্ত করে পাঠিয়ে দিন।'),
+        error:
+          t.receiptGenFailed || (isEn ? 'Failed to download receipt image' : 'রশিদ ইমেজ ডাউনলোড ব্যর্থ হয়েছে'),
+      });
+
+      await downloadPromise;
     } catch (error) {
       console.error('Failed to export receipt image:', error);
-      toast.error(t.receiptGenFailed || (isEn ? 'Failed to download receipt image' : 'রশিদ ইমেজ ডাউনলোড ব্যর্থ হয়েছে'));
     } finally {
       setIsDownloading(false);
     }
@@ -385,7 +392,7 @@ export function PaymentReceiptDialog({
             : `${tenantName || targetPhone}-এর হোয়াটসঅ্যাপ চ্যাট খোলা হয়েছে`
         );
       } else {
-        toast.info(
+        toast.warning(
           isEn
             ? 'Tenant has no phone number recorded. Opening WhatsApp contact selector...'
             : 'ভাড়াটিয়ার ফোন নম্বর নেই। কন্টাক্ট নির্বাচন করতে হোয়াটসঅ্যাপ খোলা হচ্ছে...'

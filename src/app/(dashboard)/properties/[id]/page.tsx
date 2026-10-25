@@ -117,15 +117,25 @@ export default function PropertyDetailPage() {
     if (!confirm(isEn ? `Delete unit "${unitNumber}"?` : `আপনি কি ইউনিট "${unitNumber}" মুছে ফেলতে চান?`)) {
       return;
     }
+    const deletePromise = unitsApi.remove(unitId);
+    toast.promise(deletePromise, {
+      loading: isEn ? 'Deleting unit...' : 'ইউনিট মুছে ফেলা হচ্ছে...',
+      success: () => {
+        refreshUnitViews();
+        return isEn ? 'Unit deleted successfully' : 'ইউনিট মুছে ফেলা হয়েছে';
+      },
+      error: (error: unknown) => {
+        const message = typeof error === 'object' && error !== null && 'response' in error
+          ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
+          : undefined;
+        return message || (isEn ? 'Failed to delete unit' : 'ইউনিট মুছে ফেলা সম্ভব হয়নি');
+      },
+    });
+
     try {
-      await unitsApi.remove(unitId);
-      toast.success(isEn ? 'Unit deleted successfully' : 'ইউনিট মুছে ফেলা হয়েছে');
-      refreshUnitViews();
-    } catch (error: unknown) {
-      const message = typeof error === 'object' && error !== null && 'response' in error
-        ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
-        : undefined;
-      toast.error(message || (isEn ? 'Failed to delete unit' : 'ইউনিট মুছে ফেলা সম্ভব হয়নি'));
+      await deletePromise;
+    } catch {
+      // toast.promise displays error notification
     }
   };
 
