@@ -4,9 +4,8 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api';
 import { useLanguageStore } from '@/stores/language-store';
-import { useTranslation } from '@/lib/translations';
 import { MonthlyRent, Property, ApiResponse } from '@/lib/types';
-import { formatCurrency, formatBnDate, formatNumber } from '@/lib/utils';
+import { formatCurrency, formatBnDate } from '@/lib/utils';
 import {
   Dialog,
   DialogContent,
@@ -22,15 +21,15 @@ import { RentNoticeDialog, WhatsAppIcon } from './rent-notice-dialog';
 import {
   FileText,
   Loader2,
-  Calendar,
-  Building,
-  User,
-  Home,
-  Clock,
   Eye,
   AlertCircle,
 } from 'lucide-react';
-import { buildNoticeWhatsAppText, getWhatsAppShareUrl } from '@/lib/whatsapp-receipt';
+import {
+  buildNoticeWhatsAppText,
+  getWhatsAppShareUrl,
+  openWhatsAppUrl,
+  validateAndNormalizePhone,
+} from '@/lib/whatsapp-receipt';
 import { toast } from 'sonner';
 
 const monthsBn = [
@@ -58,7 +57,6 @@ export function GenerateRentNoticesDialog({
   onOpenChange,
 }: GenerateRentNoticesDialogProps) {
   const { language } = useLanguageStore();
-  const t = useTranslation(language);
   const isEn = language === 'en';
 
   const today = new Date();
@@ -111,6 +109,8 @@ export function GenerateRentNoticesDialog({
     const tenant = rentItem.agreement?.tenant;
     const unit = rentItem.agreement?.unit;
     const property = unit?.property;
+    const rawPhone = tenant?.phone;
+    const phoneResult = validateAndNormalizePhone(rawPhone);
 
     const text = buildNoticeWhatsAppText({
       tenantName: tenant?.name,
@@ -125,9 +125,33 @@ export function GenerateRentNoticesDialog({
       isEn,
     });
 
-    const waUrl = getWhatsAppShareUrl(tenant?.phone, text);
-    window.open(waUrl, '_blank');
-    toast.success(isEn ? 'Opening WhatsApp with notice text...' : 'হোয়াটসঅ্যাপে নোটিশ পাঠানো হচ্ছে...');
+    const targetPhone = phoneResult.isValid ? phoneResult.normalizedPhone : '';
+    const waUrl = getWhatsAppShareUrl(targetPhone, text);
+    const { popupBlocked } = openWhatsAppUrl(waUrl);
+
+    if (popupBlocked) {
+      // If popup was blocked, open canonical preview dialog so landlord has manual button & copy options
+      setActiveNoticeRent(rentItem);
+      toast.warning(
+        isEn
+          ? 'Browser blocked WhatsApp popup. Opening notice preview...'
+          : 'ব্রাউজার পপ-আপ ব্লক করেছে। নোটিশ প্রিভিউ খোলা হচ্ছে...'
+      );
+    } else {
+      if (phoneResult.isValid) {
+        toast.success(
+          isEn
+            ? `Opening WhatsApp chat for ${tenant?.name || phoneResult.normalizedPhone}...`
+            : `${tenant?.name || phoneResult.normalizedPhone}-এর হোয়াটসঅ্যাপ চ্যাট খোলা হচ্ছে...`
+        );
+      } else {
+        toast.info(
+          isEn
+            ? 'Tenant has no phone number recorded. Opening WhatsApp contact selector...'
+            : 'ভাড়াটিয়ার ফোন নম্বর নেই। কন্টাক্ট নির্বাচন করতে হোয়াটসঅ্যাপ খোলা হচ্ছে...'
+        );
+      }
+    }
   };
 
   return (
@@ -240,7 +264,6 @@ export function GenerateRentNoticesDialog({
                   const tenant = inv.agreement?.tenant;
                   const unit = inv.agreement?.unit;
                   const property = unit?.property;
-                  const remaining = Number(inv.remainingAmount);
 
                   return (
                     <div

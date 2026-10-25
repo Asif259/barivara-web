@@ -11,6 +11,7 @@ import {
   buildReceiptWhatsAppText,
   canShareFilesCapability,
   getWhatsAppShareUrl,
+  openWhatsAppUrl,
   validateAndNormalizePhone,
 } from '@/lib/whatsapp-receipt';
 import {
@@ -31,6 +32,7 @@ import {
   Printer,
   AlertCircle,
   ExternalLink,
+  Info,
 } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import { toast } from 'sonner';
@@ -305,7 +307,12 @@ export function PaymentReceiptDialog({
       link.href = dataUrl;
       link.click();
 
-      toast.success(isEn ? 'Receipt image downloaded successfully!' : 'মানি রিসিট ইমেজ ডাউনলোড হয়েছে!');
+      toast.success(
+        t.receiptDownloadedForWhatsapp ||
+          (isEn
+            ? 'Receipt image downloaded. Please attach the image in WhatsApp and send.'
+            : 'রশিদ ইমেজ ডাউনলোড হয়েছে। হোয়াটসঅ্যাপ চ্যাটে রশিদটি যুক্ত করে পাঠিয়ে দিন।')
+      );
     } catch (error) {
       console.error('Failed to export receipt image:', error);
       toast.error(t.receiptGenFailed || (isEn ? 'Failed to download receipt image' : 'রশিদ ইমেজ ডাউনলোড ব্যর্থ হয়েছে'));
@@ -329,62 +336,68 @@ export function PaymentReceiptDialog({
    * WhatsApp chat simultaneously. Use the "Share Image" button for
    * image sharing via the native share sheet.
    */
-  const handleSendToWhatsApp = () => {
-    if (!hasValidPhone) {
-      toast.error(
-        isEn
-          ? 'Tenant does not have a WhatsApp number.'
-          : 'ভাড়াটিয়ার কোনো হোয়াটসঅ্যাপ নম্বর নেই।'
-      );
-      return;
-    }
-
-    const messageText = buildReceiptWhatsAppText({
+  const buildCurrentReceiptMessage = () => {
+    return buildReceiptWhatsAppText({
       tenantName,
       unitNumber: unit?.unitNumber || '',
+      propertyName: property?.name || '',
       month: monthlyRent?.month,
       year: monthlyRent?.year,
       amount: effectivePayment.amount,
+      receiptId: (effectivePayment.id || '').substring(0, 8).toUpperCase(),
+      paymentDate: effectivePayment.paymentDate,
+      paymentMethod: effectivePayment.paymentMethod,
+      transactionId: effectivePayment.transactionId,
+      totalAmount: monthlyRent?.totalAmount,
+      remainingAmount: monthlyRent?.remainingAmount,
       isEn,
     });
+  };
 
-    const waUrl = getWhatsAppShareUrl(phoneResult.normalizedPhone, messageText);
+  /**
+   * Opens the tenant WhatsApp chat via wa.me deep-link with prefilled text.
+   * On mobile: opens native WhatsApp.
+   * On desktop: opens WhatsApp Web.
+   * Handles missing or invalid phone numbers gracefully by falling back to contact selection.
+   */
+  const handleSendToWhatsApp = () => {
+    const messageText = buildCurrentReceiptMessage();
+    const targetPhone = hasValidPhone ? phoneResult.normalizedPhone : '';
+    const waUrl = getWhatsAppShareUrl(targetPhone, messageText);
 
-    let opened: Window | null = null;
-    try {
-      opened = window.open(waUrl, '_blank', 'noopener,noreferrer');
-    } catch (e) {
-      console.warn('[WhatsApp] window.open failed:', e);
-    }
-
-    const popupBlocked = !opened || opened.closed || typeof opened.closed === 'undefined';
+    const { popupBlocked } = openWhatsAppUrl(waUrl);
 
     if (popupBlocked) {
       // Popup was blocked — show fallback dialog with manual "Open WhatsApp" button
       setFallbackData({
         waUrl,
         messageText,
-        phone: phoneResult.normalizedPhone,
-        tenantName: tenantName || (isEn ? 'Tenant' : 'ভাড়াটিয়া'),
+        phone: targetPhone,
+        tenantName: tenantName || (isEn ? 'Tenant' : 'ভাড়াটিয়া'),
         popupBlocked: true,
       });
       setFallbackOpen(true);
     } else {
-      toast.success(
-        isEn
-          ? `WhatsApp chat opened for ${tenantName || phoneResult.normalizedPhone}`
-          : `${tenantName || phoneResult.normalizedPhone}-এর হোয়াটসঅ্যাপ চ্যাট খোলা হয়েছে`
-      );
+      if (hasValidPhone) {
+        toast.success(
+          isEn
+            ? `WhatsApp chat opened for ${tenantName || targetPhone}`
+            : `${tenantName || targetPhone}-এর হোয়াটসঅ্যাপ চ্যাট খোলা হয়েছে`
+        );
+      } else {
+        toast.info(
+          isEn
+            ? 'Tenant has no phone number recorded. Opening WhatsApp contact selector...'
+            : 'ভাড়াটিয়ার ফোন নম্বর নেই। কন্টাক্ট নির্বাচন করতে হোয়াটসঅ্যাপ খোলা হচ্ছে...'
+        );
+      }
     }
   };
 
   /**
    * Combined "Share Receipt" flow:
-   * 1. If the receipt image was pre-generated, open the native share sheet with it.
-   *    navigator.share() is called synchronously (before any await) so the click's
-   *    user activation is still valid — Safari/iOS rejects it otherwise.
-   * 2. If native sharing is unavailable, the image isn't ready, or sharing fails
-   *    (non-abort), fall back to the text-only exact-contact wa.me link.
+   * 1. If native file-sharing is supported (mobile devices), share the crisp PNG image with the receipt text.
+   * 2. On desktop or if sharing fails (non-abort), fall back to the text-only wa.me deep link.
    */
   const handleSendReceipt = async () => {
     const notifyTextOnly = () =>
@@ -399,14 +412,7 @@ export function PaymentReceiptDialog({
         try {
           setIsSharing(true);
 
-          const messageText = buildReceiptWhatsAppText({
-            tenantName,
-            unitNumber: unit?.unitNumber || '',
-            month: monthlyRent?.month,
-            year: monthlyRent?.year,
-            amount: effectivePayment.amount,
-            isEn,
-          });
+          const messageText = buildCurrentReceiptMessage();
 
           await navigator.share({
             files: [preparedReceipt.file],
@@ -424,13 +430,11 @@ export function PaymentReceiptDialog({
           setIsSharing(false);
         }
       } else {
-        // The button is disabled while the image is being prepared, so reaching here
-        // means pre-generation failed or file type is rejected.
         notifyTextOnly();
       }
     }
 
-    // Fallback: text-only deep link to exact contact
+    // Fallback: text-only wa.me deep link
     handleSendToWhatsApp();
   };
 
@@ -651,7 +655,7 @@ function WhatsAppShareFallbackDialog({
   };
 
   const handleOpenWhatsApp = () => {
-    window.open(data.waUrl, '_blank', 'noopener,noreferrer');
+    openWhatsAppUrl(data.waUrl);
   };
 
   return (
@@ -667,7 +671,9 @@ function WhatsAppShareFallbackDialog({
                 {isEn ? `Send to ${data.tenantName}` : `${data.tenantName}-কে পাঠান`}
               </DialogTitle>
               <DialogDescription className="text-xs text-slate-500">
-                {isEn ? `WhatsApp: ${data.phone}` : `নম্বর: ${data.phone}`}
+                {data.phone
+                  ? (isEn ? `WhatsApp: ${data.phone}` : `নম্বর: ${data.phone}`)
+                  : (isEn ? 'Choose contact in WhatsApp' : 'হোয়াটসঅ্যাপে কন্টাক্ট নির্বাচন করুন')}
               </DialogDescription>
             </div>
           </div>
@@ -683,12 +689,22 @@ function WhatsAppShareFallbackDialog({
               </span>
               <p className="text-[11px] text-amber-800">
                 {isEn
-                  ? 'Click "Open WhatsApp" below to open the exact tenant chat.'
+                  ? 'Click "Open WhatsApp" below to continue to the chat.'
                   : 'নিচের "হোয়াটসঅ্যাপ খুলুন" বাটনে চাপ দিয়ে সরাসরি চ্যাট খুলুন।'}
               </p>
             </div>
           </div>
         )}
+
+        {/* Desktop Attachment Instruction Hint */}
+        <div className="flex items-start gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 text-xs">
+          <Info className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+          <p className="text-[11px] text-slate-600 leading-normal">
+            {isEn
+              ? 'Due to browser security restrictions, WhatsApp Web cannot automatically attach files. Download the receipt image and drag or attach it into the opened chat.'
+              : 'ব্রাউজার সিকিউরিটির কারণে ওয়েব ব্রাউজার স্বয়ংক্রিয়ভাবে হোয়াটসঅ্যাপে ফাইল যুক্ত করতে পারে না। রশিদটি ডাউনলোড করে হোয়াটসঅ্যাপ চ্যাটে ড্র্যাগ বা অ্যাটাচ করুন।'}
+          </p>
+        </div>
 
         {/* Prefilled message preview */}
         <div className="space-y-1">
@@ -714,7 +730,7 @@ function WhatsAppShareFallbackDialog({
               )}
             </Button>
           </div>
-          <pre className="text-[11px] font-sans bg-slate-100 p-2.5 rounded-lg border border-slate-200 whitespace-pre-wrap text-slate-800 leading-relaxed">
+          <pre className="text-[11px] font-sans bg-slate-100 p-2.5 rounded-lg border border-slate-200 whitespace-pre-wrap text-slate-800 leading-relaxed max-h-48 overflow-y-auto">
             {data.messageText}
           </pre>
         </div>

@@ -28,15 +28,16 @@ export function validateAndNormalizePhone(phone?: string | null): PhoneValidatio
   };
   const converted = phone.replace(/[০-৯]/g, (d) => bnDigits[d] || d);
 
-  // Strip all whitespace, hyphens, parentheses, plus signs
-  const cleaned = converted.replace(/[\s\-\(\)\+]/g, '').trim();
+  // Strip leading 00 if present (common international prefix notation, e.g. 008801...)
+  let cleaned = converted.replace(/[\s\-\(\)\+]/g, '').trim();
+  cleaned = cleaned.replace(/^00/, '');
 
   // If non-digits remain after stripping formatting, it is invalid
   if (!/^\d+$/.test(cleaned)) {
     return { isValid: false, normalizedPhone: '' };
   }
 
-  // 1. Bangladesh local 11-digit mobile: 01[3-9]XXXXXXXX
+  // 1. Bangladesh local 11-digit mobile: 01[3-9]XXXXXXXX -> 8801[3-9]XXXXXXXX
   if (/^01[3-9]\d{8}$/.test(cleaned)) {
     return { isValid: true, normalizedPhone: `88${cleaned}` };
   }
@@ -64,51 +65,76 @@ export function formatWhatsAppPhone(phone: string | null | undefined): string {
   return result.isValid ? result.normalizedPhone : '';
 }
 
+/**
+ * Translates payment method code into a localized human-readable label.
+ */
+export function translatePaymentMethod(method?: string | null, isEn = false): string {
+  if (!method) return '-';
+  const clean = method.trim().toUpperCase();
+  if (isEn) {
+    const mapEn: Record<string, string> = {
+      CASH: 'Cash',
+      BKASH: 'bKash',
+      NAGAD: 'Nagad',
+      ROCKET: 'Rocket',
+      BANK: 'Bank Transfer',
+      BANK_TRANSFER: 'Bank Transfer',
+      CARD: 'Credit / Debit Card',
+      OTHER: 'Other',
+    };
+    return mapEn[clean] || method;
+  }
+  const mapBn: Record<string, string> = {
+    CASH: 'ক্যাশ (নগদ)',
+    BKASH: 'বিকাশ (bKash)',
+    NAGAD: 'নগদ (Nagad)',
+    ROCKET: 'রকেট (Rocket)',
+    BANK: 'ব্যাংক ট্রান্সফার',
+    BANK_TRANSFER: 'ব্যাংক ট্রান্সফার',
+    CARD: 'কার্ড (Card)',
+    OTHER: 'অন্যান্য',
+  };
+  return mapBn[clean] || method;
+}
+
 export interface ReceiptWhatsAppTextParams {
   tenantName?: string | null;
   unitNumber?: string | null;
+  propertyName?: string | null;
   month?: number | null;
   year?: number | null;
   amount: number | string;
   /** Short receipt ID, e.g. "6ED6FEF3" — prepended with # in the message. */
   receiptId?: string | null;
+  paymentDate?: Date | string | null;
+  paymentMethod?: string | null;
+  transactionId?: string | null;
+  totalAmount?: number | string | null;
+  remainingAmount?: number | string | null;
   isEn: boolean;
 }
 
 /**
- * Generates localized WhatsApp message text matching the required specification.
- *
- * Bangla Example:
- * BariVara Payment Receipt
- *
- * ভাড়াটিয়া: মোঃ রাকিব হাসান
- * ফ্ল্যাট: 4B
- * মাস: সেপ্টেম্বর ২০২৬
- * পরিশোধ: ৳25,500
- *
- * ধন্যবাদ।
- *
- * English Example:
- * BariVara Payment Receipt
- *
- * Tenant: Rahim Ahmed
- * Unit: 4B
- * Month: September 2026
- * Paid: ৳25,500
- *
- * Thank you.
+ * Generates localized WhatsApp message text for a payment receipt matching specifications.
+ * Includes tenant name, property/unit, receipt #, rent period, amount paid, payment date,
+ * payment method, and remaining balance when applicable.
  */
 export function buildReceiptWhatsAppText({
   tenantName,
   unitNumber,
+  propertyName,
   month,
   year,
   amount,
   receiptId,
+  paymentDate,
+  paymentMethod,
+  transactionId,
+  remainingAmount,
   isEn,
 }: ReceiptWhatsAppTextParams): string {
   const bnMonths = [
-    'জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন',
+    'জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন',
     'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর',
   ];
   const enMonths = [
@@ -137,30 +163,56 @@ export function buildReceiptWhatsAppText({
   const formattedAmountBn = formatCurrency(amount, 'bn');
   const formattedAmountEn = formatCurrency(amount, 'en');
 
-  const refTag = receiptId ? `#${receiptId}` : '-';
+  const refTag = receiptId ? (receiptId.startsWith('#') ? receiptId : `#${receiptId}`) : '-';
+
+  let paymentDateFormattedEn = '';
+  let paymentDateFormattedBn = '';
+  if (paymentDate) {
+    const d = new Date(paymentDate);
+    if (!isNaN(d.getTime())) {
+      const day = d.getDate().toString().padStart(2, '0');
+      const yr = d.getFullYear();
+      const mIdx = d.getMonth();
+      paymentDateFormattedEn = `${day} ${enMonths[mIdx]} ${yr}`;
+      paymentDateFormattedBn = `${toBnDigits(day)} ${bnMonths[mIdx]} ${toBnDigits(yr)}`;
+    }
+  }
+
+  const locationEn = [unitNumber ? `Unit: ${unitNumber}` : '', propertyName ? `(${propertyName})` : ''].filter(Boolean).join(' ');
+  const locationBn = [unitNumber ? `ফ্ল্যাট: ${unitNumber}` : '', propertyName ? `(${propertyName})` : ''].filter(Boolean).join(' ');
+
+  const hasRemaining = remainingAmount !== undefined && remainingAmount !== null && Number(remainingAmount) > 0;
 
   if (isEn) {
     return [
-      'Your rent payment receipt.',
+      'BariVara Rent Payment Receipt',
       tenantName ? `Tenant: ${tenantName}` : '',
-      unitNumber ? `Unit: ${unitNumber}` : '',
+      locationEn,
       `Receipt No: ${refTag}`,
+      `Rent Month: ${periodEn}`,
       `Amount Paid: ${formattedAmountEn}`,
-      `Rent Period: ${periodEn}`,
+      paymentDateFormattedEn ? `Payment Date: ${paymentDateFormattedEn}` : '',
+      paymentMethod ? `Payment Method: ${translatePaymentMethod(paymentMethod, true)}` : '',
+      transactionId ? `Transaction ID: ${transactionId}` : '',
+      hasRemaining ? `Remaining Due: ${formatCurrency(remainingAmount, 'en')}` : '',
       '',
-      'Thank you.',
+      'Thank you for your payment.',
     ].filter(Boolean).join('\n');
   }
 
   return [
-    'আপনার ভাড়ার পেমেন্টের রশিদ।',
+    'বাড়িভাড়া — মানি রিসিট (পেমেন্ট নিশ্চিতকরণ)',
     tenantName ? `ভাড়াটিয়া: ${tenantName}` : '',
-    unitNumber ? `ফ্ল্যাট: ${unitNumber}` : '',
+    locationBn,
     `রশিদ নং: ${refTag}`,
+    `ভাড়ার মাস: ${periodBn}`,
     `পরিশোধিত পরিমাণ: ${formattedAmountBn}`,
-    `ভাড়া মাস: ${periodBn}`,
+    paymentDateFormattedBn ? `পরিশোধের তারিখ: ${paymentDateFormattedBn}` : '',
+    paymentMethod ? `পেমেন্ট মাধ্যম: ${translatePaymentMethod(paymentMethod, false)}` : '',
+    transactionId ? `ট্রানজেকশন আইডি: ${transactionId}` : '',
+    hasRemaining ? `অবশিষ্ট বকেয়া: ${formatCurrency(remainingAmount, 'bn')}` : '',
     '',
-    'ধন্যবাদ।',
+    'সময়মত ভাড়া পরিশোধের জন্য ধন্যবাদ।',
   ].filter(Boolean).join('\n');
 }
 
@@ -193,7 +245,7 @@ export function buildNoticeWhatsAppText({
   isEn,
 }: NoticeWhatsAppTextParams): string {
   const bnMonths = [
-    'জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন',
+    'জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন',
     'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর',
   ];
   const enMonths = [
@@ -273,6 +325,7 @@ export function buildNoticeWhatsAppText({
 
 /**
  * Generates a wa.me URL with prefilled text and optional international phone number.
+ * Phone number is normalized to international format (without +, spaces, dashes, or leading 00).
  */
 export function getWhatsAppShareUrl(phone: string | null | undefined, text: string): string {
   const normalizedPhone = formatWhatsAppPhone(phone);
@@ -281,6 +334,33 @@ export function getWhatsAppShareUrl(phone: string | null | undefined, text: stri
     return `https://wa.me/${normalizedPhone}?text=${encodedText}`;
   }
   return `https://wa.me/?text=${encodedText}`;
+}
+
+/**
+ * Safely opens a WhatsApp URL in a new window/tab, detaching the window opener
+ * to protect against reverse tabnabbing and ensuring pop-up blocking can be
+ * accurately detected without false positives.
+ */
+export function openWhatsAppUrl(url: string): { opened: boolean; popupBlocked: boolean } {
+  if (typeof window === 'undefined') {
+    return { opened: false, popupBlocked: false };
+  }
+
+  let win: Window | null = null;
+  try {
+    // Note: Do not pass 'noopener,noreferrer' as windowFeatures. In modern Chromium/WebKit,
+    // passing 'noopener' causes window.open to unconditionally return null,
+    // making it impossible to detect if the popup was actually blocked or succeeded.
+    win = window.open(url, '_blank');
+    if (win) {
+      win.opener = null;
+    }
+  } catch (error) {
+    console.warn('[WhatsApp] window.open failed:', error);
+  }
+
+  const popupBlocked = !win || win.closed;
+  return { opened: !popupBlocked, popupBlocked };
 }
 
 /**

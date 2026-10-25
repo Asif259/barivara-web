@@ -10,6 +10,7 @@ import {
   buildNoticeWhatsAppText,
   canShareFilesCapability,
   getWhatsAppShareUrl,
+  openWhatsAppUrl,
   validateAndNormalizePhone,
 } from '@/lib/whatsapp-receipt';
 import {
@@ -30,6 +31,7 @@ import {
   Printer,
   AlertCircle,
   ExternalLink,
+  Info,
 } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import { toast } from 'sonner';
@@ -277,7 +279,11 @@ export function RentNoticeDialog({
       link.href = dataUrl;
       link.click();
 
-      toast.success(isEn ? 'Rent notice downloaded successfully' : 'ভাড়ার নোটিশ সফলভাবে ডাউনলোড হয়েছে');
+      toast.success(
+        isEn
+          ? 'Rent notice downloaded. Attach the image in WhatsApp if needed.'
+          : 'ভাড়ার নোটিশ ডাউনলোড হয়েছে। হোয়াটসঅ্যাপে প্রয়োজন অনুযায়ী ছবিটি যুক্ত করে দিন।'
+      );
     } catch (error) {
       console.error('Failed to export notice image:', error);
       toast.error(isEn ? 'Failed to download notice' : 'নোটিশ ডাউনলোড করতে ব্যর্থ হয়েছে');
@@ -303,62 +309,49 @@ export function RentNoticeDialog({
   };
 
   /**
-   * Opens the EXACT tenant WhatsApp chat via wa.me deep-link (text only).
-   * Mobile: WhatsApp app opens to the tenant chat. Desktop: WhatsApp Web does.
-   * The notice image is NOT attached here — browsers can't attach a locally generated
-   * image and open a specific chat at once. Native share (below) covers the image case.
+   * Opens the tenant WhatsApp chat via wa.me deep-link with prefilled notice text.
+   * On mobile: WhatsApp app opens directly to the tenant's chat.
+   * On desktop: WhatsApp Web opens to the tenant's chat.
+   * Gracefully handles missing or unformatted phone numbers.
    */
   const handleSendToWhatsApp = () => {
-    if (!hasValidPhone) {
-      toast.error(
-        isEn
-          ? 'Tenant does not have a WhatsApp number.'
-          : 'ভাড়াটিয়ার কোনো হোয়াটসঅ্যাপ নম্বর নেই।'
-      );
-      return;
-    }
-
     const messageText = buildMessageText();
-    const waUrl = getWhatsAppShareUrl(phoneResult.normalizedPhone, messageText);
+    const targetPhone = hasValidPhone ? phoneResult.normalizedPhone : '';
+    const waUrl = getWhatsAppShareUrl(targetPhone, messageText);
 
-    let opened: Window | null = null;
-    try {
-      // No "noopener" in the features string: it makes window.open() ALWAYS return null,
-      // which is indistinguishable from a blocked popup. Detach the opener manually instead.
-      opened = window.open(waUrl, '_blank');
-      if (opened) opened.opener = null;
-    } catch (error) {
-      console.warn('[WhatsApp] window.open failed:', error);
-    }
-
-    const popupBlocked = !opened || opened.closed;
+    const { popupBlocked } = openWhatsAppUrl(waUrl);
 
     if (popupBlocked) {
       // Popup was blocked — show fallback dialog with manual "Open WhatsApp" button
       setFallbackData({
         waUrl,
         messageText,
-        phone: phoneResult.normalizedPhone,
+        phone: targetPhone,
         tenantName: tenantName || (isEn ? 'Tenant' : 'ভাড়াটিয়া'),
         popupBlocked: true,
       });
       setFallbackOpen(true);
     } else {
-      toast.success(
-        isEn
-          ? `WhatsApp chat opened for ${tenantName || phoneResult.normalizedPhone}`
-          : `${tenantName || phoneResult.normalizedPhone}-এর হোয়াটসঅ্যাপ চ্যাট খোলা হয়েছে`
-      );
+      if (hasValidPhone) {
+        toast.success(
+          isEn
+            ? `WhatsApp chat opened for ${tenantName || targetPhone}`
+            : `${tenantName || targetPhone}-এর হোয়াটসঅ্যাপ চ্যাট খোলা হয়েছে`
+        );
+      } else {
+        toast.info(
+          isEn
+            ? 'Tenant has no phone number recorded. Opening WhatsApp contact selector...'
+            : 'ভাড়াটিয়ার ফোন নম্বর নেই। কন্টাক্ট নির্বাচন করতে হোয়াটসঅ্যাপ খোলা হচ্ছে...'
+        );
+      }
     }
   };
 
   /**
    * Combined "Share Notice" flow:
-   * 1. If the notice image was pre-generated, open the native share sheet with it.
-   *    navigator.share() is called synchronously (before any await) so the click's
-   *    user activation is still valid — Safari/iOS rejects it otherwise.
-   * 2. If native sharing is unavailable, the image isn't ready, or sharing fails
-   *    (non-abort), fall back to the text-only exact-contact wa.me link.
+   * 1. If the notice image was pre-generated and native sharing is available, open the native share sheet.
+   * 2. If native sharing is unavailable or fails (non-abort), fall back to the text-only wa.me deep link.
    */
   const handleSendNotice = async () => {
     const notifyTextOnly = () =>
@@ -390,8 +383,6 @@ export function RentNoticeDialog({
           setIsSharing(false);
         }
       } else {
-        // The button is disabled while the image is being prepared, so reaching here
-        // means pre-generation failed or this device rejects the file.
         notifyTextOnly();
       }
     }
@@ -407,6 +398,9 @@ export function RentNoticeDialog({
     if (canShareImageNatively) return isEn ? 'Share Notice' : 'নোটিশ শেয়ার করুন';
     if (hasValidPhone && tenantName) {
       return isEn ? `Send to ${tenantName}` : `${tenantName}-কে পাঠান`;
+    }
+    if (!hasValidPhone) {
+      return isEn ? 'Choose WhatsApp Contact' : 'কন্টাক্ট নির্বাচন করুন';
     }
     return isEn ? 'Send in WhatsApp' : 'হোয়াটসঅ্যাপে পাঠান';
   };
@@ -625,7 +619,7 @@ function WhatsAppShareFallbackDialog({
   };
 
   const handleOpenWhatsApp = () => {
-    window.open(data.waUrl, '_blank', 'noopener,noreferrer');
+    openWhatsAppUrl(data.waUrl);
   };
 
   return (
@@ -641,7 +635,9 @@ function WhatsAppShareFallbackDialog({
                 {isEn ? `Send to ${data.tenantName}` : `${data.tenantName}-কে পাঠান`}
               </DialogTitle>
               <DialogDescription className="text-xs text-slate-500">
-                {isEn ? `WhatsApp: ${data.phone}` : `নম্বর: ${data.phone}`}
+                {data.phone
+                  ? (isEn ? `WhatsApp: ${data.phone}` : `নম্বর: ${data.phone}`)
+                  : (isEn ? 'Choose contact in WhatsApp' : 'হোয়াটসঅ্যাপে কন্টাক্ট নির্বাচন করুন')}
               </DialogDescription>
             </div>
           </div>
@@ -657,12 +653,22 @@ function WhatsAppShareFallbackDialog({
               </span>
               <p className="text-[11px] text-amber-800">
                 {isEn
-                  ? 'Click "Open WhatsApp" below to open the exact tenant chat.'
+                  ? 'Click "Open WhatsApp" below to continue to the chat.'
                   : 'নিচের "হোয়াটসঅ্যাপ খুলুন" বাটনে চাপ দিয়ে সরাসরি চ্যাট খুলুন।'}
               </p>
             </div>
           </div>
         )}
+
+        {/* Desktop Attachment Instruction Hint */}
+        <div className="flex items-start gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 text-xs">
+          <Info className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+          <p className="text-[11px] text-slate-600 leading-normal">
+            {isEn
+              ? 'Due to browser security restrictions, WhatsApp Web cannot automatically attach files. Download the notice image and drag or attach it into the opened chat.'
+              : 'ব্রাউজার সিকিউরিটির কারণে ওয়েব ব্রাউজার স্বয়ংক্রিয়ভাবে হোয়াটসঅ্যাপে ফাইল যুক্ত করতে পারে না। নোটিশটি ডাউনলোড করে হোয়াটসঅ্যাপ চ্যাটে ড্র্যাগ বা অ্যাটাচ করুন।'}
+          </p>
+        </div>
 
         {/* Prefilled message preview */}
         <div className="space-y-1">
@@ -688,7 +694,7 @@ function WhatsAppShareFallbackDialog({
               )}
             </Button>
           </div>
-          <pre className="text-[11px] font-sans bg-slate-100 p-2.5 rounded-lg border border-slate-200 whitespace-pre-wrap text-slate-800 leading-relaxed">
+          <pre className="text-[11px] font-sans bg-slate-100 p-2.5 rounded-lg border border-slate-200 whitespace-pre-wrap text-slate-800 leading-relaxed max-h-48 overflow-y-auto">
             {data.messageText}
           </pre>
         </div>

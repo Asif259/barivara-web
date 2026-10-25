@@ -296,7 +296,7 @@ export const RentDocument = forwardRef<HTMLDivElement, RentDocumentProps>(functi
                 {isEn ? 'PAID' : 'পরিশোধিত'}
               </span>
               <p className="text-[10px] text-slate-500 mt-2 font-mono">
-                {isEn ? 'Receipt No.' : 'রশিদ নং'} #{receiptId.substring(0, 8).toUpperCase()}
+                {isEn ? 'Receipt No.' : 'রশিদ নং'} #{receiptId ? receiptId.substring(0, 8).toUpperCase() : '-'}
               </p>
             </div>
           </div>
