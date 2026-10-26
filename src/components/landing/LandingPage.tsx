@@ -13,6 +13,7 @@ import Comparison from './Comparison';
 import Trust from './Trust';
 import Roadmap from './Roadmap';
 import HowItWorks from './HowItWorks';
+import FaqSection from './FaqSection';
 import FinalCta from './FinalCta';
 import LandingFooter from './LandingFooter';
 
@@ -48,15 +49,16 @@ export default function LandingPage() {
         {t.common.skipToContent}
       </a>
       <LandingNav />
-      <main id="main">
+      <main id="main" tabIndex={-1} className="outline-none">
         <Hero />
         <StorySection />
         <FeatureGrid />
         <Showcase />
         <Comparison />
+        <HowItWorks />
         <Trust />
         <Roadmap />
-        <HowItWorks />
+        <FaqSection />
         <FinalCta />
       </main>
       <LandingFooter />

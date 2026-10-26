@@ -21,7 +21,7 @@ export default function Comparison() {
         <Reveal delay={80} className="mt-12">
           <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.025]">
             <div className="hidden grid-cols-[0.8fr_1fr_1fr] gap-4 border-b border-white/10 px-5 py-3 text-[10px] uppercase tracking-[0.22em] md:grid">
-              <span className="text-[#5f776c]">—</span>
+              <span className="text-[#829c90]">—</span>
               <span className="text-[#7f978c]">{t.comparison.paperLabel}</span>
               <span className="flex items-center gap-1.5 text-[#7ff0c2]">
                 <span aria-hidden="true" className="h-1 w-1 rounded-full bg-[#7ff0c2]" />

@@ -53,11 +53,30 @@ export default function MarketingHomePage() {
     name: 'BariVara',
     alternateName: 'বাড়িভাড়া',
     applicationCategory: 'BusinessApplication',
-    operatingSystem: 'Web',
+    operatingSystem: 'Web, Mobile (PWA)',
     inLanguage: ['bn', 'en'],
     description: bn.meta.description,
     ...(siteUrl ? { url: `${siteUrl}/` } : {}),
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'BDT',
+      description: '100% Free Public Beta for landlords in Bangladesh',
+    },
     featureList: bn.features.items.map((item) => item.title),
+  };
+
+  const faqStructuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: bn.faq.items.map((item) => ({
+      '@type': 'Question',
+      name: item.q,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: item.a,
+      },
+    })),
   };
 
   return (
@@ -65,6 +84,10 @@ export default function MarketingHomePage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqStructuredData) }}
       />
       <LandingPage />
     </>

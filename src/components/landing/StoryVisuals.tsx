@@ -72,7 +72,7 @@ function UnitsPanel({ t }: { t: LandingCopy }) {
       <div className="space-y-1.5">
         {floors.map((floor, index) => (
           <div key={floor} className="flex items-center gap-2">
-            <span className="w-10 shrink-0 text-[9px] uppercase tracking-[0.14em] text-[#5f776c]">
+            <span className="w-10 shrink-0 text-[9px] uppercase tracking-[0.14em] text-[#829c90]">
               {floor === 0 ? 'G' : `F${floor}`}
             </span>
             <div className="grid flex-1 grid-cols-4 gap-1.5">
@@ -87,7 +87,7 @@ function UnitsPanel({ t }: { t: LandingCopy }) {
                       tone === 'paid' && 'border-[#5ef29a]/25 bg-[#5ef29a]/10 text-[#a9e8cd]',
                       tone === 'partial' && 'border-[#f0c05a]/25 bg-[#f0c05a]/10 text-[#f0c05a]',
                       tone === 'overdue' && 'border-[#ff8d7d]/25 bg-[#ff8d7d]/10 text-[#ff8d7d]',
-                      tone === 'vacant' && 'border-white/8 bg-white/[0.02] text-[#5f776c]',
+                      tone === 'vacant' && 'border-white/8 bg-white/[0.02] text-[#829c90]',
                     )}
                   >
                     {floor}
@@ -139,7 +139,7 @@ function TenantPanel({ t }: { t: LandingCopy }) {
       <dl className="mt-4 grid gap-2 text-[11px]">
         {rows.map(([label, value]) => (
           <div key={label} className="flex items-baseline justify-between gap-3 border-b border-white/6 pb-1.5">
-            <dt className="shrink-0 text-[#5f776c]">{label}</dt>
+            <dt className="shrink-0 text-[#829c90]">{label}</dt>
             <dd className="truncate text-right text-[#cfdfd7]">{value}</dd>
           </div>
         ))}
@@ -252,7 +252,7 @@ function ReceiptPanel({ t }: { t: LandingCopy }) {
             <div className="flex items-center gap-1.5 text-[10px] text-[#a9e8cd]">
               <MessageCircle className="h-3 w-3" />
               {receipt.whatsappLabel}
-              <span className="ml-auto text-[9px] text-[#5f776c]">{receipt.whatsappTime}</span>
+              <span className="ml-auto text-[9px] text-[#829c90]">{receipt.whatsappTime}</span>
             </div>
             <p className="mt-2 rounded-lg rounded-tl-none bg-[#134e3a] px-2.5 py-2 text-[10px] leading-relaxed text-[#e9f3ee]">
               {receipt.whatsappMessage}
@@ -263,7 +263,7 @@ function ReceiptPanel({ t }: { t: LandingCopy }) {
               <ReceiptText className="h-3 w-3 text-[#7ff0c2]" />
               {receipt.printNote}
             </div>
-            <p className="mt-2 text-[10px] text-[#5f776c]">{t.common.sampleDataShort}</p>
+            <p className="mt-2 text-[10px] text-[#829c90]">{t.common.sampleDataShort}</p>
           </div>
         </div>
       </div>
@@ -319,7 +319,7 @@ function ReportsPanel({ t }: { t: LandingCopy }) {
               </div>
             ))}
           </div>
-          <p className="mt-2.5 text-[9px] text-[#5f776c]">{reports.expenseNote}</p>
+          <p className="mt-2.5 text-[9px] text-[#829c90]">{reports.expenseNote}</p>
         </div>
       </div>
     </Panel>
@@ -353,7 +353,7 @@ function ClosingPanel({ t }: { t: LandingCopy }) {
           {closing.secondary}
         </a>
       </div>
-      <p className="mt-3 text-[9px] uppercase tracking-[0.16em] text-[#5f776c]">{t.common.sampleData}</p>
+      <p className="mt-3 text-[9px] uppercase tracking-[0.16em] text-[#829c90]">{t.common.sampleData}</p>
     </Panel>
   );
 }

@@ -19,6 +19,10 @@ import {
   Check,
   Sparkles,
   Languages,
+  ChevronDown,
+  ShieldCheck,
+  HelpCircle,
+  Phone,
 } from 'lucide-react';
 
 export const featureIcons: Record<string, ComponentType<{ className?: string; strokeWidth?: number }>> = {
@@ -54,4 +58,8 @@ export {
   Check,
   Sparkles,
   Languages,
+  ChevronDown,
+  ShieldCheck,
+  HelpCircle,
+  Phone,
 };

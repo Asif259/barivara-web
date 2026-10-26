@@ -30,7 +30,7 @@ export default function FinalCta() {
             {t.finalCta.secondary}
           </LandingCta>
         </div>
-        <p className="mt-5 text-[11px] text-[#5f776c]">{t.finalCta.note}</p>
+        <p className="mt-5 text-[11px] text-[#829c90]">{t.finalCta.note}</p>
       </div>
 
       <div aria-hidden="true" className="pointer-events-none relative z-10 mx-auto flex h-16 max-w-3xl items-end justify-center gap-1 px-5 opacity-60">

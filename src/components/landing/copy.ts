@@ -42,8 +42,10 @@ const bn = {
   nav: {
     features: 'ফিচার',
     comparison: 'তুলনা',
-    trust: 'সুরক্ষা',
+    pricing: 'মূল্যতালিকা',
     howItWorks: 'কীভাবে কাজ করে',
+    faq: 'প্রশ্ন-উত্তর',
+    trust: 'সুরক্ষা',
     roadmap: 'রোডম্যাপ',
     lightAccount: 'অ্যাকাউন্ট',
   },
@@ -438,6 +440,58 @@ const bn = {
     ctaNote: 'শুরু করতে আগে থেকে কোনো ইউনিট তৈরি করা লাগে না।',
   },
 
+  pricing: {
+    eyebrow: 'স্বচ্ছ মূল্যতালিকা',
+    title: 'পাবলিক বেটা চলাকালীন সম্পূর্ণ ফ্রি',
+    lead: 'কোনো লুকানো খরচ নেই, কোনো ক্রেডিট কার্ডের প্রয়োজন নেই। আজই আপনার বাড়ি ও ইউনিটের হিসাব সাজিয়ে নিন।',
+    badge: 'পাবলিক বেটা',
+    planName: 'বাড়িওয়ালা আর্লি অ্যাক্সেস',
+    price: '০',
+    currency: '৳',
+    period: 'প্রতি মাসে (বেটা চলাকালীন)',
+    cta: 'বিনামূল্যে অ্যাকাউন্ট খুলুন',
+    pledgeTitle: 'আমাদের স্বচ্ছ প্রতিশ্রুতি',
+    pledge: 'ভবিষ্যতে বাণিজ্যিক প্ল্যান চালু হলেও বেটা ব্যবহারকারীদের সব তথ্য সম্পূর্ণ সুরক্ষিত থাকবে এবং তাদের জন্য থাকবে বিশেষ আজীবন সাশ্রয়ী সুবিধা।',
+    features: [
+      'আনলিমিটেড প্রপার্টি, ফ্লোর ও ইউনিট যুক্ত করার সুবিধা',
+      'ভাড়াটিয়া প্রোফাইল, ছবি ও NID ডকুমেন্ট সংরক্ষণ',
+      'অটোমেটিক মাসিক ভাড়া জেনারেশন (ডুপ্লিকেট ছাড়া)',
+      'আংশিক ও পূর্ণ পেমেন্ট ট্র্যাক এবং বকেয়া লেজার',
+      'প্রিন্ট-রেডি A4 ভাড়ার রসিদ ও ডাউনলোডযোগ্য ইমেজ',
+      'এক ক্লিকে হোয়াটসঅ্যাপে রসিদ ও নোটিশ পাঠানো',
+      'সম্পূর্ণ বাংলা ও ইংরেজি ডুয়াল-ল্যাঙ্গুয়েজ ইন্টারফেস',
+      'স্বয়ংক্রিয় ক্লাউড ব্যাকআপ ও নির্ভরযোগ্য নিরাপত্তা',
+    ],
+  },
+
+  faq: {
+    eyebrow: 'সাধারণ জিজ্ঞাসা',
+    title: 'বাড়িওয়ালাদের সচরাচর প্রশ্ন ও উত্তর',
+    lead: 'BariVara ব্যবহারের আগে বাড়িওয়ালাদের মনে সচরাচর যে প্রশ্নগুলো আসে, তার সহজ উত্তর।',
+    contactPrompt: 'অন্য কোনো প্রশ্ন বা সহযোগিতার প্রয়োজন?',
+    whatsappButton: 'হোয়াটসঅ্যাপে কথা বলুন',
+    whatsappNumber: '+8801853376599',
+    whatsappMessage: 'আসসালামু আলাইকুম, আমি বাড়িভাড়া (BariVara) অ্যাপ সম্পর্কে জানতে চাই।',
+    items: [
+      {
+        q: 'BariVara-তে আমার হিসাব ও তথ্য কতটা নিরাপদ? অন্য কেউ কি দেখতে পারবে?',
+        a: 'আপনার প্রপার্টি, ভাড়াটিয়া ও আর্থিক লেনদেনের তথ্য সম্পূর্ণ ব্যক্তিগত ও সুরক্ষিত। শুধু আপনার পাসওয়ার্ড-সুরক্ষিত অ্যাকাউন্ট থেকেই এই তথ্য দেখা সম্ভব। সার্ভারে ডেটা এনক্রিপ্ট থাকে এবং নিয়মিত স্বয়ংক্রিয় ব্যাকআপ রাখা হয়।',
+      },
+      {
+        q: 'ভাড়াটিয়াদের কি কোনো অ্যাপ ইনস্টল করতে হবে?',
+        a: 'না, ভাড়াটিয়ার কোনো অ্যাপের প্রয়োজন নেই। আপনি অ্যাপ থেকে এক ক্লিকেই সুন্দর A4 রসিদ তৈরি করে সরাসরি ভাড়াটিয়ার হোয়াটসঅ্যাপে পাঠাতে পারবেন অথবা প্রিন্ট করে দিতে পারবেন।',
+      },
+      {
+        q: 'মোবাইল ডেটা বা ধীরগতির ৩জি/৪জি ইন্টারনেটে কি কাজ করবে?',
+        a: 'হ্যাঁ। BariVara বিশেষভাবে বাংলাদেশের সাধারণ মোবাইল নেটওয়ার্কের উপযোগী করে হালকা ও দ্রুতগতির আর্কিটেকচারে তৈরি। সাধারণ স্মার্টফোন ব্রাউজার দিয়েই স্বাচ্ছন্দ্যে সব কাজ করা যায়।',
+      },
+      {
+        q: 'আমি কি আবাসিক ফ্ল্যাটের পাশাপাশি দোকান বা গ্যারেজ ভাড়া পরিচালনা করতে পারি?',
+        a: 'হ্যাঁ! প্রতিটি ইউনিটের ধরন (ফ্ল্যাট, দোকান, অফিস, গ্যারেজ পার্কিং) আলাদাভাবে নির্ধারণ করে নির্দিষ্ট ভাড়ার শর্ত ও চুক্তি অনুযায়ী খুব সহজে পরিচালনা করতে পারবেন।',
+      },
+    ],
+  },
+
   finalCta: {
     eyebrow: 'শুরু করার সময়',
     title: 'খাতার পাশে একটা পরিষ্কার হিসাব',
@@ -455,13 +509,16 @@ const bn = {
     links: {
       features: 'ফিচার',
       comparison: 'তুলনা',
+      pricing: 'মূল্যতালিকা',
       howItWorks: 'কীভাবে কাজ করে',
+      faq: 'প্রশ্ন-উত্তর',
       trust: 'সুরক্ষা',
       roadmap: 'রোডম্যাপ',
       login: 'লগ ইন',
       register: 'রেজিস্ট্রেশন',
       forgot: 'পাসওয়ার্ড রিসেট',
     },
+    whatsappSupport: 'হোয়াটসঅ্যাপে সরাসরি কথা বলুন',
     sampleDisclosure:
       'এই পেজে দেখানো সব নাম, নম্বর, টাকার অঙ্ক ও ভবন নমুনা তথ্য—কোনো প্রকৃত বাড়িওয়ালা বা ভাড়াটিয়ার তথ্য নয়।',
     rights: 'সর্বস্বত্ব সংরক্ষিত।',
@@ -501,15 +558,17 @@ const en: typeof bn = {
   nav: {
     features: 'Features',
     comparison: 'Comparison',
-    trust: 'Trust',
+    pricing: 'Pricing',
     howItWorks: 'How it works',
+    faq: 'FAQ',
+    trust: 'Trust',
     roadmap: 'Roadmap',
     lightAccount: 'Account',
   },
 
   hero: {
     eyebrow: 'For landlords in Bangladesh',
-    title: ['From the paper khata', 'to a clear digital ledger'],
+    title: ['From the paper', 'to a clear digital ledger'],
     lead: 'Multiple buildings, units and tenants—all in one place. Agreements, monthly rent, payments and receipts, in Bangla, in your own hands.',
     primaryCta: 'Get started',
     secondaryCta: 'Log in',
@@ -894,6 +953,62 @@ const en: typeof bn = {
     ctaNote: 'You do not need any units before you start.',
   },
 
+  pricing: {
+    eyebrow: 'Transparent Pricing',
+    title: '100% Free During Public Beta',
+    lead: 'No hidden fees, no credit card required. Start organizing your properties and rental ledgers today.',
+    badge: 'Public Beta',
+    planName: 'Landlord Early Access',
+    price: '0',
+    currency: '৳',
+    period: 'per month (during beta)',
+    cta: 'Get started for free',
+    pledgeTitle: 'Our Transparent Pledge',
+    pledge: 'When commercial plans launch in the future, early beta users will retain all data safely and receive lifetime early-adopter discounted rates.',
+    features: [
+      'Unlimited properties, floors and rental units',
+      'Tenant profiles, photos and NID document storage',
+      'Automatic monthly rent generation (zero duplicates)',
+      'Full and partial payment tracking with dues ledger',
+      'Print-ready A4 rental receipts and image downloads',
+      'One-click WhatsApp receipt and notice sharing',
+      'Full Bangla and English dual-language interface',
+      'Automated cloud backups with strict data safety',
+    ],
+  },
+
+  faq: {
+    eyebrow: 'Common Questions',
+    title: 'Frequently Asked Questions',
+    lead: 'Clear answers to common questions landlords ask before getting started with BariVara.',
+    contactPrompt: 'Have more questions or need setup help?',
+    whatsappButton: 'Chat on WhatsApp',
+    whatsappNumber: '+8801853376599',
+    whatsappMessage: 'Hello, I would like to learn more about BariVara.',
+    items: [
+      {
+        q: 'How safe is my rental data in BariVara? Can anyone else see it?',
+        a: 'Your properties, tenant records, and financial ledger are strictly confidential and encrypted. Only you can access your data using your password-protected credentials. Regular automated cloud backups protect your records.',
+      },
+      {
+        q: 'Do my tenants need to install an app?',
+        a: 'No, tenants do not need any app. You can generate print-ready A4 receipts and share them directly to your tenant’s WhatsApp with one tap, or print them out on paper.',
+      },
+      {
+        q: 'Does it work with slow mobile data or 3G connections?',
+        a: 'Yes. BariVara is specifically optimized for standard 3G/4G mobile internet in Bangladesh. It has a lightweight footprint and runs seamlessly inside any mobile browser.',
+      },
+      {
+        q: 'Will my data be deleted or forced into a paywall after beta ends?',
+        a: 'Never. None of your records will ever be deleted. Everything you track during the beta remains intact and accessible. When commercial plans arrive, early beta users receive generous lifetime discounts.',
+      },
+      {
+        q: 'Can I manage commercial shops or garages alongside residential flats?',
+        a: 'Yes! Each unit can be independently designated as a residential flat, commercial shop, office space, or garage parking with customized rent terms and agreements.',
+      },
+    ],
+  },
+
   finalCta: {
     eyebrow: 'Time to start',
     title: 'A clear ledger beside the khata',
@@ -911,13 +1026,16 @@ const en: typeof bn = {
     links: {
       features: 'Features',
       comparison: 'Comparison',
+      pricing: 'Pricing',
       howItWorks: 'How it works',
+      faq: 'FAQ',
       trust: 'Trust',
       roadmap: 'Roadmap',
       login: 'Log in',
       register: 'Register',
       forgot: 'Reset password',
     },
+    whatsappSupport: 'Get Help on WhatsApp',
     sampleDisclosure:
       'Every name, phone number, taka amount and building shown on this page is sample data—not a real landlord or tenant.',
     rights: 'All rights reserved.',

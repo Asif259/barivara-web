@@ -281,6 +281,17 @@ body {
   color: var(--bv-text);
 }
 
+.bv-grid-floor {
+  background-image:
+    linear-gradient(rgba(127, 240, 194, 0.14) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(127, 240, 194, 0.14) 1px, transparent 1px);
+  background-size: 44px 44px;
+  transform: perspective(520px) rotateX(62deg);
+  transform-origin: 50% 100%;
+  -webkit-mask-image: radial-gradient(closest-side, #000 25%, transparent 75%);
+  mask-image: radial-gradient(closest-side, #000 25%, transparent 75%);
+}
+
 .landing-root ::selection {
   background: var(--bv-mint);
   color: var(--bv-ink);
