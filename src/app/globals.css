@@ -249,7 +249,164 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Sticky primary identity column on wide horizontal scrolling tables */
+/* ==========================================================================
+   Landing page (/) — cinematic scroll theme
+   Scoped under .landing-root so dashboard styles stay untouched.
+   ========================================================================== */
+
+.landing-root {
+  --bv-ink: #050f0b;
+  --bv-ink-2: #081a14;
+  --bv-panel: #0b241c;
+  --bv-line: rgba(255, 255, 255, 0.09);
+  --bv-line-strong: rgba(255, 255, 255, 0.16);
+  --bv-emerald: #12664f;
+  --bv-emerald-deep: #0b4436;
+  --bv-mint: #7ff0c2;
+  --bv-teal: #2dc2bd;
+  --bv-gold: #e8c468;
+  --bv-paper: #f6f3ea;
+  --bv-paper-2: #efeade;
+  --bv-text: #0d1f18;
+  --bv-muted: #5c6f66;
+  --bv-on-dark: #e9f3ee;
+  --bv-on-dark-muted: #9db3a8;
+  --bv-paid: #4ade80;
+  --bv-partial: #f0c05a;
+  --bv-pending: #93c5fd;
+  --bv-overdue: #f38a7d;
+  --bv-vacant: #4b5f57;
+
+  background-color: var(--bv-paper);
+  color: var(--bv-text);
+}
+
+.landing-root ::selection {
+  background: var(--bv-mint);
+  color: var(--bv-ink);
+}
+
+.bv-paper {
+  background-color: var(--bv-paper);
+}
+
+.bv-ink-section {
+  background-color: var(--bv-ink);
+  color: var(--bv-on-dark);
+}
+
+.bv-grain {
+  position: relative;
+  isolation: isolate;
+}
+
+.bv-grain::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image: radial-gradient(rgba(127, 240, 194, 0.07) 1px, transparent 1px);
+  background-size: 3px 3px;
+  mix-blend-mode: screen;
+}
+
+/* Photographic vignette behind the 3D canvas */
+.bv-vignette {
+  background:
+    radial-gradient(60% 55% at 72% 38%, rgba(45, 194, 189, 0.22), transparent 70%),
+    radial-gradient(45% 40% at 20% 80%, rgba(232, 196, 104, 0.12), transparent 75%),
+    linear-gradient(180deg, #04100c 0%, #071712 55%, #050f0b 100%);
+}
+
+.bv-hairline {
+  border-top: 1px solid var(--bv-line);
+}
+
+@keyframes bv-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -8px, 0);
+  }
+}
+
+@keyframes bv-blink {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes bv-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes bv-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 22px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.bv-float {
+  animation: bv-float 7s ease-in-out infinite;
+}
+
+.bv-blink {
+  animation: bv-blink 3.4s ease-in-out infinite;
+}
+
+.bv-marquee-track {
+  animation: bv-marquee 38s linear infinite;
+}
+
+/* Reveal-on-scroll: visible by default, animates when the observer fires.
+   Content is never hidden if JS fails to run. */
+.bv-reveal[data-visible='true'] {
+  animation: bv-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.bv-story-scroll {
+  scrollbar-width: thin;
+}
+
+/* A4-style document mock shadows */
+.bv-doc {
+  background: #fffdf8;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.6) inset,
+    0 24px 60px -24px rgba(4, 16, 12, 0.55),
+    0 2px 6px rgba(4, 16, 12, 0.12);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bv-float,
+  .bv-blink,
+  .bv-marquee-track {
+    animation: none !important;
+  }
+
+  .bv-reveal[data-visible='true'] {
+    animation: none;
+  }
+}
+
 .table-sticky-col {
   position: sticky;
   left: 0;
