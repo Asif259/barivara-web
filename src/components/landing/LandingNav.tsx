@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLandingCopy } from './use-landing-copy';
@@ -76,8 +77,7 @@ export default function LandingNav() {
             className="flex items-center gap-2.5 text-[#e9f3ee] focus-visible:rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7ff0c2]"
             onClick={() => setOpen(false)}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo_t.png" alt="" className="h-7 w-7 rounded-md object-contain" />
+            <Image src="/logo_t.png" alt="BariVara" width={28} height={28} priority className="h-7 w-7 rounded-md object-contain" />
             <span className="flex flex-col leading-none">
               <span className="text-[15px] font-semibold tracking-tight">{t.common.appName}</span>
               <span className="mt-0.5 text-[9px] uppercase tracking-[0.22em] text-[#9db3a8]">BariVara</span>

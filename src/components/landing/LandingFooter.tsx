@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowUpRight, MessageCircle } from './icons';
 import { useLandingCopy } from './use-landing-copy';
 
@@ -38,8 +39,7 @@ export default function LandingFooter() {
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.5fr_0.75fr_0.75fr] lg:gap-12">
           <div>
             <Link href="/" className="inline-flex items-center gap-2.5">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo_t.png" alt="" className="h-8 w-8 rounded-md object-contain" />
+              <Image src="/logo_t.png" alt="BariVara" width={32} height={32} className="h-8 w-8 rounded-md object-contain" />
               <span className="flex flex-col leading-none">
                 <span className="text-[15px] font-semibold tracking-tight">{t.common.appName}</span>
                 <span className="mt-0.5 text-[9px] uppercase tracking-[0.22em] text-[#7f978c]">BariVara</span>
