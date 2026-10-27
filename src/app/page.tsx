@@ -3,10 +3,10 @@ import LandingPage from '@/components/landing/LandingPage';
 import { landingCopy } from '@/components/landing/copy';
 
 const bn = landingCopy.bn;
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '');
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'https://barivara-web.vercel.app';
 
 export const metadata: Metadata = {
-  metadataBase: siteUrl ? new URL(siteUrl) : undefined,
+  metadataBase: new URL(siteUrl),
   title: {
     absolute: bn.meta.title,
   },
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     'tenant management',
   ],
   alternates: {
-    canonical: siteUrl ? `${siteUrl}/` : '/',
+    canonical: `${siteUrl}/`,
   },
   openGraph: {
     type: 'website',
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     siteName: bn.meta.siteName,
     locale: 'bn_BD',
     alternateLocale: 'en_US',
-    url: siteUrl ? `${siteUrl}/` : '/',
+    url: `${siteUrl}/`,
     images: [{ url: '/logo.png', width: 512, height: 512, alt: bn.meta.ogAlt }],
   },
   twitter: {
