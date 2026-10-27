@@ -19,10 +19,10 @@ export default function Showcase() {
           <SectionHead eyebrow={t.showcase.eyebrow} title={t.showcase.title} lead={t.showcase.lead} />
 
           <div className="mt-8 inline-flex items-center gap-1 rounded-full border border-[#0d1f18]/10 bg-white/70 p-1">
-            <Languages className="ml-2 h-3.5 w-3.5 text-[#5c6f66]" aria-hidden="true" />
-            <span className="px-1 text-[10px] uppercase tracking-[0.16em] text-[#5c6f66]">{t.showcase.languageLabel}</span>
+            <Languages className="ml-2 h-3.5 w-3.5 text-[#384940]" aria-hidden="true" />
+            <span className="px-1 text-[10px] uppercase tracking-[0.16em] text-[#384940]">{t.showcase.languageLabel}</span>
             <span className="rounded-full bg-[#12664F] px-2.5 py-1 text-[11px] text-white">বাংলা</span>
-            <span className="rounded-full border border-[#0d1f18]/10 px-2.5 py-1 text-[11px] text-[#5c6f66]">English</span>
+            <span className="rounded-full border border-[#0d1f18]/10 px-2.5 py-1 text-[11px] text-[#384940]">English</span>
           </div>
 
           <ul className="mt-8 grid gap-3 sm:grid-cols-2">
@@ -33,7 +33,7 @@ export default function Showcase() {
                 </span>
                 <div>
                   <p className="text-[13px] font-medium text-[#0d1f18]">{point.title}</p>
-                  <p className="mt-0.5 text-[12px] leading-relaxed text-[#5c6f66]">{point.body}</p>
+                  <p className="mt-0.5 text-[12px] leading-relaxed text-[#384940]">{point.body}</p>
                 </div>
               </Reveal>
             ))}
@@ -42,15 +42,15 @@ export default function Showcase() {
 
         <Reveal delay={100} className="relative">
           <div className="pointer-events-none absolute -left-4 top-6 hidden rotate-[-6deg] rounded-lg border border-[#0d1f18]/10 bg-white px-3 py-2 shadow-lg lg:block">
-            <p className="text-[9px] uppercase tracking-[0.18em] text-[#8a7d5d]">{t.sceneVisuals.receipt.heading}</p>
+            <p className="text-[9px] uppercase tracking-[0.18em] text-[#5c5038]">{t.sceneVisuals.receipt.heading}</p>
             <p className="mt-1 text-[13px] font-semibold tabular-nums text-[#0d1f18]">{t.sceneVisuals.receipt.amount}</p>
-            <p className="text-[8px] text-[#8a7d5d]">{t.sceneVisuals.receipt.date}</p>
+            <p className="text-[8px] text-[#5c5038]">{t.sceneVisuals.receipt.date}</p>
           </div>
 
           <article className="bv-doc relative mx-auto w-full max-w-[420px] rotate-[-1.2deg] rounded-sm px-7 py-8 text-[#1f2a24]">
             <div className="flex items-start justify-between gap-4 border-b border-[#0d1f18]/10 pb-4">
               <div>
-                <p className="text-[9px] uppercase tracking-[0.24em] text-[#8a7d5d]">{notice.sampleNotice}</p>
+                <p className="text-[9px] uppercase tracking-[0.24em] text-[#5c5038]">{notice.sampleNotice}</p>
                 <h3 className="mt-1.5 text-[17px] font-semibold tracking-tight">{notice.heading}</h3>
                 <p className="mt-0.5 text-[11px] text-[#6b7280]">{notice.landlord}</p>
               </div>
@@ -81,7 +81,7 @@ export default function Showcase() {
             </div>
 
             <div className="mt-10 flex items-end justify-between">
-              <span className="inline-flex items-center gap-1 text-[9px] text-[#8a7d5d]">
+              <span className="inline-flex items-center gap-1 text-[9px] text-[#5c5038]">
                 <span className="h-1 w-1 rounded-full bg-[#12664F]" />
                 {t.common.sampleDataShort}
               </span>

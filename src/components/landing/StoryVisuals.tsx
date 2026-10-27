@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+
 import type { ReactNode } from 'react';
 import { Check, MessageCircle, ReceiptText, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -33,7 +35,7 @@ function KhataPanel({ t }: { t: LandingCopy }) {
     <Panel>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="rounded-xl border border-[#d8cfb8] bg-[#f3ecd9] p-4 text-[#3f3a2c]">
-          <p className="text-[10px] uppercase tracking-[0.2em] text-[#8a7d5d]">{t.comparison.paperLabel}</p>
+          <p className="text-[10px] uppercase tracking-[0.2em] text-[#5c5038]">{t.comparison.paperLabel}</p>
           <div className="mt-3 space-y-2.5">
             {[92, 74, 84, 58].map((width, index) => (
               <div key={index} className="flex items-center gap-2">
@@ -211,7 +213,7 @@ function ReceiptPanel({ t }: { t: LandingCopy }) {
         <div className="bv-doc rounded-lg p-4 text-[#1f2a24]">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-[9px] uppercase tracking-[0.2em] text-[#8a7d5d]">{receipt.heading}</p>
+              <p className="text-[9px] uppercase tracking-[0.2em] text-[#5c5038]">{receipt.heading}</p>
               <p className="mt-1 text-[13px] font-semibold">{t.common.appName}</p>
             </div>
             <div className="text-right text-[9px] text-[#6b7280]">
@@ -222,9 +224,9 @@ function ReceiptPanel({ t }: { t: LandingCopy }) {
             </div>
           </div>
           <div className="mt-3 border-y border-dashed border-[#d8cfb8] py-2.5">
-            <p className="text-[9px] uppercase tracking-[0.16em] text-[#8a7d5d]">{receipt.fromLabel}</p>
+            <p className="text-[9px] uppercase tracking-[0.16em] text-[#5c5038]">{receipt.fromLabel}</p>
             <p className="text-[12px] font-medium">{receipt.from}</p>
-            <p className="mt-2 text-[9px] uppercase tracking-[0.16em] text-[#8a7d5d]">{receipt.amountLabel}</p>
+            <p className="mt-2 text-[9px] uppercase tracking-[0.16em] text-[#5c5038]">{receipt.amountLabel}</p>
             <p className="text-[20px] font-semibold tracking-tight tabular-nums">{receipt.amount}</p>
             <p className="text-[9px] text-[#6b7280]">{receipt.inWords}</p>
           </div>
@@ -331,8 +333,7 @@ function ClosingPanel({ t }: { t: LandingCopy }) {
   return (
     <Panel className="border-[#7ff0c2]/25 bg-[#0b2a21]">
       <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo_t.png" alt="" className="h-12 w-12 rounded-xl object-contain" />
+        <Image src="/logo_t.png" alt="BariVara" width={48} height={48} className="h-12 w-12 rounded-xl object-contain" />
         <div className="min-w-0 flex-1">
           <p className="text-[15px] font-medium leading-snug text-[#f2faf6]">{closing.title}</p>
           <p className="mt-1 text-[11px] leading-relaxed text-[#9db3a8]">{closing.body}</p>

@@ -28,14 +28,14 @@ export default function Roadmap() {
                   </span>
                 </div>
                 <h3 className="mt-4 text-[15px] font-semibold leading-snug tracking-tight text-[#0d1f18]">{item.title}</h3>
-                <p className="mt-2 text-[13px] leading-relaxed text-[#5c6f66]">{item.body}</p>
+                <p className="mt-2 text-[13px] leading-relaxed text-[#384940]">{item.body}</p>
               </div>
             </Reveal>
           ))}
         </ul>
 
         <Reveal delay={120}>
-          <p className="mt-6 flex items-start gap-2 text-[11px] leading-relaxed text-[#5c6f66]">
+          <p className="mt-6 flex items-start gap-2 text-[11px] leading-relaxed text-[#384940]">
             <span aria-hidden="true" className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-[#12664F]" />
             {t.roadmap.footnote}
           </p>

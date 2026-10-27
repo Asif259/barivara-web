@@ -108,7 +108,7 @@ export function SectionHead({
         <p
           className={cn(
             'mt-4 text-[15px] leading-relaxed sm:text-base',
-            tone === 'dark' ? 'text-[#9db3a8]' : 'text-[#5c6f66]',
+            tone === 'dark' ? 'text-[#9db3a8]' : 'text-[#384940]',
           )}
         >
           {lead}

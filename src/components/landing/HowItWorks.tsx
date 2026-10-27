@@ -24,7 +24,7 @@ export default function HowItWorks() {
                 <span aria-hidden="true" className="h-px flex-1 bg-[#0d1f18]/12" />
               </div>
               <h3 className="mt-4 text-[15px] font-semibold tracking-tight text-[#0d1f18]">{step.title}</h3>
-              <p className="mt-1.5 text-[13px] leading-relaxed text-[#5c6f66]">{step.body}</p>
+              <p className="mt-1.5 text-[13px] leading-relaxed text-[#384940]">{step.body}</p>
             </Reveal>
           ))}
         </ol>
@@ -37,7 +37,7 @@ export default function HowItWorks() {
             {t.common.getStarted}
             <span aria-hidden="true">→</span>
           </Link>
-          <p className="text-[12px] text-[#5c6f66]">{t.howItWorks.ctaNote}</p>
+          <p className="text-[12px] text-[#384940]">{t.howItWorks.ctaNote}</p>
         </Reveal>
       </div>
     </section>

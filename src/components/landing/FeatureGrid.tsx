@@ -41,7 +41,7 @@ export default function FeatureGrid() {
                   </span>
                   <div className={cn('mt-4 flex-1', featured && 'sm:mt-0')}>
                     <h3 className="text-[15px] font-semibold tracking-tight text-[#0d1f18]">{item.title}</h3>
-                    <p className="mt-1.5 text-[13px] leading-relaxed text-[#5c6f66]">{item.body}</p>
+                    <p className="mt-1.5 text-[13px] leading-relaxed text-[#384940]">{item.body}</p>
                     <p className="mt-3 inline-flex rounded-full border border-[#12664F]/12 bg-[#12664F]/[0.04] px-2.5 py-0.5 text-[10px] font-medium tracking-wide text-[#12664F]">
                       {item.tag}
                     </p>
