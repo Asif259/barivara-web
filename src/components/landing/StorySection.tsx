@@ -29,27 +29,43 @@ export default function StorySection() {
   useEffect(() => {
     if (!pinned) return;
     let frame = 0;
+    let cachedTravel = 0;
+
+    const updateTravel = () => {
+      const node = sectionRef.current;
+      if (!node) return;
+      cachedTravel = node.offsetHeight - window.innerHeight;
+    };
+
     const measure = () => {
       frame = 0;
       const node = sectionRef.current;
       if (!node) return;
+      if (cachedTravel <= 0) updateTravel();
+      if (cachedTravel <= 0) return;
       const rect = node.getBoundingClientRect();
-      const travel = node.offsetHeight - window.innerHeight;
-      if (travel <= 0) return;
-      const progress = Math.min(1, Math.max(0, -rect.top / travel));
+      const progress = Math.min(1, Math.max(0, -rect.top / cachedTravel));
       const next = Math.min(chapters.length - 1, Math.floor(progress * chapters.length));
       setActive((current) => (current === next ? current : next));
     };
+
     const onScroll = () => {
       if (frame) return;
       frame = window.requestAnimationFrame(measure);
     };
+
+    const onResize = () => {
+      updateTravel();
+      onScroll();
+    };
+
+    updateTravel();
     measure();
     window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll);
+    window.addEventListener('resize', onResize);
     return () => {
       window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
+      window.removeEventListener('resize', onResize);
       if (frame) window.cancelAnimationFrame(frame);
     };
   }, [pinned, chapters.length]);
