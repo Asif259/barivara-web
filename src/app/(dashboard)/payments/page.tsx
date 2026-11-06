@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { apiClient } from '@/lib/api';
 import { useLanguageStore } from '@/stores/language-store';
 import { useTranslation } from '@/lib/translations';
-import { Payment, ApiResponse } from '@/lib/types';
+import { Payment, Property, ApiResponse } from '@/lib/types';
 import { formatCurrency, formatBnDate } from '@/lib/utils';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
@@ -47,6 +47,7 @@ import {
   RotateCcw,
   Search,
   User,
+  X,
 } from 'lucide-react';
 
 export default function PaymentsPage() {
@@ -54,30 +55,76 @@ export default function PaymentsPage() {
   const t = useTranslation(language);
   const isEn = language === 'en';
 
+  const [selectedYear, setSelectedYear] = useState<string>('');
+  const [selectedMonth, setSelectedMonth] = useState<string>('');
   const [methodFilter, setMethodFilter] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [propertyFilter, setPropertyFilter] = useState<string>('');
   const [search, setSearch] = useState('');
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
   const [receiptOpen, setReceiptOpen] = useState(false);
   const [detailPayment, setDetailPayment] = useState<Payment | null>(null);
 
-  // 1. Fetch Payments History
+  // 1. Fetch Properties for dropdown
+  const { data: properties } = useQuery({
+    queryKey: ['properties-payments-filter'],
+    queryFn: async () => {
+      const res = await apiClient.get<ApiResponse<Property[]>>('/properties?limit=100');
+      return res.data?.data || [];
+    },
+  });
+
+  // 2. Fetch Payments History
   const {
     data: payments,
     isLoading,
     refetch,
   } = useQuery({
-    queryKey: ['payments-history-list', methodFilter],
+    queryKey: ['payments-history-list', methodFilter, statusFilter, propertyFilter, selectedYear, selectedMonth],
     queryFn: async () => {
-      const methodParam = methodFilter ? `&paymentMethod=${methodFilter}` : '';
-      const res = await apiClient.get<ApiResponse<Payment[]>>(`/payments?limit=100${methodParam}`);
+      const params = new URLSearchParams({ limit: '100' });
+      if (methodFilter) params.append('paymentMethod', methodFilter);
+      if (statusFilter) params.append('status', statusFilter);
+      if (propertyFilter) params.append('propertyId', propertyFilter);
+      if (selectedYear) params.append('year', selectedYear);
+      if (selectedMonth) params.append('month', selectedMonth);
+
+      const res = await apiClient.get<ApiResponse<Payment[]>>(`/payments?${params.toString()}`);
       return res.data?.data || [];
     },
   });
 
+  const currentYear = new Date().getFullYear();
+  const yearOptions = useMemo(() => {
+    return Array.from(new Set([2024, 2025, 2026, 2027, currentYear])).sort((a, b) => b - a);
+  }, [currentYear]);
+
+  const hasActiveFilters = Boolean(
+    selectedMonth || selectedYear || methodFilter || statusFilter || propertyFilter || search
+  );
+
+  const handleClearFilters = () => {
+    setSelectedMonth('');
+    setSelectedYear('');
+    setMethodFilter('');
+    setStatusFilter('');
+    setPropertyFilter('');
+    setSearch('');
+  };
+
   const visiblePayments = useMemo(() => {
     const term = search.trim().toLowerCase();
     if (!term) return payments || [];
-    return (payments || []).filter((payment) => [payment.monthlyRent?.agreement?.tenant?.name, payment.monthlyRent?.agreement?.tenant?.phone, payment.monthlyRent?.agreement?.unit?.unitNumber, payment.monthlyRent?.agreement?.unit?.property?.name, payment.transactionId].some((value) => value?.toLowerCase().includes(term)));
+    return (payments || []).filter((payment) =>
+      [
+        payment.monthlyRent?.agreement?.tenant?.name,
+        payment.monthlyRent?.agreement?.tenant?.phone,
+        payment.monthlyRent?.agreement?.unit?.unitNumber,
+        payment.monthlyRent?.agreement?.unit?.property?.name,
+        payment.transactionId,
+        payment.note,
+      ].some((value) => value?.toLowerCase().includes(term))
+    );
   }, [payments, search]);
 
   const handleViewReceipt = (payment: Payment) => {
@@ -129,20 +176,103 @@ export default function PaymentsPage() {
 
       {/* Filter Bar */}
       <div className="flex flex-wrap items-center gap-3 bg-white p-3 rounded-[10px] border border-[#E5E7EB] shadow-none">
-        <span className="text-xs font-semibold text-[#6B7280]">{t.paymentMethod}:</span>
-        <select
-          value={methodFilter}
-          onChange={(e) => setMethodFilter(e.target.value)}
-          className="h-9 rounded-lg border border-[#E5E7EB] bg-white px-3 text-xs font-semibold text-[#374151] outline-none"
-        >
-          <option value="">{t.all}</option>
-          <option value="CASH">Cash (নগদ)</option>
-          <option value="BKASH">bKash (বিকাশ)</option>
-          <option value="NAGAD">Nagad (নগদ)</option>
-          <option value="ROCKET">Rocket (রকেট)</option>
-          <option value="BANK">Bank Transfer (ব্যাংক)</option>
-          <option value="CARD">Card (কার্ড)</option>
-        </select>
+        {/* Month Selector */}
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold text-[#6B7280]">{isEn ? 'Month:' : 'মাস:'}</span>
+          <select
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            className="h-9 rounded-lg border border-[#E5E7EB] bg-white px-3 text-xs font-semibold text-[#374151] outline-none"
+          >
+            <option value="">{isEn ? 'All Months' : 'সকল মাস'}</option>
+            {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+              <option key={m} value={m}>
+                {new Date(2026, m - 1).toLocaleString(isEn ? 'en-US' : 'bn-BD', { month: 'long' })}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Year Selector */}
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold text-[#6B7280]">{isEn ? 'Year:' : 'সাল:'}</span>
+          <select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+            className="h-9 rounded-lg border border-[#E5E7EB] bg-white px-3 text-xs font-semibold text-[#374151] outline-none"
+          >
+            <option value="">{isEn ? 'All Years' : 'সকল সাল'}</option>
+            {yearOptions.map((y) => (
+              <option key={y} value={y}>
+                {y}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Payment Method Selector */}
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold text-[#6B7280]">{t.paymentMethod}:</span>
+          <select
+            value={methodFilter}
+            onChange={(e) => setMethodFilter(e.target.value)}
+            className="h-9 rounded-lg border border-[#E5E7EB] bg-white px-3 text-xs font-semibold text-[#374151] outline-none"
+          >
+            <option value="">{t.all}</option>
+            <option value="CASH">Cash (নগদ)</option>
+            <option value="BKASH">bKash (বিকাশ)</option>
+            <option value="NAGAD">Nagad (নগদ)</option>
+            <option value="ROCKET">Rocket (রকেট)</option>
+            <option value="BANK">Bank Transfer (ব্যাংক)</option>
+            <option value="CARD">Card (কার্ড)</option>
+            <option value="OTHER">Other (অন্যান্য)</option>
+          </select>
+        </div>
+
+        {/* Status Selector */}
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold text-[#6B7280]">{t.status}:</span>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="h-9 rounded-lg border border-[#E5E7EB] bg-white px-3 text-xs font-semibold text-[#374151] outline-none"
+          >
+            <option value="">{t.all}</option>
+            <option value="COMPLETED">{isEn ? 'Completed' : 'পরিশোধিত (Completed)'}</option>
+            <option value="REVERSED">{isEn ? 'Reversed' : 'রিভার্সড (Reversed)'}</option>
+          </select>
+        </div>
+
+        {/* Property Selector */}
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold text-[#6B7280]">{t.properties}:</span>
+          <select
+            value={propertyFilter}
+            onChange={(e) => setPropertyFilter(e.target.value)}
+            className="h-9 rounded-lg border border-[#E5E7EB] bg-white px-3 text-xs font-semibold text-[#374151] outline-none max-w-[180px]"
+          >
+            <option value="">{isEn ? 'All Properties' : 'সকল বাড়ি'}</option>
+            {properties?.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Reset Active Filters */}
+        {hasActiveFilters && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleClearFilters}
+            className="h-9 px-2.5 text-xs text-slate-500 hover:text-slate-900 ml-auto cursor-pointer"
+          >
+            <X className="w-3.5 h-3.5 mr-1" />
+            {isEn ? 'Reset' : 'রিসেট'}
+          </Button>
+        )}
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
