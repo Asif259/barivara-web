@@ -40,6 +40,7 @@ import {
   RentDocument,
   CANONICAL_DOCUMENT_WIDTH,
   waitForRenderReady,
+  dataUrlToBlob,
   printImage,
 } from '@/components/documents/rent-document';
 
@@ -227,8 +228,7 @@ export function PaymentReceiptDialog({
     const year = rentYear || 'Year';
     const filename = `BariVara_Receipt_${unitNum}_${monthStr}_${year}.png`;
 
-    const res = await fetch(dataUrl);
-    const blob = await res.blob();
+    const blob = dataUrlToBlob(dataUrl);
     const file = new File([blob], filename, { type: 'image/png' });
 
     return { dataUrl, blob, file, filename };

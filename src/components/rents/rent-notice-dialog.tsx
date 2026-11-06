@@ -40,6 +40,7 @@ import {
   RentDocument,
   CANONICAL_DOCUMENT_WIDTH,
   waitForRenderReady,
+  dataUrlToBlob,
   printImage,
   WhatsAppIcon,
 } from '@/components/documents/rent-document';
@@ -199,8 +200,7 @@ export function RentNoticeDialog({
     const cleanUnit = String(unitNumber || 'unit').replace(/[^a-zA-Z0-9_-]/g, '_');
     const filename = `rent-notice-${cleanUnit}-${rentMonth}-${rentYear}.png`;
 
-    const res = await fetch(dataUrl);
-    const blob = await res.blob();
+    const blob = dataUrlToBlob(dataUrl);
     const file = new File([blob], filename, { type: 'image/png' });
 
     return { dataUrl, blob, file, filename };

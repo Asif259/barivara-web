@@ -29,20 +29,6 @@ export async function waitForRenderReady(node: HTMLElement): Promise<void> {
   try {
     if ('fonts' in document) {
       await document.fonts.ready;
-      // Guarantee explicit weights 400, 500, 600, 700 of both Inter and Noto Sans Bengali are ready:
-      await Promise.race([
-        Promise.all([
-          document.fonts.load('400 12px "Inter"'),
-          document.fonts.load('500 12px "Inter"'),
-          document.fonts.load('600 12px "Inter"'),
-          document.fonts.load('700 12px "Inter"'),
-          document.fonts.load('400 12px "Noto Sans Bengali"'),
-          document.fonts.load('500 12px "Noto Sans Bengali"'),
-          document.fonts.load('600 12px "Noto Sans Bengali"'),
-          document.fonts.load('700 12px "Noto Sans Bengali"'),
-        ]),
-        new Promise<void>((resolve) => window.setTimeout(resolve, 3000)),
-      ]);
     }
   } catch (error) {
     console.warn('Font loading check failed:', error);
@@ -65,6 +51,23 @@ export async function waitForRenderReady(node: HTMLElement): Promise<void> {
     imagesReady,
     new Promise<void>((resolve) => window.setTimeout(resolve, 4000)),
   ]);
+}
+
+/**
+ * Safely converts a base64 Data URL to a Blob in memory without using `fetch()`.
+ * This avoids Content Security Policy (connect-src) restrictions and runs synchronously.
+ */
+export function dataUrlToBlob(dataUrl: string): Blob {
+  const [header, base64Data] = dataUrl.split(',');
+  const mimeMatch = header?.match(/:(.*?);/);
+  const mime = mimeMatch ? mimeMatch[1] : 'image/png';
+  const binaryString = atob(base64Data || '');
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return new Blob([bytes], { type: mime });
 }
 
 /**
