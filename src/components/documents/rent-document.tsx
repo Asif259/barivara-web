@@ -436,7 +436,7 @@ export const RentDocument = forwardRef<HTMLDivElement, RentDocumentProps>(functi
         >
           <div>
             <span className="text-[10px] text-emerald-900 block font-bold uppercase tracking-[0.16em]">
-              {isEn ? 'Amount Paid (Received)' : 'পরিশোধিত টাকার পরিমাণ (প্রাপ্ত)'}
+              {isEn ? 'Amount Paid' : 'পরিশোধিত টাকার পরিমাণ'}
             </span>
             <span className="text-2xl font-bold text-emerald-950">
               {formatCurrency(amountPaid, language)}

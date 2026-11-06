@@ -32,6 +32,7 @@ import {
   AlertCircle,
   ExternalLink,
   Info,
+  Receipt,
 } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import { toast } from 'sonner';
@@ -66,6 +67,7 @@ interface RentNoticeDialogProps {
   rent: MonthlyRent | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onViewReceipt?: (rent: MonthlyRent) => void;
 }
 
 
@@ -73,6 +75,7 @@ export function RentNoticeDialog({
   rent,
   open,
   onOpenChange,
+  onViewReceipt,
 }: RentNoticeDialogProps) {
   const { language } = useLanguageStore();
   const isEn = language === 'en';
@@ -491,15 +494,32 @@ export function RentNoticeDialog({
 
           {/* Sticky Action Buttons Footer */}
           <DialogFooter className="p-3.5 px-4 sm:px-6 bg-stone-50 border-t border-stone-300 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2.5 shrink-0">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => onOpenChange(false)}
-              className="w-full sm:w-auto"
-            >
-              {isEn ? 'Close' : 'বন্ধ করুন'}
-            </Button>
+            <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => onOpenChange(false)}
+                className="w-full sm:w-auto"
+              >
+                {isEn ? 'Close' : 'বন্ধ করুন'}
+              </Button>
+              {paidNum > 0 && onViewReceipt && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    onOpenChange(false);
+                    onViewReceipt(effectiveRent);
+                  }}
+                  className="gap-1.5 font-medium text-emerald-800 border-emerald-300 hover:bg-emerald-50 hover:text-emerald-900 w-full sm:w-auto cursor-pointer"
+                >
+                  <Receipt className="w-4 h-4 text-emerald-600" />
+                  {isEn ? 'View Rent Receipt' : 'ভাড়ার রশিদ দেখুন'}
+                </Button>
+              )}
+            </div>
             <div className="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
               {/* Print: prints the exact exported image */}
               <Button

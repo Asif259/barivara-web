@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api';
 import { useLanguageStore } from '@/stores/language-store';
 import { useTranslation } from '@/lib/translations';
-import { MonthlyRent, Property, ApiResponse } from '@/lib/types';
+import { MonthlyRent, Property, ApiResponse, Payment } from '@/lib/types';
 import { formatCurrency, formatBnDate, getDefaultRentPeriod } from '@/lib/utils';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
@@ -39,6 +39,7 @@ import {
   DetailItem,
 } from '@/components/ui/bottom-sheet';
 import { CollectPaymentDialog } from '@/components/payments/collect-payment-dialog';
+import { PaymentReceiptDialog } from '@/components/payments/payment-receipt-dialog';
 import { GenerateRentDialog } from '@/components/rents/generate-rent-dialog';
 import { RentNoticeDialog } from '@/components/rents/rent-notice-dialog';
 import { GenerateRentNoticesDialog } from '@/components/rents/generate-rent-notices-dialog';
@@ -69,8 +70,11 @@ export default function MonthlyRentsPage() {
   const [noticesDialogOpen, setNoticesDialogOpen] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [noticeDialogOpen, setNoticeDialogOpen] = useState(false);
+  const [receiptDialogOpen, setReceiptDialogOpen] = useState(false);
   const [selectedRent, setSelectedRent] = useState<MonthlyRent | null>(null);
   const [selectedNoticeRent, setSelectedNoticeRent] = useState<MonthlyRent | null>(null);
+  const [selectedReceiptPayment, setSelectedReceiptPayment] = useState<Payment | null>(null);
+  const [loadingReceiptRentId, setLoadingReceiptRentId] = useState<string | null>(null);
   const [detailRent, setDetailRent] = useState<MonthlyRent | null>(null);
 
   // 1. Fetch Properties for dropdown
@@ -102,6 +106,51 @@ export default function MonthlyRentsPage() {
   const handleOpenPayment = (rent: MonthlyRent) => {
     setSelectedRent(rent);
     setPaymentDialogOpen(true);
+  };
+
+  const handleOpenNotice = (rent: MonthlyRent) => {
+    setSelectedNoticeRent(rent);
+    setNoticeDialogOpen(true);
+  };
+
+  const handleOpenReceipt = async (rent: MonthlyRent) => {
+    let payment = rent.payments && rent.payments.length > 0 ? rent.payments[0] : null;
+
+    if (!payment) {
+      try {
+        setLoadingReceiptRentId(rent.id);
+        const res = await apiClient.get<ApiResponse<Payment[]>>(`/payments?monthlyRentId=${rent.id}&limit=1`);
+        if (res.data?.data && res.data.data.length > 0) {
+          payment = res.data.data[0];
+        }
+      } catch (err) {
+        console.warn('Failed to fetch payment for receipt:', err);
+      } finally {
+        setLoadingReceiptRentId(null);
+      }
+    }
+
+    const paymentForReceipt: Payment = payment
+      ? {
+          ...payment,
+          monthlyRent: rent,
+          owner: payment.owner || rent.agreement?.unit?.property?.owner,
+        }
+      : {
+          id: rent.id,
+          monthlyRentId: rent.id,
+          amount: Number(rent.paidAmount) || Number(rent.totalAmount) || 0,
+          paymentMethod: 'CASH',
+          paymentDate: rent.paidDate || rent.updatedAt || rent.createdAt,
+          status: 'COMPLETED',
+          createdAt: rent.createdAt,
+          updatedAt: rent.updatedAt,
+          monthlyRent: rent,
+          owner: rent.agreement?.unit?.property?.owner,
+        };
+
+    setSelectedReceiptPayment(paymentForReceipt);
+    setReceiptDialogOpen(true);
   };
 
   return (
@@ -314,35 +363,76 @@ export default function MonthlyRentsPage() {
                       <StatusBadge status={rent.status} lang={language} />
                     </TableCell>
                     <TableCell align="right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => {
-                            setSelectedNoticeRent(rent);
-                            setNoticeDialogOpen(true);
-                          }}
-                          title={isEn ? 'View Rent Notice' : 'ভাড়ার নোটিশ দেখুন'}
-                          className="h-8 w-8 p-0 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50"
-                        >
-                          <FileText className="w-4 h-4" />
-                        </Button>
-                        {rent.status !== 'PAID' && rent.remainingAmount > 0 ? (
-                          <Button
-                            size="sm"
-                            variant="default"
-                            onClick={() => handleOpenPayment(rent)}
-                            className="h-8 gap-1.5 text-xs bg-[#059669] hover:bg-[#047857] px-2.5"
-                          >
-                            <Wallet className="w-3.5 h-3.5" />
-                            <span>{t.collectPayment}</span>
-                          </Button>
-                        ) : (
-                          <span className="text-xs font-semibold text-[#059669] inline-flex items-center gap-1 px-1">
-                            {isEn ? 'Completed' : 'সম্পূর্ণ'}
-                          </span>
-                        )}
-                      </div>
+                      {(() => {
+                        const isPaid = rent.status === 'PAID' || (rent.remainingAmount <= 0 && rent.paidAmount > 0);
+                        const isPartial = rent.status === 'PARTIAL' || (rent.paidAmount > 0 && rent.remainingAmount > 0);
+
+                        return (
+                          <div className="flex items-center justify-end gap-1.5">
+                            {isPaid ? (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleOpenReceipt(rent)}
+                                disabled={loadingReceiptRentId === rent.id}
+                                title={isEn ? 'View Rent Receipt' : 'ভাড়ার রশিদ দেখুন'}
+                                className="h-8 gap-1.5 text-xs px-2.5 rounded-lg border-emerald-200 text-emerald-800 hover:text-emerald-900 hover:bg-emerald-50 cursor-pointer"
+                              >
+                                <Receipt className="w-3.5 h-3.5 text-emerald-600" />
+                                <span>{t.receipt || (isEn ? 'Receipt' : 'রশিদ')}</span>
+                              </Button>
+                            ) : isPartial ? (
+                              <>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleOpenReceipt(rent)}
+                                  disabled={loadingReceiptRentId === rent.id}
+                                  title={isEn ? 'View Rent Receipt' : 'ভাড়ার রশিদ দেখুন'}
+                                  className="h-8 gap-1 text-xs px-2 rounded-lg border-emerald-200 text-emerald-800 hover:text-emerald-900 hover:bg-emerald-50 cursor-pointer"
+                                >
+                                  <Receipt className="w-3.5 h-3.5 text-emerald-600" />
+                                  <span>{t.receipt || (isEn ? 'Receipt' : 'রশিদ')}</span>
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleOpenNotice(rent)}
+                                  title={isEn ? 'View Rent Notice' : 'ভাড়ার নোটিশ দেখুন'}
+                                  className="h-8 w-8 p-0 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 cursor-pointer"
+                                >
+                                  <FileText className="w-4 h-4" />
+                                </Button>
+                              </>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleOpenNotice(rent)}
+                                title={isEn ? 'View Rent Notice' : 'ভাড়ার নোটিশ দেখুন'}
+                                className="h-8 w-8 p-0 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 cursor-pointer"
+                              >
+                                <FileText className="w-4 h-4" />
+                              </Button>
+                            )}
+                            {rent.status !== 'PAID' && rent.remainingAmount > 0 ? (
+                              <Button
+                                size="sm"
+                                variant="default"
+                                onClick={() => handleOpenPayment(rent)}
+                                className="h-8 gap-1.5 text-xs bg-[#059669] hover:bg-[#047857] px-2.5 cursor-pointer"
+                              >
+                                <Wallet className="w-3.5 h-3.5" />
+                                <span>{t.collectPayment}</span>
+                              </Button>
+                            ) : (
+                              <span className="text-xs font-semibold text-[#059669] inline-flex items-center gap-1 px-1">
+                                {isEn ? 'Completed' : 'সম্পূর্ণ'}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -505,19 +595,73 @@ export default function MonthlyRentsPage() {
             </div>
 
             <BottomSheetFooter>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  const r = detailRent;
-                  setDetailRent(null);
-                  setSelectedNoticeRent(r);
-                  setNoticeDialogOpen(true);
-                }}
-                className="w-full sm:w-auto min-h-[44px]"
-              >
-                <FileText className="w-4 h-4 mr-2 text-emerald-600" />
-                {isEn ? 'Rent Notice' : 'ভাড়ার নোটিশ'}
-              </Button>
+              {(() => {
+                const isPaid = detailRent.status === 'PAID' || (detailRent.remainingAmount <= 0 && detailRent.paidAmount > 0);
+                const isPartial = detailRent.status === 'PARTIAL' || (detailRent.paidAmount > 0 && detailRent.remainingAmount > 0);
+
+                if (isPaid) {
+                  return (
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        const r = detailRent;
+                        setDetailRent(null);
+                        handleOpenReceipt(r);
+                      }}
+                      className="w-full sm:w-auto min-h-[44px] text-emerald-800 border-emerald-200 hover:bg-emerald-50 cursor-pointer"
+                    >
+                      <Receipt className="w-4 h-4 mr-2 text-emerald-600" />
+                      {t.receipt || (isEn ? 'Rent Receipt' : 'ভাড়ার রশিদ')}
+                    </Button>
+                  );
+                }
+
+                if (isPartial) {
+                  return (
+                    <>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          const r = detailRent;
+                          setDetailRent(null);
+                          handleOpenReceipt(r);
+                        }}
+                        className="w-full sm:w-auto min-h-[44px] text-emerald-800 border-emerald-200 hover:bg-emerald-50 cursor-pointer"
+                      >
+                        <Receipt className="w-4 h-4 mr-2 text-emerald-600" />
+                        {t.receipt || (isEn ? 'Rent Receipt' : 'ভাড়ার রশিদ')}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          const r = detailRent;
+                          setDetailRent(null);
+                          handleOpenNotice(r);
+                        }}
+                        className="w-full sm:w-auto min-h-[44px] cursor-pointer"
+                      >
+                        <FileText className="w-4 h-4 mr-2 text-slate-600" />
+                        {isEn ? 'Rent Notice' : 'ভাড়ার নোটিশ'}
+                      </Button>
+                    </>
+                  );
+                }
+
+                return (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      const r = detailRent;
+                      setDetailRent(null);
+                      handleOpenNotice(r);
+                    }}
+                    className="w-full sm:w-auto min-h-[44px] cursor-pointer"
+                  >
+                    <FileText className="w-4 h-4 mr-2 text-emerald-600" />
+                    {isEn ? 'Rent Notice' : 'ভাড়ার নোটিশ'}
+                  </Button>
+                );
+              })()}
               {detailRent.status !== 'PAID' && detailRent.remainingAmount > 0 && (
                 <Button
                   onClick={() => {
@@ -566,6 +710,14 @@ export default function MonthlyRentsPage() {
         rent={selectedNoticeRent}
         open={noticeDialogOpen}
         onOpenChange={setNoticeDialogOpen}
+        onViewReceipt={handleOpenReceipt}
+      />
+
+      {/* Rent Payment Receipt Document Dialog */}
+      <PaymentReceiptDialog
+        payment={selectedReceiptPayment}
+        open={receiptDialogOpen}
+        onOpenChange={setReceiptDialogOpen}
       />
 
       {/* Collect Payment Modal Dialog */}
