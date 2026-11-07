@@ -67,8 +67,8 @@ export default function LandingNav() {
     <>
       <header
         className={cn(
-          'fixed inset-x-0 top-0 z-50 transition-all duration-300',
-          scrolled || open ? 'border-b border-white/10 bg-[#05100c]/95 backdrop-blur-xl' : 'bg-transparent',
+          'fixed inset-x-0 top-0 z-50 transition-colors duration-200',
+          scrolled || open ? 'border-b border-white/[0.08] bg-[#05100c]/90 backdrop-blur-md' : 'bg-transparent',
         )}
       >
         <nav className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-4 px-5 sm:px-8" aria-label="BariVara">
@@ -79,8 +79,8 @@ export default function LandingNav() {
           >
             <Image src="/logo_t.png" alt="BariVara" width={28} height={28} priority className="h-7 w-7 rounded-md object-contain" />
             <span className="flex flex-col leading-none">
-              <span className="text-[15px] font-semibold tracking-tight">{t.common.appName}</span>
-              <span className="mt-0.5 text-[9px] uppercase tracking-[0.22em] text-[#9db3a8]">BariVara</span>
+              <span className="text-base font-semibold tracking-normal">{t.common.appName}</span>
+              <span className="mt-0.5 text-xs text-[#9db3a8]">BariVara</span>
             </span>
           </Link>
 
@@ -90,7 +90,7 @@ export default function LandingNav() {
                 key={item.key}
                 href={item.href}
                 onClick={(event) => jump(event, item.href)}
-                className="text-[13px] text-[#c7d8d0] transition-colors hover:text-white focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7ff0c2]"
+                className="text-sm text-[#c7d8d0] transition-colors hover:text-white focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7ff0c2]"
               >
                 {t.nav[item.key]}
               </a>
@@ -108,8 +108,8 @@ export default function LandingNav() {
                 onClick={() => setLanguage('bn')}
                 aria-pressed={lang === 'bn'}
                 className={cn(
-                  'rounded-full px-3 py-1 text-[12px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7ff0c2]',
-                  lang === 'bn' ? 'bg-[#7ff0c2] font-medium text-[#05100c]' : 'text-[#9db3a8] hover:text-white',
+                  'rounded-full px-3 py-1 text-xs transition-colors duration-150 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7ff0c2]',
+                  lang === 'bn' ? 'bg-[#7ff0c2] font-semibold text-[#05100c]' : 'text-[#9db3a8] hover:text-white',
                 )}
               >
                 বাংলা
@@ -119,8 +119,8 @@ export default function LandingNav() {
                 onClick={() => setLanguage('en')}
                 aria-pressed={lang === 'en'}
                 className={cn(
-                  'rounded-full px-3 py-1.5 text-[12px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7ff0c2]',
-                  lang === 'en' ? 'bg-[#7ff0c2] font-medium text-[#05100c]' : 'text-[#9db3a8] hover:text-white',
+                  'rounded-full px-3 py-1 text-xs transition-colors duration-150 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7ff0c2]',
+                  lang === 'en' ? 'bg-[#7ff0c2] font-semibold text-[#05100c]' : 'text-[#9db3a8] hover:text-white',
                 )}
               >
                 EN
@@ -129,13 +129,13 @@ export default function LandingNav() {
 
             <Link
               href="/login"
-              className="hidden h-9 items-center rounded-full px-3.5 text-[13px] text-[#c7d8d0] transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7ff0c2] sm:inline-flex"
+              className="hidden h-9 items-center rounded-full px-4 text-xs font-semibold text-[#c7d8d0] transition-colors duration-150 hover:text-white active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7ff0c2] sm:inline-flex"
             >
               {t.common.login}
             </Link>
             <Link
               href="/register"
-              className="hidden h-9 items-center rounded-full bg-[#7ff0c2] px-4 text-[13px] font-medium text-[#05100c] transition-colors hover:bg-[#a6f7d6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white sm:inline-flex"
+              className="hidden h-9 items-center rounded-full bg-[#7ff0c2] px-4 text-xs font-semibold text-[#05100c] transition-colors duration-150 hover:bg-[#a6f7d6] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white sm:inline-flex"
             >
               {t.common.getStarted}
             </Link>
@@ -147,7 +147,7 @@ export default function LandingNav() {
               aria-expanded={open}
               aria-label={open ? t.common.closeMenu : t.common.openMenu}
               aria-controls="mobile-nav-drawer"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/12 text-[#e9f3ee] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7ff0c2] lg:hidden"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/12 text-[#e9f3ee] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7ff0c2] lg:hidden"
             >
               {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
@@ -158,7 +158,7 @@ export default function LandingNav() {
       {open ? (
         <div
           id="mobile-nav-drawer"
-          className="fixed inset-x-0 bottom-0 top-16 z-50 flex flex-col justify-between overflow-y-auto bg-[#05100c] px-5 pb-8 pt-4 lg:hidden"
+          className="fixed inset-x-0 bottom-0 top-16 z-50 flex flex-col justify-between overflow-y-auto bg-[#05100c]/95 backdrop-blur-xl px-5 pb-8 pt-4 lg:hidden"
           role="dialog"
           aria-modal="true"
           aria-label={t.common.appName}
@@ -169,7 +169,7 @@ export default function LandingNav() {
                 key={item.key}
                 href={item.href}
                 onClick={(event) => jump(event, item.href)}
-                className="py-4 text-[16px] font-medium text-[#e9f3ee] transition-colors hover:text-[#7ff0c2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7ff0c2]"
+                className="py-4 text-base font-medium text-[#e9f3ee] transition-colors hover:text-[#7ff0c2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7ff0c2]"
               >
                 {t.nav[item.key]}
               </a>
@@ -179,7 +179,7 @@ export default function LandingNav() {
             <button
               type="button"
               onClick={toggleLanguage}
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-white/15 px-4 text-[14px] text-[#e9f3ee] transition-colors hover:border-[#7ff0c2]/40 hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7ff0c2]"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-white/15 px-4 text-sm font-medium text-[#e9f3ee] transition-colors active:scale-[0.98] hover:border-[#7ff0c2]/40 hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7ff0c2]"
             >
               {lang === 'bn' ? t.common.switchToEnglish : t.common.switchToBangla}
             </button>
@@ -187,14 +187,14 @@ export default function LandingNav() {
               <Link
                 href="/login"
                 onClick={() => setOpen(false)}
-                className="inline-flex h-11 items-center justify-center rounded-xl border border-white/15 px-4 text-[14px] font-medium text-[#e9f3ee] transition-colors hover:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7ff0c2]"
+                className="inline-flex h-11 items-center justify-center rounded-xl border border-white/15 px-4 text-sm font-semibold text-[#e9f3ee] transition-colors active:scale-[0.98] hover:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7ff0c2]"
               >
                 {t.common.login}
               </Link>
               <Link
                 href="/register"
                 onClick={() => setOpen(false)}
-                className="inline-flex h-11 items-center justify-center rounded-xl bg-[#7ff0c2] px-4 text-[14px] font-semibold text-[#05100c] transition-colors hover:bg-[#a6f7d6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                className="inline-flex h-11 items-center justify-center rounded-xl bg-[#7ff0c2] px-4 text-sm font-semibold text-[#05100c] transition-colors active:scale-[0.98] hover:bg-[#a6f7d6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
               >
                 {t.common.getStarted}
               </Link>

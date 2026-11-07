@@ -1,5 +1,21 @@
 @import "tailwindcss";
 
+@theme {
+  --color-hero-bg: #06140e;
+  --color-hero-panel: #0c231a;
+  --color-hero-paper: #fbf8f0;
+  --color-hero-paper-hover: #f3ede0;
+  --color-hero-ink: #142d22;
+  --color-hero-text: #f4efe3;
+  --color-hero-subtext: #8da69b;
+  --color-hero-muted: #b8ccc3;
+  --color-hero-mint: #7ff0c2;
+  --color-hero-mint-light: #a1f4d2;
+  --color-hero-emerald: #12664f;
+  --color-hero-emerald-dark: #0e513e;
+  --color-hero-voucher-border: #d8d0ba;
+}
+
 @layer base {
   :root {
     --background: 60 9% 98%;

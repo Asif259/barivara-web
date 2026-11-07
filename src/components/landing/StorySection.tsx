@@ -95,14 +95,14 @@ export default function StorySection() {
     <section
       id="story"
       ref={sectionRef}
-      className={cn('bv-ink-section relative', pinned ? 'lg:h-[720vh]' : 'h-auto py-20')}
+      className={cn('bv-ink-section relative', pinned ? 'lg:h-[720dvh]' : 'h-auto py-20')}
     >
-      <div className={cn(pinned ? 'lg:sticky lg:top-0 lg:flex lg:h-screen lg:items-center' : 'relative')}>
+      <div className={cn(pinned ? 'lg:sticky lg:top-0 lg:flex lg:h-[100dvh] lg:items-center' : 'relative')}>
         <div className="mx-auto w-full max-w-7xl px-5 py-20 sm:px-8 lg:py-0">
           <div className="flex items-end justify-between gap-6">
             <Eyebrow tone="dark">{t.story.eyebrow}</Eyebrow>
-            <p className="text-[11px] uppercase tracking-[0.22em] text-[#829c90]">
-              <span className="text-[#7ff0c2]">{String(current + 1).padStart(2, '0')}</span>
+            <p className="text-xs font-semibold text-[#829c90]">
+              <span className="text-[#8fe9c4]">{String(current + 1).padStart(2, '0')}</span>
               <span className="mx-1">/</span>
               {String(chapters.length).padStart(2, '0')}
             </p>
@@ -117,20 +117,22 @@ export default function StorySection() {
                       key={chapter.id}
                       aria-hidden={index !== active}
                       className={cn(
-                        'absolute inset-0 flex flex-col justify-center transition-all duration-500 ease-out',
+                        'absolute inset-0 flex flex-col justify-center transition-opacity duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]',
                         index === active
-                          ? 'pointer-events-auto translate-y-0 opacity-100 blur-0'
-                          : 'pointer-events-none translate-y-4 opacity-0 blur-[2px]',
+                          ? 'pointer-events-auto opacity-100'
+                          : 'pointer-events-none opacity-0',
                       )}
                     >
-                      <p className="text-[10px] uppercase tracking-[0.28em] text-[#7ff0c2]">
-                        {t.story.chapterLabel} {String(index + 1).padStart(2, '0')} · {chapter.kicker}
+                      <p className="text-xs font-semibold text-[#8fe9c4]">
+                        {t.story.chapterLabel} {String(index + 1).padStart(2, '0')}, {chapter.kicker}
                       </p>
-                      <h2 className="mt-4 max-w-[15ch] text-[clamp(2rem,3.2vw,3.1rem)] font-semibold leading-[1.05] tracking-[-0.035em] text-[#f2faf6]">
+                      <h2 className="mt-3 max-w-[15ch] text-balance text-2xl font-semibold leading-tight text-[#f2faf6] sm:text-3xl lg:text-4xl">
                         {chapter.title}
                       </h2>
-                      <p className="mt-5 max-w-md text-[15px] leading-relaxed text-[#9db3a8]">{chapter.body}</p>
-                      <div className="mt-6 h-px w-24 bg-gradient-to-r from-[#7ff0c2] to-transparent" />
+                      <p className="mt-4 max-w-md text-pretty text-sm leading-relaxed text-[#9db3a8] sm:text-base">
+                        {chapter.body}
+                      </p>
+                      <div className="mt-6 h-px w-20 bg-[#8fe9c4]/30" />
                     </article>
                   ))}
                 </div>
@@ -141,10 +143,10 @@ export default function StorySection() {
                       key={chapter.id}
                       aria-hidden={index !== active}
                       className={cn(
-                        'absolute inset-0 flex items-center transition-all duration-500 ease-out',
+                        'absolute inset-0 flex items-center transition-opacity duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]',
                         index === active
-                          ? 'pointer-events-auto translate-y-0 scale-100 opacity-100'
-                          : 'pointer-events-none translate-y-6 scale-[0.98] opacity-0',
+                          ? 'pointer-events-auto opacity-100'
+                          : 'pointer-events-none opacity-0',
                       )}
                     >
                       <StoryVisual id={chapter.id} t={t} />
@@ -161,21 +163,21 @@ export default function StorySection() {
                     aria-current={index === active ? 'step' : undefined}
                     aria-label={`${t.story.goToChapter}: ${chapter.kicker}`}
                     onClick={() => goTo(index)}
-                    className="group flex flex-1 flex-col gap-2 text-left focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7ff0c2]"
+                    className="group flex flex-1 flex-col gap-2 text-left active:scale-[0.98] focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8fe9c4]"
                   >
                     <span
                       className={cn(
-                        'h-0.5 w-full rounded-full transition-all duration-300',
+                        'h-0.5 w-full rounded-full transition-colors duration-200',
                         index === active
-                          ? 'bg-[#7ff0c2] shadow-[0_0_8px_rgba(127,240,194,0.6)]'
+                          ? 'bg-[#8fe9c4]'
                           : index < active
-                            ? 'bg-[#7ff0c2]/60'
+                            ? 'bg-[#8fe9c4]/50'
                             : 'bg-white/12 group-hover:bg-white/25',
                       )}
                     />
                     <span
                       className={cn(
-                        'truncate text-[10px] uppercase tracking-[0.16em] transition-colors',
+                        'truncate text-xs font-medium transition-colors',
                         index === active ? 'text-[#e9f3ee]' : 'text-[#829c90] group-hover:text-[#9db3a8]',
                       )}
                     >
@@ -191,13 +193,13 @@ export default function StorySection() {
           <div className={cn('mt-10 space-y-16', pinned ? 'lg:hidden' : 'block max-w-4xl mx-auto')}>
             {chapters.map((chapter, index) => (
               <article key={chapter.id} id={`story-${chapter.id}`} className="scroll-mt-24">
-                <p className="text-[10px] uppercase tracking-[0.24em] text-[#7ff0c2]">
-                  {t.story.chapterLabel} {String(index + 1).padStart(2, '0')} · {chapter.kicker}
+                <p className="text-xs font-semibold text-[#8fe9c4]">
+                  {t.story.chapterLabel} {String(index + 1).padStart(2, '0')}, {chapter.kicker}
                 </p>
-                <h2 className="mt-3 text-[clamp(1.7rem,6vw,2.4rem)] font-semibold leading-[1.1] tracking-[-0.03em] text-[#f2faf6]">
+                <h2 className="mt-3 text-balance text-2xl font-semibold leading-tight text-[#f2faf6] sm:text-3xl">
                   {chapter.title}
                 </h2>
-                <p className="mt-3 text-[14px] leading-relaxed text-[#9db3a8]">{chapter.body}</p>
+                <p className="mt-3 text-pretty text-sm leading-relaxed text-[#9db3a8]">{chapter.body}</p>
                 <div className="mt-6">
                   <StoryVisual id={chapter.id} t={t} />
                 </div>

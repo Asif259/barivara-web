@@ -6,10 +6,12 @@ import { useAuthHydrated, useAuthStore } from '@/stores/auth-store';
 import { useLandingCopy } from './use-landing-copy';
 import LandingNav from './LandingNav';
 import Hero from './Hero';
+import TaglineReveal from './TaglineReveal';
 import StorySection from './StorySection';
 import FeatureGrid from './FeatureGrid';
 import Showcase from './Showcase';
 import Comparison from './Comparison';
+import PricingSection from './PricingSection';
 import Trust from './Trust';
 import Roadmap from './Roadmap';
 import HowItWorks from './HowItWorks';
@@ -44,17 +46,19 @@ export default function LandingPage() {
     <div className="landing-root min-h-screen overflow-x-clip">
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-full focus:bg-[#7ff0c2] focus:px-4 focus:py-2 focus:text-[13px] focus:font-medium focus:text-[#05100c]"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-full focus:bg-[#7ff0c2] focus:px-4 focus:py-2 focus:text-xs focus:font-medium focus:text-[#05100c]"
       >
         {t.common.skipToContent}
       </a>
       <LandingNav />
       <main id="main" tabIndex={-1} className="outline-none">
         <Hero />
+        <TaglineReveal />
         <StorySection />
         <FeatureGrid />
         <Showcase />
         <Comparison />
+        <PricingSection />
         <HowItWorks />
         <Trust />
         <Roadmap />

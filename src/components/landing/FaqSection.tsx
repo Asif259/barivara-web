@@ -18,11 +18,7 @@ export default function FaqSection() {
   )}`;
 
   return (
-    <section id="faq" className="relative scroll-mt-20 overflow-hidden bg-[#071611] py-24 text-[#e9f3ee] sm:py-32">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_50%_at_50%_0%,rgba(45,194,189,0.14),transparent_70%)]"
-      />
+    <section id="faq" className="relative scroll-mt-20 bg-[#071611] py-24 text-[#e9f3ee] sm:py-32">
       <div className="relative mx-auto w-full max-w-4xl px-5 sm:px-8">
         <Reveal>
           <SectionHead
@@ -36,7 +32,7 @@ export default function FaqSection() {
 
         {/* Accordion List */}
         <Reveal delay={80} className="mt-12 sm:mt-16">
-          <div className="divide-y divide-white/[0.08] rounded-2xl border border-white/10 bg-white/[0.025] px-5 sm:px-8">
+          <div className="divide-y divide-white/[0.08] rounded-2xl border border-white/10 bg-white/[0.025] px-6 sm:px-8">
             {t.faq.items.map((item, index) => {
               const isOpen = openIndex === index;
               const questionId = `faq-q-${index}`;
@@ -50,14 +46,14 @@ export default function FaqSection() {
                     onClick={() => toggle(index)}
                     aria-expanded={isOpen}
                     aria-controls={answerId}
-                    className="group flex w-full items-center justify-between gap-4 py-4 text-left transition-colors hover:text-[#7ff0c2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7ff0c2]"
+                    className="group flex w-full items-center justify-between gap-4 py-4 text-left transition-colors duration-150 hover:text-[#8fe9c4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8fe9c4]"
                   >
-                    <span className="text-[15px] font-medium leading-snug sm:text-[16px]">
+                    <span className="text-base font-semibold leading-snug">
                       {item.q}
                     </span>
                     <span
-                      className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/12 text-[#9db3a8] transition-all duration-200 group-hover:border-[#7ff0c2]/30 group-hover:text-[#7ff0c2] ${
-                        isOpen ? 'rotate-180 border-[#7ff0c2]/40 text-[#7ff0c2]' : ''
+                      className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/12 text-[#9db3a8] transition-colors duration-150 group-hover:border-[#8fe9c4]/30 group-hover:text-[#8fe9c4] ${
+                        isOpen ? 'rotate-180 border-[#8fe9c4]/40 text-[#8fe9c4]' : ''
                       }`}
                       aria-hidden="true"
                     >
@@ -74,7 +70,7 @@ export default function FaqSection() {
                     }`}
                   >
                     <div className="overflow-hidden">
-                      <p className="pb-5 pt-1 text-[13.5px] leading-relaxed text-[#9db3a8] sm:text-[14px]">
+                      <p className="pb-5 pt-1 text-pretty text-sm leading-relaxed text-[#9db3a8]">
                         {item.a}
                       </p>
                     </div>
@@ -87,17 +83,17 @@ export default function FaqSection() {
 
         {/* WhatsApp & Human Support Prompt */}
         <Reveal delay={120} className="mt-8 sm:mt-10">
-          <div className="flex flex-col items-center justify-between gap-5 rounded-2xl border border-white/10 bg-gradient-to-r from-white/[0.03] to-[#0a271e]/40 p-6 sm:flex-row sm:p-7">
-            <div className="flex items-center gap-3.5 text-center sm:text-left">
-              <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#25D366]/30 bg-[#25D366]/15 text-[#25D366]">
+          <div className="flex flex-col items-center justify-between gap-5 rounded-2xl border border-white/10 bg-white/[0.025] p-6 sm:flex-row sm:p-7">
+            <div className="flex items-center gap-4 text-center sm:text-left">
+              <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#25D366]/30 bg-[#25D366]/10 text-[#25D366]">
                 <MessageCircle className="h-5 w-5" />
               </span>
               <div>
-                <p className="text-[14px] font-medium text-[#f3fbf7] sm:text-[15px]">
+                <p className="text-sm font-semibold text-[#f3fbf7] sm:text-base">
                   {t.faq.contactPrompt}
                 </p>
-                <p className="mt-0.5 text-[12px] text-[#829c90]">
-                  {t.faq.whatsappNumber} · {t.footer.whatsappSupport}
+                <p className="mt-1 text-xs text-[#829c90]">
+                  {t.faq.whatsappNumber}, {t.footer.whatsappSupport}
                 </p>
               </div>
             </div>
@@ -106,7 +102,7 @@ export default function FaqSection() {
               href={whatsappHref}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex h-11 shrink-0 items-center gap-2 rounded-xl border border-[#25D366]/40 bg-[#25D366]/20 px-5 text-[13.5px] font-medium text-[#25D366] transition-colors hover:bg-[#25D366]/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#25D366]"
+              className="inline-flex h-11 shrink-0 items-center gap-2 rounded-xl border border-[#25D366]/30 bg-[#25D366]/10 px-5 text-sm font-semibold text-[#25D366] transition-colors duration-150 active:scale-[0.98] hover:bg-[#25D366]/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#25D366]"
             >
               <MessageCircle className="h-4 w-4" />
               {t.faq.whatsappButton}

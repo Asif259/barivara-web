@@ -41,16 +41,16 @@ export default function LandingFooter() {
             <Link href="/" className="inline-flex items-center gap-2.5">
               <Image src="/logo_t.png" alt="BariVara" width={32} height={32} className="h-8 w-8 rounded-md object-contain" />
               <span className="flex flex-col leading-none">
-                <span className="text-[15px] font-semibold tracking-tight">{t.common.appName}</span>
-                <span className="mt-0.5 text-[9px] uppercase tracking-[0.22em] text-[#7f978c]">BariVara</span>
+                <span className="text-base font-semibold tracking-normal">{t.common.appName}</span>
+                <span className="mt-0.5 text-xs text-[#9db3a8]">BariVara</span>
               </span>
             </Link>
-            <p className="mt-4 max-w-sm text-[12px] leading-relaxed text-[#9db3a8]">{t.footer.tagline}</p>
+            <p className="mt-4 max-w-sm text-xs leading-relaxed text-[#9db3a8]">{t.footer.tagline}</p>
             <a
               href={whatsappHref}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-4 inline-flex items-center gap-2 rounded-lg border border-[#25D366]/30 bg-[#25D366]/10 px-3 py-1.5 text-[12px] font-medium text-[#25D366] transition-colors hover:bg-[#25D366]/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#25D366]"
+              className="mt-4 inline-flex items-center gap-2 rounded-lg border border-[#25D366]/30 bg-[#25D366]/10 px-3.5 py-2 text-xs font-semibold text-[#25D366] transition-colors duration-150 active:scale-[0.98] hover:bg-[#25D366]/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#25D366]"
             >
               <MessageCircle className="h-3.5 w-3.5" />
               {t.footer.whatsappSupport}
@@ -58,11 +58,11 @@ export default function LandingFooter() {
           </div>
 
           <nav aria-label={t.footer.productLabel}>
-            <p className="text-[10px] uppercase tracking-[0.22em] text-[#829c90]">{t.footer.productLabel}</p>
+            <p className="text-xs font-semibold text-[#9db3a8]">{t.footer.productLabel}</p>
             <ul className="mt-4 space-y-2.5">
               {product.map((item) => (
                 <li key={item.href}>
-                  <a href={item.href} className="text-[12px] text-[#c7d8d0] transition-colors hover:text-white focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7ff0c2]">
+                  <a href={item.href} className="text-xs text-[#c7d8d0] transition-colors hover:text-white focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8fe9c4]">
                     {item.label}
                   </a>
                 </li>
@@ -71,11 +71,11 @@ export default function LandingFooter() {
           </nav>
 
           <nav aria-label={t.footer.accountLabel}>
-            <p className="text-[10px] uppercase tracking-[0.22em] text-[#829c90]">{t.footer.accountLabel}</p>
+            <p className="text-xs font-semibold text-[#9db3a8]">{t.footer.accountLabel}</p>
             <ul className="mt-4 space-y-2.5">
               {account.map((item) => (
                 <li key={item.href}>
-                  <Link href={item.href} className="text-[12px] text-[#c7d8d0] transition-colors hover:text-white focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7ff0c2]">
+                  <Link href={item.href} className="text-xs text-[#c7d8d0] transition-colors hover:text-white focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8fe9c4]">
                     {item.label}
                   </Link>
                 </li>
@@ -85,19 +85,19 @@ export default function LandingFooter() {
         </div>
 
         <div className="mt-12 flex flex-col gap-4 border-t border-white/10 pt-6 sm:flex-row sm:items-start sm:justify-between">
-          <div className="max-w-2xl space-y-1.5">
-            <p className="text-[10px] leading-relaxed text-[#829c90]">{t.footer.sampleDisclosure}</p>
-            <p className="text-[10px] text-[#829c90]">
-              © {year} {t.common.appName} · {t.footer.rights}
+          <div className="max-w-2xl space-y-1">
+            <p className="text-xs leading-relaxed text-[#829c90]">{t.footer.sampleDisclosure}</p>
+            <p className="text-xs text-[#829c90]">
+              © {year} {t.common.appName}, {t.footer.rights}
             </p>
           </div>
           <button
             type="button"
             onClick={backToTop}
-            className="inline-flex w-fit items-center gap-1.5 rounded-full border border-white/12 px-3 py-1.5 text-[10px] uppercase tracking-[0.14em] text-[#9db3a8] transition-colors hover:border-white/30 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7ff0c2]"
+            className="inline-flex w-fit items-center gap-1.5 rounded-full border border-white/12 px-3.5 py-1.5 text-xs font-semibold text-[#9db3a8] transition-colors active:scale-[0.98] hover:border-white/30 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8fe9c4]"
           >
             {t.common.backToTop}
-            <ArrowUpRight className="h-3 w-3" />
+            <ArrowUpRight className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>
