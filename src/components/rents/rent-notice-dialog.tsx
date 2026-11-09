@@ -106,6 +106,7 @@ export function RentNoticeDialog({
   // DOM nodes are held in state (via callback refs) instead of useRef so effects re-run
   // the moment Radix mounts the dialog content into its portal.
   const [noticeNode, setNoticeNode] = React.useState<HTMLDivElement | null>(null);
+  const [exportNoticeNode, setExportNoticeNode] = React.useState<HTMLDivElement | null>(null);
   const [containerNode, setContainerNode] = React.useState<HTMLDivElement | null>(null);
 
   // Notice image generated ahead of time so navigator.share() can run synchronously
@@ -187,18 +188,35 @@ export function RentNoticeDialog({
    * Generates a high-res PNG image from the notice DOM element
    */
   const generateNoticeImage = React.useCallback(async (): Promise<NoticeImage> => {
-    if (!noticeNode) {
+    const targetNode = exportNoticeNode || noticeNode;
+    if (!targetNode) {
       throw new Error('Notice DOM element not found');
     }
 
-    await waitForRenderReady(noticeNode);
+    await waitForRenderReady(targetNode);
 
-    const dataUrl = await toPng(noticeNode, {
+    const exportOptions = {
+      quality: 1,
       pixelRatio: 2, // Crisp 2x retina export
       backgroundColor: '#ffffff',
       cacheBust: true,
-      skipFonts: true, // Prevents SecurityError from cross-origin font CSS
-    });
+    };
+
+    let dataUrl: string;
+    try {
+      // First attempt: embedded fonts for perfect typography fidelity
+      dataUrl = await toPng(targetNode, {
+        ...exportOptions,
+        skipFonts: false,
+      });
+    } catch (fontError) {
+      console.warn('Export with embedded fonts failed, falling back to skipFonts:', fontError);
+      // Fallback: skipFonts avoids cross-origin CSS SecurityError
+      dataUrl = await toPng(targetNode, {
+        ...exportOptions,
+        skipFonts: true,
+      });
+    }
 
     const cleanUnit = String(unitNumber || 'unit').replace(/[^a-zA-Z0-9_-]/g, '_');
     const filename = `rent-notice-${cleanUnit}-${rentMonth}-${rentYear}.png`;
@@ -207,12 +225,13 @@ export function RentNoticeDialog({
     const file = new File([blob], filename, { type: 'image/png' });
 
     return { dataUrl, blob, file, filename };
-  }, [noticeNode, unitNumber, rentMonth, rentYear]);
+  }, [exportNoticeNode, noticeNode, unitNumber, rentMonth, rentYear]);
 
   // Pre-generate the notice image for native sharing once everything it shows has loaded.
   // Re-runs (and discards the old image in cleanup) whenever the notice content could change.
   React.useEffect(() => {
-    if (!canShareImageNatively || !isNoticeDataReady || !noticeNode) return;
+    const targetNode = exportNoticeNode || noticeNode;
+    if (!canShareImageNatively || !isNoticeDataReady || !targetNode) return;
 
     let cancelled = false;
     generateNoticeImage()
@@ -238,6 +257,7 @@ export function RentNoticeDialog({
   }, [
     canShareImageNatively,
     isNoticeDataReady,
+    exportNoticeNode,
     noticeNode,
     generateNoticeImage,
     effectiveRent,
@@ -430,6 +450,45 @@ export function RentNoticeDialog({
                 : 'ভাড়াটিয়ার জন্য আনুষ্ঠানিক ভাড়া পরিশোধের অনুরোধ। এটি কোনো রশিদ নয় এবং এতে কোনো নতুন পেমেন্ট রেকর্ড হবে না।'}
             </DialogDescription>
           </DialogHeader>
+
+          {/* Dedicated offscreen unscaled export container to bypass CSS transforms and subpixel scaling glitches */}
+          <div
+            aria-hidden="true"
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: -9999,
+              width: CANONICAL_NOTICE_WIDTH,
+              pointerEvents: 'none',
+              zIndex: -50,
+            }}
+          >
+            <RentDocument
+              ref={setExportNoticeNode}
+              mode="notice"
+              noticeId={effectiveRent.id}
+              createdAt={effectiveRent.createdAt}
+              month={effectiveRent.month}
+              year={effectiveRent.year}
+              dueDate={effectiveRent.dueDate}
+              property={property}
+              unit={unit}
+              tenantName={tenantName}
+              tenantPhone={rawPhone}
+              owner={owner}
+              signatureUrl={signatureUrl}
+              language={language}
+              baseRent={effectiveRent.rent}
+              serviceFee={toNum(effectiveRent.serviceFee)}
+              parkingFee={toNum(effectiveRent.parkingFee)}
+              extraCharge={toNum(effectiveRent.extraCharge)}
+              lateFee={toNum(effectiveRent.lateFee)}
+              discount={toNum(effectiveRent.discount)}
+              totalAmount={effectiveRent.totalAmount}
+              paidAmount={paidNum}
+              remainingAmount={effectiveRent.remainingAmount}
+            />
+          </div>
 
           {/* Scrollable Notice Body — overflow-y-auto and overflow-x-hidden to avoid horizontal scrollbar */}
           <div className="overflow-y-auto overflow-x-hidden flex-1 bg-stone-100/70 p-4 sm:p-7">

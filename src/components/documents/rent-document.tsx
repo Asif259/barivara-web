@@ -97,10 +97,10 @@ export function printImage(dataUrl: string): Promise<void> {
     };
 
     iframe.srcdoc = `<!doctype html><html><head><meta charset="utf-8"><title></title><style>
-      @page { size: auto; margin: 12mm; }
+      @page { size: A4 portrait; margin: 12mm 15mm; }
       html, body { margin: 0; padding: 0; background: #fff; }
       body { display: flex; justify-content: center; align-items: flex-start; }
-      img { max-width: 100%; height: auto; display: block; }
+      img { width: 100%; max-width: 600px; height: auto; display: block; margin: 0 auto; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     </style></head><body><img src="${dataUrl}" alt="" /></body></html>`;
 
     document.body.appendChild(iframe);
@@ -260,7 +260,9 @@ export const RentDocument = forwardRef<HTMLDivElement, RentDocumentProps>(functi
         style={{
           width: CANONICAL_DOCUMENT_WIDTH,
           padding: '28px',
-          fontFamily: 'var(--font-inter, "Inter"), var(--font-bengali, "Noto Sans Bengali"), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+          fontFamily: language === 'bn'
+            ? 'var(--font-bengali, "Noto Sans Bengali"), var(--font-inter, "Inter"), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+            : 'var(--font-inter, "Inter"), var(--font-bengali, "Noto Sans Bengali"), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
           textRendering: 'optimizeLegibility',
         }}
       >
@@ -286,14 +288,14 @@ export const RentDocument = forwardRef<HTMLDivElement, RentDocumentProps>(functi
                 {property?.address && (
                   <p className="text-[11px] text-slate-600 leading-tight mt-1">{property.address}</p>
                 )}
-                <p className="text-[10px] font-bold text-emerald-800 uppercase tracking-[0.18em] mt-1.5">
+                <p className={`text-[10px] font-bold text-emerald-800 uppercase ${isEn ? 'tracking-[0.14em]' : 'tracking-normal'} mt-1.5`}>
                   {isEn ? 'Official Money Receipt' : 'ভাড়া আদায়ের মানি রিসিট'}
                 </p>
               </div>
             </div>
             <div className="text-right shrink-0">
               <span
-                className="inline-block text-[10px] px-2 py-1 bg-emerald-800 text-white font-bold tracking-[0.14em]"
+                className={`inline-block text-[10px] px-2 py-1 bg-emerald-800 text-white font-bold ${isEn ? 'tracking-[0.14em]' : 'tracking-normal'}`}
                 style={{ backgroundColor: '#065f46', color: '#ffffff' }}
               >
                 {isEn ? 'PAID' : 'পরিশোধিত'}
@@ -308,7 +310,7 @@ export const RentDocument = forwardRef<HTMLDivElement, RentDocumentProps>(functi
         {/* Tenant and unit details */}
         <div className="grid grid-cols-2 divide-x divide-stone-300 border-y border-stone-300 text-xs">
           <div className="space-y-1 py-3 pr-4">
-            <span className="text-emerald-800 font-bold text-[10px] uppercase tracking-[0.12em] block">
+            <span className={`text-emerald-800 font-bold text-[10px] uppercase ${isEn ? 'tracking-[0.12em]' : 'tracking-normal'} block`}>
               {isEn ? 'Tenant Information:' : 'ভাড়াটিয়ার তথ্য:'}
             </span>
             <span className="font-semibold text-slate-950 text-sm block">
@@ -319,7 +321,7 @@ export const RentDocument = forwardRef<HTMLDivElement, RentDocumentProps>(functi
             </div>
           </div>
           <div className="text-right space-y-1 py-3 pl-4">
-            <span className="text-emerald-800 font-bold text-[10px] uppercase tracking-[0.12em] block">
+            <span className={`text-emerald-800 font-bold text-[10px] uppercase ${isEn ? 'tracking-[0.12em]' : 'tracking-normal'} block`}>
               {isEn ? 'Unit & Property:' : 'ইউনিট ও বাড়ি:'}
             </span>
             <span className="font-semibold text-slate-950 text-sm block">
@@ -333,16 +335,16 @@ export const RentDocument = forwardRef<HTMLDivElement, RentDocumentProps>(functi
 
         {/* Detailed Breakdown Table */}
         <div className="border border-stone-300 overflow-hidden text-xs">
-          <div className="bg-stone-100 px-4 py-2.5 border-b border-stone-300 flex justify-between items-center text-[10px] font-bold text-stone-700 uppercase tracking-[0.16em]">
-            <span>{isEn ? 'Description' : 'বিবরণ'}</span>
-            <span>{isEn ? 'Amount' : 'পরিমাণ'}</span>
+          <div className={`bg-stone-100 px-4 py-2.5 border-b border-stone-300 grid grid-cols-[1fr_auto] items-center gap-3 text-[10px] font-bold text-stone-700 uppercase ${isEn ? 'tracking-[0.14em]' : 'tracking-normal'}`}>
+            <span className="whitespace-nowrap">{isEn ? 'Description' : 'বিবরণ'}</span>
+            <span className="whitespace-nowrap text-right">{isEn ? 'Amount' : 'পরিমাণ'}</span>
           </div>
 
           <div className="divide-y divide-stone-200 bg-white">
             {/* Rent Period */}
-            <div className="px-4 py-2.5 flex justify-between text-slate-700">
-              <span>{isEn ? 'Rent Period' : 'ভাড়ার মাস ও সাল'}:</span>
-              <span className="font-semibold text-slate-950 font-mono">
+            <div className="px-4 py-2.5 grid grid-cols-[1fr_auto] items-center gap-3 text-slate-700">
+              <span className="whitespace-nowrap">{isEn ? 'Rent Period' : 'ভাড়ার মাস ও সাল'}:</span>
+              <span className="whitespace-nowrap tabular-nums text-right font-semibold text-slate-950 font-mono">
                 {month && year ? `${toBnNum(month)}/${toBnNum(year)}` : '-'}
               </span>
             </div>
@@ -350,78 +352,78 @@ export const RentDocument = forwardRef<HTMLDivElement, RentDocumentProps>(functi
             {hasBreakdown && (
               <>
                 {baseRent !== undefined && (
-                  <div className="px-4 py-2 flex justify-between text-slate-700">
-                    <span>{isEn ? 'Base Rent' : 'মূল ভাড়া'}:</span>
-                    <span className="font-medium text-slate-900">{formatCurrency(baseRent, language)}</span>
+                  <div className="px-4 py-2 grid grid-cols-[1fr_auto] items-center gap-3 text-slate-700">
+                    <span className="whitespace-nowrap">{isEn ? 'Base Rent' : 'মূল ভাড়া'}:</span>
+                    <span className="whitespace-nowrap tabular-nums text-right font-medium text-slate-900">{formatCurrency(baseRent, language)}</span>
                   </div>
                 )}
 
                 {serviceFee > 0 && (
-                  <div className="px-4 py-2 flex justify-between text-slate-700">
-                    <span>{isEn ? 'Service Fee' : 'সার্ভিস চার্জ'}:</span>
-                    <span className="font-medium text-slate-900">{formatCurrency(serviceFee, language)}</span>
+                  <div className="px-4 py-2 grid grid-cols-[1fr_auto] items-center gap-3 text-slate-700">
+                    <span className="whitespace-nowrap">{isEn ? 'Service Fee' : 'সার্ভিস চার্জ'}:</span>
+                    <span className="whitespace-nowrap tabular-nums text-right font-medium text-slate-900">{formatCurrency(serviceFee, language)}</span>
                   </div>
                 )}
 
                 {parkingFee > 0 && (
-                  <div className="px-4 py-2 flex justify-between text-slate-700">
-                    <span>{isEn ? 'Parking Fee' : 'পার্কিং চার্জ'}:</span>
-                    <span className="font-medium text-slate-900">{formatCurrency(parkingFee, language)}</span>
+                  <div className="px-4 py-2 grid grid-cols-[1fr_auto] items-center gap-3 text-slate-700">
+                    <span className="whitespace-nowrap">{isEn ? 'Parking Fee' : 'পার্কিং চার্জ'}:</span>
+                    <span className="whitespace-nowrap tabular-nums text-right font-medium text-slate-900">{formatCurrency(parkingFee, language)}</span>
                   </div>
                 )}
 
                 {extraCharge > 0 && (
-                  <div className="px-4 py-2 flex justify-between text-slate-700">
-                    <span>{isEn ? 'Extra Charge' : 'অন্যান্য চার্জ'}:</span>
-                    <span className="font-medium text-slate-900">{formatCurrency(extraCharge, language)}</span>
+                  <div className="px-4 py-2 grid grid-cols-[1fr_auto] items-center gap-3 text-slate-700">
+                    <span className="whitespace-nowrap">{isEn ? 'Extra Charge' : 'অন্যান্য চার্জ'}:</span>
+                    <span className="whitespace-nowrap tabular-nums text-right font-medium text-slate-900">{formatCurrency(extraCharge, language)}</span>
                   </div>
                 )}
 
                 {lateFee !== undefined && lateFee > 0 && (
-                  <div className="px-4 py-2 flex justify-between text-rose-700">
-                    <span>{isEn ? 'Late Fee' : 'বিলম্ব ফি'}:</span>
-                    <span className="font-medium">+ {formatCurrency(lateFee, language)}</span>
+                  <div className="px-4 py-2 grid grid-cols-[1fr_auto] items-center gap-3 text-rose-700">
+                    <span className="whitespace-nowrap">{isEn ? 'Late Fee' : 'বিলম্ব ফি'}:</span>
+                    <span className="whitespace-nowrap tabular-nums text-right font-medium">+ {formatCurrency(lateFee, language)}</span>
                   </div>
                 )}
 
                 {discount > 0 && (
-                  <div className="px-4 py-2 flex justify-between text-emerald-800 font-medium">
-                    <span>{isEn ? 'Discount' : 'ছাড়'}:</span>
-                    <span>- {formatCurrency(discount, language)}</span>
+                  <div className="px-4 py-2 grid grid-cols-[1fr_auto] items-center gap-3 text-emerald-800 font-medium">
+                    <span className="whitespace-nowrap">{isEn ? 'Discount' : 'ছাড়'}:</span>
+                    <span className="whitespace-nowrap tabular-nums text-right">- {formatCurrency(discount, language)}</span>
                   </div>
                 )}
 
                 {totalAmount !== undefined && (
-                  <div className="px-4 py-2.5 flex justify-between font-semibold text-slate-950 bg-stone-100">
-                    <span>{isEn ? 'Total Monthly Bill' : 'মোট মাসিক বিল'}:</span>
-                    <span>{formatCurrency(totalAmount, language)}</span>
+                  <div className="px-4 py-2.5 grid grid-cols-[1fr_auto] items-center gap-3 font-semibold text-slate-950 bg-stone-100">
+                    <span className="whitespace-nowrap">{isEn ? 'Total Monthly Bill' : 'মোট মাসিক বিল'}:</span>
+                    <span className="whitespace-nowrap tabular-nums text-right">{formatCurrency(totalAmount, language)}</span>
                   </div>
                 )}
               </>
             )}
 
             {/* Payment Details */}
-            <div className="px-4 py-2 flex justify-between text-slate-700">
-              <span>{isEn ? 'Payment Receiving Date' : 'টাকা গ্রহণের তারিখ'}:</span>
-              <span className="font-medium text-slate-900">{formatBnDate(paymentDate, language)}</span>
+            <div className="px-4 py-2 grid grid-cols-[1fr_auto] items-center gap-3 text-slate-700">
+              <span className="whitespace-nowrap">{isEn ? 'Payment Receiving Date' : 'টাকা গ্রহণের তারিখ'}:</span>
+              <span className="whitespace-nowrap tabular-nums text-right font-medium text-slate-900">{formatBnDate(paymentDate, language)}</span>
             </div>
 
-            <div className="px-4 py-2 flex justify-between text-slate-700">
-              <span>{isEn ? 'Payment Method' : 'পেমেন্ট মেথড'}:</span>
-              <span className="font-medium text-slate-900">{translatePaymentMethod(paymentMethod)}</span>
+            <div className="px-4 py-2 grid grid-cols-[1fr_auto] items-center gap-3 text-slate-700">
+              <span className="whitespace-nowrap">{isEn ? 'Payment Method' : 'পেমেন্ট মেথড'}:</span>
+              <span className="whitespace-nowrap tabular-nums text-right font-medium text-slate-900">{translatePaymentMethod(paymentMethod)}</span>
             </div>
 
             {transactionId && (
-              <div className="px-4 py-2 flex justify-between text-slate-700">
-                <span>{isEn ? 'Transaction ID' : 'ট্রানজেকশন আইডি'}:</span>
-                <span className="font-mono text-slate-900 font-medium">{toBnNum(transactionId)}</span>
+              <div className="px-4 py-2 grid grid-cols-[1fr_auto] items-center gap-3 text-slate-700">
+                <span className="whitespace-nowrap">{isEn ? 'Transaction ID' : 'ট্রানজেকশন আইডি'}:</span>
+                <span className="whitespace-nowrap tabular-nums text-right font-mono text-slate-900 font-medium">{toBnNum(transactionId)}</span>
               </div>
             )}
 
             {remainingAmount !== undefined && (
-              <div className="px-4 py-2 flex justify-between text-slate-700">
-                <span>{isEn ? 'Remaining Due' : 'অবশিষ্ট বকেয়া'}:</span>
-                <span className={`font-bold ${remainingAmount > 0 ? 'text-amber-600' : 'text-emerald-700'}`}>
+              <div className="px-4 py-2 grid grid-cols-[1fr_auto] items-center gap-3 text-slate-700">
+                <span className="whitespace-nowrap">{isEn ? 'Remaining Due' : 'অবশিষ্ট বকেয়া'}:</span>
+                <span className={`whitespace-nowrap tabular-nums text-right font-bold ${remainingAmount > 0 ? 'text-amber-600' : 'text-emerald-700'}`}>
                   {formatCurrency(remainingAmount, language)}
                 </span>
               </div>
@@ -431,14 +433,14 @@ export const RentDocument = forwardRef<HTMLDivElement, RentDocumentProps>(functi
 
         {/* Settlement */}
         <div
-          className="flex items-center justify-between bg-emerald-50 px-4 py-3"
+          className="flex items-center justify-between gap-4 bg-emerald-50 px-4 py-3.5"
           style={{ backgroundColor: '#ecfdf5' }}
         >
-          <div>
-            <span className="text-[10px] text-emerald-900 block font-bold uppercase tracking-[0.16em]">
+          <div className="flex flex-col gap-1 min-w-0">
+            <span className={`text-[10px] text-emerald-900 block font-bold uppercase ${isEn ? 'tracking-[0.14em]' : 'tracking-normal'}`}>
               {isEn ? 'Amount Paid' : 'পরিশোধিত টাকার পরিমাণ'}
             </span>
-            <span className="text-2xl font-bold text-emerald-950">
+            <span className="text-2xl font-bold text-emerald-950 leading-tight tabular-nums truncate">
               {formatCurrency(amountPaid, language)}
             </span>
           </div>
@@ -511,7 +513,9 @@ export const RentDocument = forwardRef<HTMLDivElement, RentDocumentProps>(functi
       style={{
         width: CANONICAL_DOCUMENT_WIDTH,
         padding: '28px',
-        fontFamily: 'var(--font-inter, "Inter"), var(--font-bengali, "Noto Sans Bengali"), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        fontFamily: language === 'bn'
+          ? 'var(--font-bengali, "Noto Sans Bengali"), var(--font-inter, "Inter"), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+          : 'var(--font-inter, "Inter"), var(--font-bengali, "Noto Sans Bengali"), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
         textRendering: 'optimizeLegibility',
       }}
     >
@@ -543,14 +547,14 @@ export const RentDocument = forwardRef<HTMLDivElement, RentDocumentProps>(functi
                   {owner.phone ? ` (${toBnNum(owner.phone)})` : ''}
                 </p>
               )}
-              <p className="text-[10px] font-bold text-emerald-800 uppercase tracking-[0.18em] mt-1.5">
+              <p className={`text-[10px] font-bold text-emerald-800 uppercase ${isEn ? 'tracking-[0.14em]' : 'tracking-normal'} mt-1.5`}>
                 {isEn ? 'Rent Payment Notice' : 'ভাড়া পরিশোধের নোটিশ'}
               </p>
             </div>
           </div>
           <div className="text-right shrink-0">
             <span
-              className="inline-block text-[10px] px-2 py-1 font-bold tracking-[0.14em]"
+              className={`inline-block text-[10px] px-2 py-1 font-bold ${isEn ? 'tracking-[0.14em]' : 'tracking-normal'}`}
               style={{ backgroundColor: accentColor, color: '#ffffff' }}
             >
               {isFullyPaid
@@ -572,7 +576,7 @@ export const RentDocument = forwardRef<HTMLDivElement, RentDocumentProps>(functi
       <div className="border-y border-stone-300 divide-y divide-stone-300 text-xs">
         <div className="grid grid-cols-2 divide-x divide-stone-300">
           <div className="space-y-1 py-3 pr-4">
-            <span className="text-emerald-800 font-bold text-[10px] uppercase tracking-[0.12em] block">
+            <span className={`text-emerald-800 font-bold text-[10px] uppercase ${isEn ? 'tracking-[0.12em]' : 'tracking-normal'} block`}>
               {isEn ? 'Rent Month:' : 'ভাড়ার মাস:'}
             </span>
             <span className="font-semibold text-slate-950 text-sm block">
@@ -580,7 +584,7 @@ export const RentDocument = forwardRef<HTMLDivElement, RentDocumentProps>(functi
             </span>
           </div>
           <div className="text-right space-y-1 py-3 pl-4">
-            <span className="font-bold text-[10px] uppercase tracking-[0.12em] block" style={{ color: '#be123c' }}>
+            <span className={`font-bold text-[10px] uppercase ${isEn ? 'tracking-[0.12em]' : 'tracking-normal'} block`} style={{ color: '#be123c' }}>
               {isEn ? 'Payment Due Date:' : 'পরিশোধের শেষ তারিখ:'}
             </span>
             <span className="font-semibold text-sm block" style={{ color: '#9f1239' }}>
@@ -591,7 +595,7 @@ export const RentDocument = forwardRef<HTMLDivElement, RentDocumentProps>(functi
 
         <div className="grid grid-cols-2 divide-x divide-stone-300">
           <div className="space-y-1 py-3 pr-4">
-            <span className="text-emerald-800 font-bold text-[10px] uppercase tracking-[0.12em] block">
+            <span className={`text-emerald-800 font-bold text-[10px] uppercase ${isEn ? 'tracking-[0.12em]' : 'tracking-normal'} block`}>
               {isEn ? 'Billed To (Tenant):' : 'ভাড়াটিয়া:'}
             </span>
             <span className="font-semibold text-slate-950 text-sm block">
@@ -602,7 +606,7 @@ export const RentDocument = forwardRef<HTMLDivElement, RentDocumentProps>(functi
             </span>
           </div>
           <div className="text-right space-y-1 py-3 pl-4">
-            <span className="text-emerald-800 font-bold text-[10px] uppercase tracking-[0.12em] block">
+            <span className={`text-emerald-800 font-bold text-[10px] uppercase ${isEn ? 'tracking-[0.12em]' : 'tracking-normal'} block`}>
               {isEn ? 'Unit & Property:' : 'ইউনিট ও বাড়ি:'}
             </span>
             <span className="font-semibold text-slate-950 text-sm block">
@@ -617,61 +621,61 @@ export const RentDocument = forwardRef<HTMLDivElement, RentDocumentProps>(functi
 
       {/* Itemized Charges Table */}
       <div className="border border-stone-300 overflow-hidden text-xs">
-        <div className="bg-stone-100 px-4 py-2.5 border-b border-stone-300 flex justify-between items-center text-[10px] font-bold text-stone-700 uppercase tracking-[0.16em]">
-          <span>{isEn ? 'Itemized Charges' : 'ভাড়ার হিসাব ও বিবরণী'}</span>
-          <span>{isEn ? 'Amount' : 'পরিমাণ'}</span>
+        <div className={`bg-stone-100 px-4 py-2.5 border-b border-stone-300 grid grid-cols-[1fr_auto] items-center gap-3 text-[10px] font-bold text-stone-700 uppercase ${isEn ? 'tracking-[0.14em]' : 'tracking-normal'}`}>
+          <span className="whitespace-nowrap">{isEn ? 'Itemized Charges' : 'ভাড়ার হিসাব ও বিবরণী'}</span>
+          <span className="whitespace-nowrap text-right">{isEn ? 'Amount' : 'পরিমাণ'}</span>
         </div>
 
         <div className="divide-y divide-stone-200 bg-white">
-          <div className="px-4 py-2 flex justify-between text-slate-700">
-            <span>{isEn ? 'Base Rent' : 'মূল ভাড়া'}:</span>
-            <span className="font-medium text-slate-900">{formatCurrency(baseRent, language)}</span>
+          <div className="px-4 py-2 grid grid-cols-[1fr_auto] items-center gap-3 text-slate-700">
+            <span className="whitespace-nowrap">{isEn ? 'Base Rent' : 'মূল ভাড়া'}:</span>
+            <span className="whitespace-nowrap tabular-nums text-right font-medium text-slate-900">{formatCurrency(baseRent, language)}</span>
           </div>
 
           {serviceFee > 0 && (
-            <div className="px-4 py-2 flex justify-between text-slate-700">
-              <span>{isEn ? 'Service Fee' : 'সার্ভিস চার্জ'}:</span>
-              <span className="font-medium text-slate-900">{formatCurrency(serviceFee, language)}</span>
+            <div className="px-4 py-2 grid grid-cols-[1fr_auto] items-center gap-3 text-slate-700">
+              <span className="whitespace-nowrap">{isEn ? 'Service Fee' : 'সার্ভিস চার্জ'}:</span>
+              <span className="whitespace-nowrap tabular-nums text-right font-medium text-slate-900">{formatCurrency(serviceFee, language)}</span>
             </div>
           )}
 
           {parkingFee > 0 && (
-            <div className="px-4 py-2 flex justify-between text-slate-700">
-              <span>{isEn ? 'Parking Fee' : 'পার্কিং চার্জ'}:</span>
-              <span className="font-medium text-slate-900">{formatCurrency(parkingFee, language)}</span>
+            <div className="px-4 py-2 grid grid-cols-[1fr_auto] items-center gap-3 text-slate-700">
+              <span className="whitespace-nowrap">{isEn ? 'Parking Fee' : 'পার্কিং চার্জ'}:</span>
+              <span className="whitespace-nowrap tabular-nums text-right font-medium text-slate-900">{formatCurrency(parkingFee, language)}</span>
             </div>
           )}
 
           {extraCharge > 0 && (
-            <div className="px-4 py-2 flex justify-between text-slate-700">
-              <span>{isEn ? 'Extra Charges' : 'অন্যান্য চার্জ'}:</span>
-              <span className="font-medium text-slate-900">{formatCurrency(extraCharge, language)}</span>
+            <div className="px-4 py-2 grid grid-cols-[1fr_auto] items-center gap-3 text-slate-700">
+              <span className="whitespace-nowrap">{isEn ? 'Extra Charges' : 'অন্যান্য চার্জ'}:</span>
+              <span className="whitespace-nowrap tabular-nums text-right font-medium text-slate-900">{formatCurrency(extraCharge, language)}</span>
             </div>
           )}
 
           {lateFee !== undefined && lateFee > 0 && (
-            <div className="px-4 py-2 flex justify-between text-rose-700">
-              <span>{isEn ? 'Late Fee' : 'বিলম্ব ফি'}:</span>
-              <span className="font-medium">+ {formatCurrency(lateFee, language)}</span>
+            <div className="px-4 py-2 grid grid-cols-[1fr_auto] items-center gap-3 text-rose-700">
+              <span className="whitespace-nowrap">{isEn ? 'Late Fee' : 'বিলম্ব ফি'}:</span>
+              <span className="whitespace-nowrap tabular-nums text-right font-medium">+ {formatCurrency(lateFee, language)}</span>
             </div>
           )}
 
           {discount > 0 && (
-            <div className="px-4 py-2 flex justify-between text-emerald-800 font-medium">
-              <span>{isEn ? 'Discount' : 'ডিসকাউন্ট'}:</span>
-              <span>- {formatCurrency(discount, language)}</span>
+            <div className="px-4 py-2 grid grid-cols-[1fr_auto] items-center gap-3 text-emerald-800 font-medium">
+              <span className="whitespace-nowrap">{isEn ? 'Discount' : 'ডিসকাউন্ট'}:</span>
+              <span className="whitespace-nowrap tabular-nums text-right">- {formatCurrency(discount, language)}</span>
             </div>
           )}
 
-          <div className="px-4 py-2.5 flex justify-between font-semibold text-slate-950 bg-stone-100">
-            <span>{isEn ? 'Total Bill for Month' : 'এই মাসের মোট বিল'}:</span>
-            <span>{formatCurrency(totalAmount, language)}</span>
+          <div className="px-4 py-2.5 grid grid-cols-[1fr_auto] items-center gap-3 font-semibold text-slate-950 bg-stone-100">
+            <span className="whitespace-nowrap">{isEn ? 'Total Bill for Month' : 'এই মাসের মোট বিল'}:</span>
+            <span className="whitespace-nowrap tabular-nums text-right">{formatCurrency(totalAmount, language)}</span>
           </div>
 
           {paidAmount > 0 && (
-            <div className="px-4 py-2 flex justify-between text-emerald-800 font-medium">
-              <span>{isEn ? 'Paid So Far' : 'পূর্বে পরিশোধিত ভাড়া'}:</span>
-              <span>- {formatCurrency(paidAmount, language)}</span>
+            <div className="px-4 py-2 grid grid-cols-[1fr_auto] items-center gap-3 text-emerald-800 font-medium">
+              <span className="whitespace-nowrap">{isEn ? 'Paid So Far' : 'পূর্বে পরিশোধিত ভাড়া'}:</span>
+              <span className="whitespace-nowrap tabular-nums text-right">- {formatCurrency(paidAmount, language)}</span>
             </div>
           )}
         </div>
@@ -679,20 +683,20 @@ export const RentDocument = forwardRef<HTMLDivElement, RentDocumentProps>(functi
 
       {/* Settlement */}
       <div
-        className="flex items-center justify-between px-4 py-3"
+        className="flex items-center justify-between gap-4 px-4 py-3.5"
         style={{ backgroundColor: settlementBg }}
       >
-        <div>
+        <div className="flex flex-col gap-1 min-w-0">
           <span
-            className="text-[10px] block font-bold uppercase tracking-[0.16em]"
+            className={`text-[10px] block font-bold uppercase ${isEn ? 'tracking-[0.14em]' : 'tracking-normal'}`}
             style={{ color: settlementText }}
           >
             {isEn ? 'Total Balance Due' : 'সর্বমোট প্রদেয় বকেয়া'}
           </span>
-          <span className="text-2xl font-bold block" style={{ color: settlementText }}>
+          <span className="text-2xl font-bold block leading-tight tabular-nums truncate" style={{ color: settlementText }}>
             {formatCurrency(remainingAmount, language)}
           </span>
-          <span className="text-[11px] block mt-0.5" style={{ color: accentColor }}>
+          <span className="text-[11px] block leading-normal mt-0.5" style={{ color: accentColor }}>
             {isFullyPaid
               ? (isEn ? 'Fully paid. No payment required.' : 'সম্পূর্ণ পরিশোধিত। কোনো বকেয়া নেই।')
               : (isEn ? 'Please pay before the due date.' : 'অনুগ্রহ করে শেষ তারিখের মধ্যে পরিশোধ করুন।')}

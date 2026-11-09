@@ -120,6 +120,7 @@ export function PaymentReceiptDialog({
   // DOM nodes are held in state (via callback refs) instead of useRef so effects re-run
   // the moment Radix mounts the dialog content into its portal.
   const [receiptNode, setReceiptNode] = React.useState<HTMLDivElement | null>(null);
+  const [exportReceiptNode, setExportReceiptNode] = React.useState<HTMLDivElement | null>(null);
   const [containerNode, setContainerNode] = React.useState<HTMLDivElement | null>(null);
 
   // Receipt image generated ahead of time so navigator.share() can run synchronously
@@ -205,19 +206,35 @@ export function PaymentReceiptDialog({
    * Generates a high-res PNG image from the receipt DOM element
    */
   const generateReceiptImage = React.useCallback(async (): Promise<ReceiptImage> => {
-    if (!receiptNode) {
+    const targetNode = exportReceiptNode || receiptNode;
+    if (!targetNode) {
       throw new Error('Receipt DOM element not found');
     }
 
-    await waitForRenderReady(receiptNode);
+    await waitForRenderReady(targetNode);
 
-    const dataUrl = await toPng(receiptNode, {
+    const exportOptions = {
       quality: 1,
       pixelRatio: 2, // Crisp 2x retina export
       backgroundColor: '#ffffff',
       cacheBust: true,
-      skipFonts: true, // Prevents SecurityError from cross-origin Google Fonts CSS
-    });
+    };
+
+    let dataUrl: string;
+    try {
+      // First attempt: embedded fonts for perfect typography fidelity
+      dataUrl = await toPng(targetNode, {
+        ...exportOptions,
+        skipFonts: false,
+      });
+    } catch (fontError) {
+      console.warn('Export with embedded fonts failed, falling back to skipFonts:', fontError);
+      // Fallback: skipFonts avoids cross-origin CSS SecurityError
+      dataUrl = await toPng(targetNode, {
+        ...exportOptions,
+        skipFonts: true,
+      });
+    }
 
     const unitNum = unitNumber || 'Rent';
     const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sept', 'oct', 'nov', 'dec'];
@@ -232,12 +249,13 @@ export function PaymentReceiptDialog({
     const file = new File([blob], filename, { type: 'image/png' });
 
     return { dataUrl, blob, file, filename };
-  }, [receiptNode, unitNumber, rentMonth, rentYear]);
+  }, [exportReceiptNode, receiptNode, unitNumber, rentMonth, rentYear]);
 
   // Pre-generate the receipt image for native sharing once everything it shows has loaded.
   // Re-runs (and discards the old image in cleanup) whenever the receipt content could change.
   React.useEffect(() => {
-    if (!canShareImageNatively || !isReceiptDataReady || !receiptNode) return;
+    const targetNode = exportReceiptNode || receiptNode;
+    if (!canShareImageNatively || !isReceiptDataReady || !targetNode) return;
 
     let cancelled = false;
     generateReceiptImage()
@@ -263,6 +281,7 @@ export function PaymentReceiptDialog({
   }, [
     canShareImageNatively,
     isReceiptDataReady,
+    exportReceiptNode,
     receiptNode,
     generateReceiptImage,
     effectivePayment,
@@ -468,6 +487,46 @@ export function PaymentReceiptDialog({
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-lg md:max-w-2xl p-0 bg-white max-h-[92vh] flex flex-col overflow-hidden rounded-xl shadow-2xl border border-stone-300">
+          {/* Dedicated offscreen unscaled export container to bypass CSS transforms and subpixel scaling glitches */}
+          <div
+            aria-hidden="true"
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: -9999,
+              width: CANONICAL_RECEIPT_WIDTH,
+              pointerEvents: 'none',
+              zIndex: -50,
+            }}
+          >
+            <RentDocument
+              ref={setExportReceiptNode}
+              mode="payment-receipt"
+              property={property}
+              unit={unit}
+              tenantName={tenantName}
+              tenantPhone={rawPhone}
+              owner={effectivePayment.owner}
+              signatureUrl={signatureUrl}
+              language={language}
+              receiptId={effectivePayment.id}
+              paymentDate={effectivePayment.paymentDate}
+              paymentMethod={effectivePayment.paymentMethod}
+              transactionId={effectivePayment.transactionId}
+              amountPaid={effectivePayment.amount}
+              month={monthlyRent?.month}
+              year={monthlyRent?.year}
+              baseRent={monthlyRent?.rent}
+              serviceFee={monthlyRent?.serviceFee}
+              parkingFee={monthlyRent?.parkingFee}
+              extraCharge={monthlyRent?.extraCharge}
+              discount={monthlyRent?.discount}
+              totalAmount={monthlyRent?.totalAmount}
+              remainingAmount={monthlyRent?.remainingAmount}
+              note={effectivePayment.note}
+            />
+          </div>
+
           {/* Scrollable Receipt Body — overflow-y-auto and overflow-x-hidden to avoid horizontal scrollbar */}
           <div className="overflow-y-auto overflow-x-hidden flex-1 bg-stone-100/70 p-4 sm:p-7">
             {/* Invisible measurement anchor to get available container width without being distorted by 600px receipt */}
