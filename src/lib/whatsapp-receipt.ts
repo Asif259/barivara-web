@@ -364,11 +364,24 @@ export function openWhatsAppUrl(url: string): { opened: boolean; popupBlocked: b
 }
 
 /**
+ * Detects if the current client is a mobile device (phone or tablet).
+ */
+export function isMobileDevice(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent || ''
+  );
+}
+
+/**
  * Checks if the current browser supports file-sharing through the Web Share API
  * without needing an actual file object. Safe to call at render/mount time.
+ * Restricted to mobile devices to prevent desktop OS share pickers from prepending
+ * local temporary filesystem paths to messages or failing to reach WhatsApp.
  */
 export function canShareFilesCapability(): boolean {
   if (typeof navigator === 'undefined') return false;
+  if (!isMobileDevice()) return false;
   if (typeof navigator.share !== 'function') return false;
   if (typeof navigator.canShare !== 'function') return false;
   try {
@@ -380,10 +393,11 @@ export function canShareFilesCapability(): boolean {
 }
 
 /**
- * Checks if the Web Share API can share the given file.
+ * Checks if the Web Share API can share the given file on a mobile device.
  */
 export function canShareFiles(file: File): boolean {
   if (typeof navigator === 'undefined') return false;
+  if (!isMobileDevice()) return false;
   if (typeof navigator.share !== 'function') return false;
   if (typeof navigator.canShare !== 'function') return false;
 

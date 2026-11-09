@@ -97,6 +97,7 @@ export function PaymentReceiptDialog({
   const [isDownloading, setIsDownloading] = React.useState(false);
   const [isSharing, setIsSharing] = React.useState(false);
   const [isPrinting, setIsPrinting] = React.useState(false);
+  const [isCopyingImage, setIsCopyingImage] = React.useState(false);
 
   const [fallbackOpen, setFallbackOpen] = React.useState(false);
   const [fallbackData, setFallbackData] = React.useState<{
@@ -213,11 +214,18 @@ export function PaymentReceiptDialog({
 
     await waitForRenderReady(targetNode);
 
+    const nodeWidth = CANONICAL_RECEIPT_WIDTH;
+    const nodeHeight = targetNode.offsetHeight || targetNode.scrollHeight || 700;
+
     const exportOptions = {
       quality: 1,
       pixelRatio: 2, // Crisp 2x retina export
       backgroundColor: '#ffffff',
       cacheBust: true,
+      width: nodeWidth,
+      height: nodeHeight,
+      canvasWidth: nodeWidth * 2,
+      canvasHeight: nodeHeight * 2,
     };
 
     let dataUrl: string;
@@ -344,6 +352,34 @@ export function PaymentReceiptDialog({
       console.error('Failed to export receipt image:', error);
     } finally {
       setIsDownloading(false);
+    }
+  };
+
+  /**
+   * Copies the high-resolution receipt PNG directly to the system clipboard
+   * so users on desktop can paste (Cmd+V / Ctrl+V) directly into WhatsApp Web/Desktop.
+   */
+  const handleCopyImage = async () => {
+    try {
+      setIsCopyingImage(true);
+      const { blob } = preparedReceipt ?? (await generateReceiptImage());
+      if (typeof ClipboardItem !== 'undefined' && navigator.clipboard?.write) {
+        await navigator.clipboard.write([
+          new ClipboardItem({ 'image/png': blob }),
+        ]);
+        toast.success(
+          isEn
+            ? 'Receipt image copied to clipboard! Paste directly into WhatsApp (Cmd+V).'
+            : 'রশিদ ইমেজ ক্লিপবোর্ডে কপি হয়েছে! হোয়াটসঅ্যাপে পেস্ট (Cmd+V) করুন।'
+        );
+      } else {
+        toast.error(isEn ? 'Image clipboard not supported in this browser' : 'এই ব্রাউজারে ইমেজ কপি সমর্থিত নয়');
+      }
+    } catch (err) {
+      console.error('Failed to copy image to clipboard:', err);
+      toast.error(isEn ? 'Failed to copy image' : 'ইমেজ কপি করতে ব্যর্থ হয়েছে');
+    } finally {
+      setIsCopyingImage(false);
     }
   };
 
@@ -481,22 +517,19 @@ export function PaymentReceiptDialog({
     return isEn ? 'Send in WhatsApp' : 'হোয়াটসঅ্যাপে পাঠান';
   };
 
-  const actionsDisabled = isDownloading || isSharing || isPrinting || !isReceiptDataReady;
+  const actionsDisabled = isDownloading || isSharing || isPrinting || isCopyingImage || !isReceiptDataReady;
 
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-lg md:max-w-2xl p-0 bg-white max-h-[92vh] flex flex-col overflow-hidden rounded-xl shadow-2xl border border-stone-300">
-          {/* Dedicated offscreen unscaled export container to bypass CSS transforms and subpixel scaling glitches */}
+          {/* Dedicated unscaled export container: mounted at (0,0) with opacity:0 inside dialog to guarantee full layout computation without offscreen culling or tiling */}
           <div
             aria-hidden="true"
+            className="pointer-events-none absolute top-0 left-0 opacity-0 -z-50"
             style={{
-              position: 'fixed',
-              top: 0,
-              left: -9999,
               width: CANONICAL_RECEIPT_WIDTH,
-              pointerEvents: 'none',
-              zIndex: -50,
+              contain: 'paint',
             }}
           >
             <RentDocument
@@ -628,6 +661,24 @@ export function PaymentReceiptDialog({
                   <Download className="w-4 h-4 text-slate-600" />
                 )}
                 {isEn ? 'Download' : 'ডাউনলোড'}
+              </Button>
+
+              {/* Copy Image: copies high-res PNG directly to system clipboard */}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleCopyImage}
+                disabled={actionsDisabled}
+                className="gap-1.5 shadow-xs font-medium text-slate-700 hover:text-slate-900 border-stone-300 flex-1 sm:flex-none cursor-pointer"
+                title={isEn ? 'Copy receipt image to clipboard' : 'রশিদ ইমেজ ক্লিপবোর্ডে কপি করুন'}
+              >
+                {isCopyingImage ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-slate-600" />
+                ) : (
+                  <Copy className="w-4 h-4 text-slate-600" />
+                )}
+                {isEn ? 'Copy Image' : 'ছবি কপি'}
               </Button>
 
               {/* Primary Action: Share / Send to WhatsApp */}
