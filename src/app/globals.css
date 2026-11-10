@@ -439,3 +439,97 @@ body {
   z-index: 10;
   background-color: inherit;
 }
+
+/* ==========================================================================
+   TRESTA / BARIVARA Architectural Landing Design System
+   Enriched with design-taste-frontend & emil-design-eng
+   ========================================================================== */
+
+:root {
+  --ease-out-emil: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-emil: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-spring-emil: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.landing-body-bg {
+  background-color: #d9ff43;
+}
+
+.page-frame {
+  background-color: #16171a;
+  min-height: 100vh;
+}
+
+.hero-giant-title {
+  font-family: inherit;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  line-height: 0.88;
+  background: linear-gradient(180deg, #2a2c30 0%, #4a382e 45%, #b56c3b 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  user-select: none;
+}
+
+.louver-graphic {
+  background: 
+    radial-gradient(circle at 75% 50%, rgba(255, 255, 255, 0.12) 0%, rgba(22, 23, 26, 0.95) 68%),
+    repeating-linear-gradient(
+      -32deg,
+      rgba(255, 255, 255, 0.08) 0px,
+      rgba(255, 255, 255, 0.08) 2px,
+      transparent 2px,
+      transparent 14px
+    );
+}
+
+.stat-circle {
+  transition: border-color 300ms var(--ease-out-emil), transform 300ms var(--ease-out-emil);
+}
+
+@media (min-width: 768px) {
+  .stat-circle:not(:first-child) {
+    margin-left: -1.75rem;
+  }
+}
+
+.prop-card {
+  transition: transform 250ms var(--ease-out-emil);
+}
+
+.prop-card:hover {
+  transform: translateY(-2px);
+}
+
+.prop-card:hover .prop-img {
+  transform: scale(1.04);
+}
+
+.prop-card:hover .arrow-btn {
+  background-color: #ffffff;
+  color: #111214;
+  transform: translate(2px, -2px);
+}
+
+.btn-press {
+  transition: transform 120ms var(--ease-out-emil), opacity 120ms var(--ease-out-emil), background-color 150ms var(--ease-out-emil);
+}
+
+.btn-press:active {
+  transform: scale(0.97);
+}
+
+@keyframes modalScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.modal-enter {
+  animation: modalScaleIn 200ms var(--ease-out-emil) forwards;
+}

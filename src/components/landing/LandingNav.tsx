@@ -1,207 +1,117 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import { Menu, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useLandingCopy } from './use-landing-copy';
-import { useSetLanguage } from '@/stores/language-store';
+import { Lock, Bookmark, ArrowUpRight, Globe } from 'lucide-react';
+import { SupportedLocale } from './landing-types';
 
-const NAV_ITEMS = [
-  { key: 'features', href: '#features' },
-  { key: 'comparison', href: '#comparison' },
-  { key: 'pricing', href: '#pricing' },
-  { key: 'howItWorks', href: '#how-it-works' },
-  { key: 'faq', href: '#faq' },
-  { key: 'trust', href: '#trust' },
-  { key: 'roadmap', href: '#roadmap' },
-] as const;
+interface LandingNavProps {
+  locale: SupportedLocale;
+  onToggleLocale: () => void;
+  savedCount: number;
+  onOpenSavedToast: () => void;
+  onOpenConsultation: () => void;
+}
 
-export default function LandingNav() {
-  const { lang, t } = useLandingCopy();
-  const setLanguage = useSetLanguage();
-  const [scrolled, setScrolled] = useState(false);
-  const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24);
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
-
-  useEffect(() => {
-    const onResize = () => {
-      if (window.innerWidth >= 1024) {
-        setOpen(false);
-      }
-    };
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, []);
-
-  useEffect(() => {
-    if (open) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [open]);
-
-  const jump = (event: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    const target = document.querySelector(href);
-    if (!target) return;
-    event.preventDefault();
-    setOpen(false);
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    target.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
-  };
-
-  const toggleLanguage = () => setLanguage(lang === 'bn' ? 'en' : 'bn');
+export const LandingNav: React.FC<LandingNavProps> = ({
+  locale,
+  onToggleLocale,
+  savedCount,
+  onOpenSavedToast,
+  onOpenConsultation,
+}) => {
+  const isBn = locale === 'bn';
 
   return (
     <>
-      <header
-        className={cn(
-          'fixed inset-x-0 top-0 z-50 transition-colors duration-200',
-          scrolled || open ? 'border-b border-white/[0.08] bg-[#05100c]/90 backdrop-blur-md' : 'bg-transparent',
-        )}
-      >
-        <nav className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-4 px-5 sm:px-8" aria-label="BariVara">
-          <Link
-            href="/"
-            className="flex items-center gap-2.5 text-[#e9f3ee] focus-visible:rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7ff0c2]"
-            onClick={() => setOpen(false)}
-          >
-            <Image src="/logo_t.png" alt="BariVara" width={28} height={28} priority className="h-7 w-7 rounded-md object-contain" />
-            <span className="flex flex-col leading-none">
-              <span className="text-base font-semibold tracking-normal">{t.common.appName}</span>
-              <span className="mt-0.5 text-xs text-[#9db3a8]">BariVara</span>
+      {/* 1. TOP NAVIGATION BAR */}
+      <header className="sticky top-0 z-40 bg-[#16171a]/95 backdrop-blur-md border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 h-16 flex items-center justify-between">
+          {/* Brand Logo */}
+          <Link href="#hero" className="flex items-center gap-2.5 group">
+            {/* Geometric Pixel Lime Building Logo */}
+            <svg
+              className="w-6 h-6 text-[#d9ff43] transition-transform duration-200 group-hover:scale-105"
+              viewBox="0 0 28 24"
+              fill="currentColor"
+            >
+              <rect x="0" y="0" width="6" height="6" />
+              <rect x="22" y="0" width="6" height="6" />
+              <rect x="7" y="4" width="6" height="8" />
+              <rect x="15" y="4" width="6" height="8" />
+              <rect x="11" y="13" width="6" height="11" />
+            </svg>
+            <span className="font-extrabold tracking-[0.18em] text-sm sm:text-base text-white">
+              {isBn ? 'BARIVARA' : 'BARIVARA'}
             </span>
           </Link>
 
-          <div className="hidden items-center gap-7 lg:flex">
-            {NAV_ITEMS.map((item) => (
-              <a
-                key={item.key}
-                href={item.href}
-                onClick={(event) => jump(event, item.href)}
-                className="text-sm text-[#c7d8d0] transition-colors hover:text-white focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7ff0c2]"
-              >
-                {t.nav[item.key]}
-              </a>
-            ))}
-          </div>
+          {/* Center Navigation Links */}
+          <nav className="hidden md:flex items-center gap-6 lg:gap-7 text-xs font-medium text-gray-300">
+            <a href="#hero" className="text-[#d9ff43] font-semibold transition-colors duration-150">
+              {isBn ? 'হোম' : 'Home'}
+            </a>
+            <a href="#process" className="hover:text-[#d9ff43] transition-colors duration-150">
+              {isBn ? 'পদ্ধতি' : 'About Us'}
+            </a>
+            <a href="#properties" className="hover:text-[#d9ff43] transition-colors duration-150">
+              {isBn ? 'প্রপার্টি' : 'Property'}
+            </a>
+            <a href="#testimonials" className="hover:text-[#d9ff43] transition-colors duration-150">
+              {isBn ? 'অভিজ্ঞতা' : 'Landlords'}
+            </a>
+            <a href="#blog" className="hover:text-[#d9ff43] transition-colors duration-150">
+              {isBn ? 'ব্লগ ও গাইড' : 'Blog'}
+            </a>
+            <a href="#cta" className="hover:text-[#d9ff43] transition-colors duration-150">
+              {isBn ? 'যোগাযোগ' : 'Contact'}
+            </a>
+          </nav>
 
-          <div className="flex items-center gap-2">
-            <div
-              className="hidden items-center rounded-full border border-white/12 bg-white/[0.04] p-0.5 sm:flex"
-              role="group"
-              aria-label={t.common.switchLanguage}
+          {/* Right Action Buttons */}
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            {/* Bilingual Toggle */}
+            <button
+              onClick={onToggleLocale}
+              aria-label="Switch Language"
+              className="btn-press flex items-center gap-1.5 px-2.5 py-1.5 rounded bg-[#1c1d21] hover:bg-[#24262b] border border-white/15 text-[11px] font-medium text-gray-200"
             >
-              <button
-                type="button"
-                onClick={() => setLanguage('bn')}
-                aria-pressed={lang === 'bn'}
-                className={cn(
-                  'rounded-full px-3 py-1 text-xs transition-colors duration-150 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7ff0c2]',
-                  lang === 'bn' ? 'bg-[#7ff0c2] font-semibold text-[#05100c]' : 'text-[#9db3a8] hover:text-white',
-                )}
-              >
-                বাংলা
-              </button>
-              <button
-                type="button"
-                onClick={() => setLanguage('en')}
-                aria-pressed={lang === 'en'}
-                className={cn(
-                  'rounded-full px-3 py-1 text-xs transition-colors duration-150 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7ff0c2]',
-                  lang === 'en' ? 'bg-[#7ff0c2] font-semibold text-[#05100c]' : 'text-[#9db3a8] hover:text-white',
-                )}
-              >
-                EN
-              </button>
-            </div>
+              <Globe className="w-3.5 h-3.5 text-[#d9ff43]" />
+              <span className="font-semibold uppercase tracking-wider">{isBn ? 'English' : 'বাংলা'}</span>
+            </button>
 
+            {/* Saved Shortlist Pill */}
+            <button
+              onClick={onOpenSavedToast}
+              aria-label="View Saved Properties"
+              className="btn-press flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#1c1d21] hover:bg-[#24262b] border border-white/15 text-[11px] font-medium text-gray-200"
+            >
+              <Bookmark className="w-3.5 h-3.5 text-[#d9ff43]" />
+              <span>
+                {isBn ? 'সংরক্ষিত' : 'Saved'} (<span className="text-[#d9ff43] font-bold tabular-nums">{savedCount}</span>)
+              </span>
+            </button>
+
+            {/* Auth Link / Login */}
             <Link
               href="/login"
-              className="hidden h-9 items-center rounded-full px-4 text-xs font-semibold text-[#c7d8d0] transition-colors duration-150 hover:text-white active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7ff0c2] sm:inline-flex"
+              className="hidden lg:inline-flex btn-press px-3 py-1.5 rounded bg-transparent hover:bg-white/5 border border-white/15 text-gray-300 font-semibold text-[11px]"
             >
-              {t.common.login}
-            </Link>
-            <Link
-              href="/register"
-              className="hidden h-9 items-center rounded-full bg-[#7ff0c2] px-4 text-xs font-semibold text-[#05100c] transition-colors duration-150 hover:bg-[#a6f7d6] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white sm:inline-flex"
-            >
-              {t.common.getStarted}
+              {isBn ? 'লগ ইন' : 'Sign In'}
             </Link>
 
+            {/* Primary Action Button */}
             <button
-              id="mobile-nav-toggle"
-              type="button"
-              onClick={() => setOpen((value) => !value)}
-              aria-expanded={open}
-              aria-label={open ? t.common.closeMenu : t.common.openMenu}
-              aria-controls="mobile-nav-drawer"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/12 text-[#e9f3ee] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7ff0c2] lg:hidden"
+              onClick={onOpenConsultation}
+              className="btn-press px-3.5 py-1.5 rounded bg-[#d9ff43] hover:bg-[#c6f028] text-[#111214] font-bold text-[11px] flex items-center gap-1.5 shadow-sm"
             >
-              {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              <span>{isBn ? 'যোগাযোগ করুন' : 'Get in Touch'}</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
             </button>
-          </div>
-        </nav>
-      </header>
-
-      {open ? (
-        <div
-          id="mobile-nav-drawer"
-          className="fixed inset-x-0 bottom-0 top-16 z-50 flex flex-col justify-between overflow-y-auto bg-[#05100c]/95 backdrop-blur-xl px-5 pb-8 pt-4 lg:hidden"
-          role="dialog"
-          aria-modal="true"
-          aria-label={t.common.appName}
-        >
-          <div className="flex flex-col divide-y divide-white/[0.08]">
-            {NAV_ITEMS.map((item) => (
-              <a
-                key={item.key}
-                href={item.href}
-                onClick={(event) => jump(event, item.href)}
-                className="py-4 text-base font-medium text-[#e9f3ee] transition-colors hover:text-[#7ff0c2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7ff0c2]"
-              >
-                {t.nav[item.key]}
-              </a>
-            ))}
-          </div>
-          <div className="mt-8 flex flex-col gap-4 border-t border-white/10 pt-6">
-            <button
-              type="button"
-              onClick={toggleLanguage}
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-white/15 px-4 text-sm font-medium text-[#e9f3ee] transition-colors active:scale-[0.98] hover:border-[#7ff0c2]/40 hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7ff0c2]"
-            >
-              {lang === 'bn' ? t.common.switchToEnglish : t.common.switchToBangla}
-            </button>
-            <div className="grid grid-cols-2 gap-3">
-              <Link
-                href="/login"
-                onClick={() => setOpen(false)}
-                className="inline-flex h-11 items-center justify-center rounded-xl border border-white/15 px-4 text-sm font-semibold text-[#e9f3ee] transition-colors active:scale-[0.98] hover:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7ff0c2]"
-              >
-                {t.common.login}
-              </Link>
-              <Link
-                href="/register"
-                onClick={() => setOpen(false)}
-                className="inline-flex h-11 items-center justify-center rounded-xl bg-[#7ff0c2] px-4 text-sm font-semibold text-[#05100c] transition-colors active:scale-[0.98] hover:bg-[#a6f7d6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-              >
-                {t.common.getStarted}
-              </Link>
-            </div>
           </div>
         </div>
-      ) : null}
+      </header>
     </>
   );
-}
+};
+

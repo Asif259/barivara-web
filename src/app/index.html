@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TRESTA — Modern Architectural Real Estate</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            lime: {
+              neon: '#d9ff43',
+              hover: '#c6f028',
+            },
+            obsidian: {
+              950: '#111214',
+              900: '#16171a',
+              800: '#1c1d21',
+              700: '#24262b',
+              600: '#2e3138',
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            display: ['"Syne"', '"Plus Jakarta Sans"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom Styling & Pixel-Accurate Refinements */
+    body {
+      background-color: #d9ff43;
+      color: #ffffff;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* Outer Neon Lime Frame matching the full-page screenshot */
+    .page-frame {
+      background-color: #16171a;
+      max-width: 1360px;
+      margin: 0 auto;
+      box-shadow: 0 0 80px rgba(0, 0, 0, 0.75);
+      min-height: 100vh;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Giant Hero Display Title Styling */
+    .hero-giant-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      line-height: 0.88;
+      background: linear-gradient(180deg, #1b1d20 0%, #3a2b22 45%, #b56c3b 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      user-select: none;
+    }
+
+    /* Subtle noise/grain & architectural louver graphic */
+    .louver-graphic {
+      background: 
+        radial-gradient(circle at 75% 50%, rgba(255,255,255,0.12) 0%, rgba(22,23,26,0.95) 68%),
+        repeating-linear-gradient(
+          -32deg,
+          rgba(255, 255, 255, 0.08) 0px,
+          rgba(255, 255, 255, 0.08) 2px,
+          transparent 2px,
+          transparent 14px
+        );
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #16171a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2e3138;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #d9ff43;
+    }
+
+    /* Smooth card hover zoom */
+    .prop-card:hover .prop-img {
+      transform: scale(1.05);
+    }
+    .prop-card:hover .arrow-btn {
+      background-color: #ffffff;
+      color: #111214;
+      transform: translate(2px, -2px);
+    }
+
+    /* Circular overlapping rings on desktop */
+    @media (min-width: 768px) {
+      .stat-circle:not(:first-child) {
+        margin-left: -1.75rem;
+      }
+    }
+  </style>
+</head>
+<body class="px-0 sm:px-3 md:px-6 lg:px-10 py-0 sm:py-4">
+
+  <!-- MAIN PAGE CONTAINER -->
+  <div class="page-frame rounded-none sm:rounded-t-xl sm:rounded-b-xl border border-black/20">
+
+    <!-- BROWSER TOP BAR (Optional subtle detail from screenshot) -->
+    <div class="hidden sm:flex items-center justify-between px-4 py-2 bg-[#f3f4f6] text-gray-600 text-xs border-b border-gray-300">
+      <div class="flex items-center gap-2">
+        <span class="w-3 h-3 rounded-full bg-[#ff5f56] inline-block"></span>
+        <span class="w-3 h-3 rounded-full bg-[#ffbd2e] inline-block"></span>
+        <span class="w-3 h-3 rounded-full bg-[#27c93f] inline-block"></span>
+      </div>
+      <div class="flex items-center gap-2 bg-white px-28 py-1 rounded text-[11px] text-gray-500 shadow-inner border border-gray-200">
+        <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+        <span>tresta-realty.com</span>
+      </div>
+      <div class="flex items-center gap-3 text-gray-400">
+        <span>+</span>
+      </div>
+    </div>
+
+    <!-- 1. TOP NAVIGATION BAR -->
+    <header class="sticky top-0 z-40 bg-[#16171a]/95 backdrop-blur-md border-b border-white/10">
+      <div class="max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 h-16 flex items-center justify-between">
+        <!-- Brand Logo -->
+        <a href="#" class="flex items-center gap-2.5 group">
+          <!-- Geometric Pixel Lime Logo -->
+          <svg class="w-6 h-6 text-lime-neon transition-transform group-hover:scale-110" viewBox="0 0 28 24" fill="currentColor">
+            <rect x="0" y="0" width="6" height="6" />
+            <rect x="22" y="0" width="6" height="6" />
+            <rect x="7" y="4" width="6" height="8" />
+            <rect x="15" y="4" width="6" height="8" />
+            <rect x="11" y="13" width="6" height="11" />
+          </svg>
+          <span class="font-extrabold tracking-[0.18em] text-sm sm:text-base text-white">TRESTA</span>
+        </a>
+
+        <!-- Center Navigation Links -->
+        <nav class="hidden md:flex items-center gap-7 text-xs font-medium text-gray-300">
+          <a href="#hero" class="text-lime-neon font-semibold transition">Home</a>
+          <a href="#process" class="hover:text-lime-neon transition">About Us</a>
+          <a href="#properties" class="hover:text-lime-neon transition">Property</a>
+          <a href="#testimonials" class="hover:text-lime-neon transition">Agents</a>
+          <a href="#blog" class="hover:text-lime-neon transition">Blog</a>
+          <a href="#cta" class="hover:text-lime-neon transition">Contact</a>
+        </nav>
+
+        <!-- Right Action Buttons -->
+        <div class="flex items-center gap-2.5">
+          <button id="savedBtn" onclick="toggleSavedToast()" class="flex items-center gap-1.5 px-3 py-1.5 rounded bg-obsidian-800 hover:bg-obsidian-700 border border-white/15 text-[11px] font-medium text-gray-200 transition">
+            <svg class="w-3.5 h-3.5 text-lime-neon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+            </svg>
+            <span>Saved (<span id="savedCount">0</span>)</span>
+          </button>
+
+          <a href="#cta" class="px-3.5 py-1.5 rounded bg-lime-neon hover:bg-lime-hover text-obsidian-950 font-bold text-[11px] flex items-center gap-1.5 transition shadow-sm">
+            <span>Get in Touch</span>
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- 2. HERO SECTION -->
+    <section id="hero" class="relative w-full">
+      <!-- Bright Sky & Contemporary Wood-and-Glass Villa Container -->
+      <div class="relative w-full h-[540px] sm:h-[630px] lg:h-[700px] overflow-hidden bg-[#c8dff0]">
+        
+        <!-- Background Sky & Luxury Contemporary Timber/Glass House -->
+        <img 
+          src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2000&q=85" 
+          alt="TRESTA Modern Architectural Villa" 
+          class="w-full h-full object-cover object-center brightness-105 contrast-105"
+          onerror="this.src='https://placehold.co/1600x900/24262b/d9ff43?text=TRESTA+MODERN+RESIDENCE'"
+        />
+
+        <!-- Bright sky upper gradient so giant TRESTA typography pops cleanly like screenshot -->
+        <div class="absolute inset-0 bg-gradient-to-b from-[#e8f1f8]/90 via-transparent to-[#16171a] pointer-events-none"></div>
+
+        <!-- Giant "TRESTA" Display Title Across the Top Sky -->
+        <div class="absolute top-5 sm:top-7 inset-x-0 flex justify-center pointer-events-none px-4">
+          <h1 class="hero-giant-title text-[16vw] sm:text-[13.5vw] lg:text-[168px] tracking-[0.16em] text-center select-none drop-shadow-sm">
+            TRESTA
+          </h1>
+        </div>
+
+        <!-- Center-Left Floating Glassmorphic Info Overlay (Matches Screenshot) -->
+        <div class="absolute left-6 sm:left-12 lg:left-24 top-1/2 -translate-y-4 max-w-xs sm:max-w-sm bg-obsidian-950/75 backdrop-blur-md border border-white/15 p-4 sm:p-5 rounded-lg shadow-2xl">
+          <p class="text-xs sm:text-sm text-gray-100 font-medium leading-relaxed">
+            Discover modern living spaces crafted for timeless comfort, architectural clarity, and effortless indoor-outdoor flow.
+          </p>
+          <div class="mt-3 pt-3 border-t border-white/10 flex items-center justify-between text-[11px] text-gray-300">
+            <span class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-lime-neon animate-pulse"></span>
+              240+ Verified Listings
+            </span>
+            <a href="#properties" class="text-lime-neon font-semibold hover:underline">Explore ↓</a>
+          </div>
+        </div>
+
+        <!-- Bottom Filter Bar Overlapping Hero Footer -->
+        <div class="absolute bottom-0 inset-x-0 bg-[#16171a]/95 backdrop-blur-md border-t border-b border-white/10">
+          <div class="max-w-6xl mx-auto px-4 sm:px-8 py-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-center">
+              
+              <!-- Filter 1: Location -->
+              <div class="lg:col-span-3 flex items-center justify-between border-b sm:border-b-0 sm:border-r border-white/10 pb-2 sm:pb-0 sm:pr-4">
+                <div>
+                  <div class="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-lime-neon font-semibold">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
+                    <span>Location</span>
+                  </div>
+                  <select id="filterLocation" class="bg-transparent text-white text-xs font-medium focus:outline-none mt-0.5 cursor-pointer pr-2">
+                    <option value="all" class="bg-obsidian-900">All Locations (CA & NY)</option>
+                    <option value="Beverly Hills, CA" class="bg-obsidian-900">Beverly Hills, CA</option>
+                    <option value="Malibu Coast, CA" class="bg-obsidian-900">Malibu Coast, CA</option>
+                    <option value="Palm Springs, CA" class="bg-obsidian-900">Palm Springs, CA</option>
+                    <option value="Aspen, CO" class="bg-obsidian-900">Aspen, CO</option>
+                  </select>
+                </div>
+                <svg class="w-3.5 h-3.5 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+              </div>
+
+              <!-- Filter 2: Property Type -->
+              <div class="lg:col-span-3 flex items-center justify-between border-b sm:border-b-0 lg:border-r border-white/10 pb-2 sm:pb-0 sm:pr-4">
+                <div>
+                  <div class="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-lime-neon font-semibold">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <span>Property Type</span>
+                  </div>
+                  <select id="filterType" class="bg-transparent text-white text-xs font-medium focus:outline-none mt-0.5 cursor-pointer pr-2">
+                    <option value="all" class="bg-obsidian-900">All Modern Residences</option>
+                    <option value="Villa" class="bg-obsidian-900">Architectural Villa</option>
+                    <option value="Minimalist" class="bg-obsidian-900">Minimalist Concrete</option>
+                    <option value="Pavilion" class="bg-obsidian-900">Glass Pavilion</option>
+                  </select>
+                </div>
+                <svg class="w-3.5 h-3.5 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+              </div>
+
+              <!-- Filter 3: Price Range -->
+              <div class="lg:col-span-3 flex items-center justify-between border-b sm:border-b-0 sm:border-r border-white/10 pb-2 sm:pb-0 sm:pr-4">
+                <div>
+                  <div class="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-lime-neon font-semibold">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>Budget</span>
+                  </div>
+                  <select id="filterPrice" class="bg-transparent text-white text-xs font-medium focus:outline-none mt-0.5 cursor-pointer pr-2">
+                    <option value="all" class="bg-obsidian-900">$800,000 – $2,000,000</option>
+                    <option value="under1m" class="bg-obsidian-900">Under $1,000,000</option>
+                    <option value="over1m" class="bg-obsidian-900">$1,000,000 & Above</option>
+                  </select>
+                </div>
+                <svg class="w-3.5 h-3.5 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+              </div>
+
+              <!-- Filter 4: Bedrooms & Search CTA -->
+              <div class="lg:col-span-3 flex items-center justify-end gap-2">
+                <button onclick="resetFilters()" class="px-3 py-2 rounded bg-obsidian-800 hover:bg-obsidian-700 border border-white/15 text-[11px] text-gray-300 transition">
+                  Reset
+                </button>
+                <button onclick="applyPropertyFilter()" class="flex-1 sm:flex-initial px-4 py-2 rounded bg-lime-neon hover:bg-lime-hover text-obsidian-950 font-bold text-xs flex items-center justify-center gap-1.5 transition shadow">
+                  <span>Search</span>
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. "AWESOME DEAL THIS WEEK!" ASYMMETRIC MASONRY / BENTO GRID -->
+    <section id="properties" class="py-16 sm:py-24 px-4 sm:px-8 lg:px-14 max-w-6xl mx-auto">
+      <!-- Section Heading -->
+      <div class="text-center mb-12">
+        <div class="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-2">
+          <span class="w-1.5 h-1.5 rounded-full bg-lime-neon"></span>
+          <span>Featured Properties</span>
+        </div>
+        <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-white">
+          Awesome deal this week!
+        </h2>
+        <p id="filterStatusText" class="text-xs text-lime-neon mt-2 hidden"></p>
+      </div>
+
+      <!-- 12-Column Staggered Asymmetric Grid Replicating Screenshot Layout -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- LEFT + CENTER 8 COLUMNS (Contains Top Row of 2 Cards & Bottom Row of 2 Cards) -->
+        <div class="lg:col-span-8 flex flex-col gap-8">
+          
+          <!-- TOP SUB-ROW: Card 1 (Wider Left) + Card 2 (Compact Center) -->
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+            
+            <!-- CARD 1: Top-Left Medium-Wide Villa -->
+            <article 
+              data-location="Beverly Hills, CA" 
+              data-type="Villa" 
+              data-price="1250000"
+              onclick="openPropertyModal(0)"
+              class="prop-card md:col-span-7 group cursor-pointer"
+            >
+              <div class="relative overflow-hidden rounded-sm bg-obsidian-800 aspect-[16/10] mb-3 border border-white/10">
+                <img 
+                  src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1000&q=80" 
+                  alt="Oakwood Modern Villa" 
+                  class="prop-img w-full h-full object-cover transition duration-500"
+                />
+                <span class="absolute top-3 left-3 bg-obsidian-950/80 backdrop-blur-sm text-[10px] uppercase tracking-wider px-2.5 py-1 rounded text-gray-200 border border-white/10">
+                  Beverly Hills, CA
+                </span>
+              </div>
+              <div class="space-y-2">
+                <h3 class="text-sm font-semibold text-white group-hover:text-lime-neon transition">Oakwood Modern Villa</h3>
+                <div class="flex items-center gap-4 text-[11px] text-gray-400">
+                  <span class="flex items-center gap-1">🛏 4 Beds</span>
+                  <span class="flex items-center gap-1">🛁 3 Baths</span>
+                  <span class="flex items-center gap-1">📐 3,200 sqft</span>
+                </div>
+                <div class="pt-2 border-t border-white/10 flex items-center justify-between">
+                  <span class="text-sm font-bold text-white">$1,250,000</span>
+                  <button aria-label="View Oakwood Modern Villa" class="arrow-btn w-7 h-7 bg-lime-neon text-obsidian-950 flex items-center justify-center rounded-sm transition">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M7 17L17 7M17 7H8M17 7V16"/></svg>
+                  </button>
+                </div>
+              </div>
+            </article>
+
+            <!-- CARD 2: Top-Center Square Cantilevered Home (pushed slightly down on desktop like screenshot) -->
+            <article 
+              data-location="Malibu Coast, CA" 
+              data-type="Minimalist" 
+              data-price="980000"
+              onclick="openPropertyModal(1)"
+              class="prop-card md:col-span-5 md:mt-8 group cursor-pointer"
+            >
+              <div class="relative overflow-hidden rounded-sm bg-obsidian-800 aspect-[4/3] mb-3 border border-white/10">
+                <img 
+                  src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=900&q=80" 
+                  alt="Skyline Horizon House" 
+                  class="prop-img w-full h-full object-cover transition duration-500"
+                />
+                <span class="absolute top-3 left-3 bg-obsidian-950/80 backdrop-blur-sm text-[10px] uppercase tracking-wider px-2.5 py-1 rounded text-gray-200 border border-white/10">
+                  Malibu Coast, CA
+                </span>
+              </div>
+              <div class="space-y-2">
+                <h3 class="text-sm font-semibold text-white group-hover:text-lime-neon transition">Skyline Horizon House</h3>
+                <div class="flex items-center gap-3 text-[11px] text-gray-400">
+                  <span>🛏 3 Beds</span>
+                  <span>🛁 3 Baths</span>
+                  <span>📐 2,650 sqft</span>
+                </div>
+                <div class="pt-2 border-t border-white/10 flex items-center justify-between">
+                  <span class="text-sm font-bold text-white">$980,000</span>
+                  <button aria-label="View Skyline Horizon House" class="arrow-btn w-7 h-7 bg-lime-neon text-obsidian-950 flex items-center justify-center rounded-sm transition">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M7 17L17 7M17 7H8M17 7V16"/></svg>
+                  </button>
+                </div>
+              </div>
+            </article>
+
+          </div>
+
+          <!-- BOTTOM SUB-ROW: Card 4 (Compact Left Square) + Card 5 (Wider Center Dusk Villa) -->
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+            
+            <!-- CARD 4: Bottom-Left Compact Coastal Box Home -->
+            <article 
+              data-location="Palm Springs, CA" 
+              data-type="Pavilion" 
+              data-price="820000"
+              onclick="openPropertyModal(3)"
+              class="prop-card md:col-span-5 md:mt-6 group cursor-pointer"
+            >
+              <div class="relative overflow-hidden rounded-sm bg-obsidian-800 aspect-[4/3] mb-3 border border-white/10">
+                <img 
+                  src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=900&q=80" 
+                  alt="Serene Glass Pavilion" 
+                  class="prop-img w-full h-full object-cover transition duration-500"
+                />
+                <span class="absolute top-3 left-3 bg-obsidian-950/80 backdrop-blur-sm text-[10px] uppercase tracking-wider px-2.5 py-1 rounded text-gray-200 border border-white/10">
+                  Palm Springs, CA
+                </span>
+              </div>
+              <div class="space-y-2">
+                <h3 class="text-sm font-semibold text-white group-hover:text-lime-neon transition">Serene Glass Pavilion</h3>
+                <div class="flex items-center gap-3 text-[11px] text-gray-400">
+                  <span>🛏 3 Beds</span>
+                  <span>🛁 2 Baths</span>
+                  <span>📐 2,400 sqft</span>
+                </div>
+                <div class="pt-2 border-t border-white/10 flex items-center justify-between">
+                  <span class="text-sm font-bold text-white">$820,000</span>
+                  <button aria-label="View Serene Glass Pavilion" class="arrow-btn w-7 h-7 bg-lime-neon text-obsidian-950 flex items-center justify-center rounded-sm transition">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M7 17L17 7M17 7H8M17 7V16"/></svg>
+                  </button>
+                </div>
+              </div>
+            </article>
+
+            <!-- CARD 5: Bottom-Center Wide Dusk Architectural Residence -->
+            <article 
+              data-location="Aspen, CO" 
+              data-type="Villa" 
+              data-price="1490000"
+              onclick="openPropertyModal(4)"
+              class="prop-card md:col-span-7 group cursor-pointer"
+            >
+              <div class="relative overflow-hidden rounded-sm bg-obsidian-800 aspect-[16/10] mb-3 border border-white/10">
+                <img 
+                  src="https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=1000&q=80" 
+                  alt="Velvet Horizon Estate" 
+                  class="prop-img w-full h-full object-cover transition duration-500"
+                />
+                <span class="absolute top-3 left-3 bg-obsidian-950/80 backdrop-blur-sm text-[10px] uppercase tracking-wider px-2.5 py-1 rounded text-gray-200 border border-white/10">
+                  Aspen, CO
+                </span>
+              </div>
+              <div class="space-y-2">
+                <h3 class="text-sm font-semibold text-white group-hover:text-lime-neon transition">Velvet Horizon Estate</h3>
+                <div class="flex items-center gap-4 text-[11px] text-gray-400">
+                  <span>🛏 5 Beds</span>
+                  <span>🛁 4 Baths</span>
+                  <span>📐 4,100 sqft</span>
+                </div>
+                <div class="pt-2 border-t border-white/10 flex items-center justify-between">
+                  <span class="text-sm font-bold text-white">$1,490,000</span>
+                  <button aria-label="View Velvet Horizon Estate" class="arrow-btn w-7 h-7 bg-lime-neon text-obsidian-950 flex items-center justify-center rounded-sm transition">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M7 17L17 7M17 7H8M17 7V16"/></svg>
+                  </button>
+                </div>
+              </div>
+            </article>
+
+          </div>
+        </div>
+
+        <!-- RIGHT 4 COLUMNS: CARD 3 (Tall Vertical Architectural Showcase Card) -->
+        <article 
+          data-location="Beverly Hills, CA" 
+          data-type="Minimalist" 
+          data-price="1640000"
+          onclick="openPropertyModal(2)"
+          class="prop-card lg:col-span-4 lg:-mt-4 group cursor-pointer"
+        >
+          <div class="relative overflow-hidden rounded-sm bg-obsidian-800 aspect-[3/4.3] mb-3 border border-white/10">
+            <img 
+              src="https://images.unsplash.com/photo-1600585152220-90363fe7e115?auto=format&fit=crop&w=900&q=85" 
+              alt="Aura Minimalist Residence" 
+              class="prop-img w-full h-full object-cover transition duration-500"
+            />
+            <span class="absolute top-3 left-3 bg-obsidian-950/80 backdrop-blur-sm text-[10px] uppercase tracking-wider px-2.5 py-1 rounded text-gray-200 border border-white/10">
+              Beverly Hills, CA
+            </span>
+          </div>
+          <div class="space-y-2">
+            <h3 class="text-sm font-semibold text-white group-hover:text-lime-neon transition">Aura Minimalist Residence</h3>
+            <div class="flex items-center gap-4 text-[11px] text-gray-400">
+              <span>🛏 5 Beds</span>
+              <span>🛁 5 Baths</span>
+              <span>📐 4,650 sqft</span>
+            </div>
+            <div class="pt-2 border-t border-white/10 flex items-center justify-between">
+              <span class="text-sm font-bold text-white">$1,640,000</span>
+              <button aria-label="View Aura Minimalist Residence" class="arrow-btn w-7 h-7 bg-lime-neon text-obsidian-950 flex items-center justify-center rounded-sm transition">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M7 17L17 7M17 7H8M17 7V16"/></svg>
+              </button>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- 4. FOUR OVERLAPPING CIRCULAR STATS BADGES -->
+    <section class="py-8 sm:py-12 px-4 overflow-hidden">
+      <div class="max-w-6xl mx-auto grid grid-cols-2 md:flex md:items-center md:justify-center gap-4 md:gap-0">
+        
+        <!-- Circle 1 -->
+        <div class="stat-circle w-full aspect-square max-w-[260px] mx-auto md:mx-0 rounded-full bg-[#1c1d21]/90 border border-white/10 flex flex-col items-center justify-center text-center p-6 hover:border-lime-neon/50 transition duration-300">
+          <span class="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight">9.5k</span>
+          <span class="text-[11px] text-gray-400 mt-1.5 uppercase tracking-wider">Properties Sold</span>
+        </div>
+
+        <!-- Circle 2 -->
+        <div class="stat-circle w-full aspect-square max-w-[260px] mx-auto md:mx-0 rounded-full bg-[#1c1d21]/90 border border-white/10 flex flex-col items-center justify-center text-center p-6 hover:border-lime-neon/50 transition duration-300">
+          <span class="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight">10k+</span>
+          <span class="text-[11px] text-gray-400 mt-1.5 uppercase tracking-wider">Happy Clients</span>
+        </div>
+
+        <!-- Circle 3 -->
+        <div class="stat-circle w-full aspect-square max-w-[260px] mx-auto md:mx-0 rounded-full bg-[#1c1d21]/90 border border-white/10 flex flex-col items-center justify-center text-center p-6 hover:border-lime-neon/50 transition duration-300">
+          <span class="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight">3.2k</span>
+          <span class="text-[11px] text-gray-400 mt-1.5 uppercase tracking-wider">Verified Agents</span>
+        </div>
+
+        <!-- Circle 4 -->
+        <div class="stat-circle w-full aspect-square max-w-[260px] mx-auto md:mx-0 rounded-full bg-[#1c1d21]/90 border border-white/10 flex flex-col items-center justify-center text-center p-6 hover:border-lime-neon/50 transition duration-300">
+          <span class="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight">2.6k+</span>
+          <span class="text-[11px] text-gray-400 mt-1.5 uppercase tracking-wider">Awards Won</span>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 5. "A CALM, CONSIDERED PATH TO YOUR NEXT HOME" VERTICAL TIMELINE -->
+    <section id="process" class="py-16 sm:py-24 px-4 sm:px-8 max-w-3xl mx-auto">
+      <!-- Header -->
+      <div class="text-center mb-14">
+        <div class="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-2">
+          <span class="w-1.5 h-1.5 rounded-full bg-lime-neon"></span>
+          <span>How It Works</span>
+        </div>
+        <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-white leading-snug">
+          A calm, considered path to<br />your next home
+        </h2>
+      </div>
+
+      <!-- Vertical Stack of 4 Circular Steps -->
+      <div class="space-y-8 sm:space-y-10 max-w-xl mx-auto">
+        
+        <!-- Step 1: Curated Discovery -->
+        <div class="flex flex-col sm:flex-row items-center gap-6 sm:gap-8 text-center sm:text-left group">
+          <div class="w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-[#1f2126] border border-white/10 flex items-center justify-center shrink-0 group-hover:border-lime-neon transition">
+            <!-- 4-Node Grid Icon in Neon Lime -->
+            <svg class="w-9 h-9 text-lime-neon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <circle cx="7" cy="7" r="2.5" stroke-width="1.6"/>
+              <circle cx="17" cy="7" r="2.5" stroke-width="1.6"/>
+              <circle cx="7" cy="17" r="2.5" stroke-width="1.6"/>
+              <circle cx="17" cy="17" r="2.5" stroke-width="1.6"/>
+              <path stroke-linecap="round" stroke-width="1.6" d="M9.5 7h5M7 9.5v5M17 9.5v5M9.5 17h5"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-xs font-bold uppercase tracking-[0.16em] text-white mb-1.5">Curated Discovery</h3>
+            <p class="text-xs text-gray-400 leading-relaxed max-w-xs">
+              Explore hand-picked residences tailored to your architectural taste, neighborhood rhythm, and lifestyle.
+            </p>
+          </div>
+        </div>
+
+        <!-- Step 2: Circular House Photo Badge (Matches Screenshot Step 2 Highlight) -->
+        <div class="flex flex-col sm:flex-row items-center gap-6 sm:gap-8 text-center sm:text-left group">
+          <div class="w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden border-2 border-lime-neon/40 shrink-0 shadow-lg">
+            <img 
+              src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=400&q=80" 
+              alt="Private Showings" 
+              class="w-full h-full object-cover group-hover:scale-110 transition duration-500"
+            />
+          </div>
+          <div>
+            <h3 class="text-xs font-bold uppercase tracking-[0.16em] text-white mb-1.5">Private Showings</h3>
+            <p class="text-xs text-gray-400 leading-relaxed max-w-xs">
+              Experience each property in person at golden hour or via high-definition private architectural walkthroughs.
+            </p>
+          </div>
+        </div>
+
+        <!-- Step 3: Seamless Closing -->
+        <div class="flex flex-col sm:flex-row items-center gap-6 sm:gap-8 text-center sm:text-left group">
+          <div class="w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-[#1f2126] border border-white/10 flex items-center justify-center shrink-0 group-hover:border-lime-neon transition">
+            <!-- Document / Contract Icon -->
+            <svg class="w-9 h-9 text-lime-neon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <rect x="6" y="4" width="12" height="16" rx="1.5" stroke-width="1.6"/>
+              <path stroke-linecap="round" stroke-width="1.6" d="M9 8h6M9 12h6M9 16h4"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-xs font-bold uppercase tracking-[0.16em] text-white mb-1.5">Transparent Closing</h3>
+            <p class="text-xs text-gray-400 leading-relaxed max-w-xs">
+              Streamlined digital paperwork, legal clarity, and dedicated advisory from initial offer to final keys.
+            </p>
+          </div>
+        </div>
+
+        <!-- Step 4: Move-In Ready -->
+        <div class="flex flex-col sm:flex-row items-center gap-6 sm:gap-8 text-center sm:text-left group">
+          <div class="w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-[#1f2126] border border-white/10 flex items-center justify-center shrink-0 group-hover:border-lime-neon transition">
+            <!-- Home Key/Check Icon -->
+            <svg class="w-9 h-9 text-lime-neon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1v-9.5z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M9.5 14.5l2 2 3.5-3.5"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-xs font-bold uppercase tracking-[0.16em] text-white mb-1.5">Move-In Sanctuary</h3>
+            <p class="text-xs text-gray-400 leading-relaxed max-w-xs">
+              Step into your new residence with white-glove concierge transition support and smart-home onboarding.
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 6. BRAND DIVIDER BANNER WITH CENTRAL NEON LIME EMBLEM -->
+    <div class="relative w-full border-y border-white/10 bg-[#1a1c20] py-3.5 overflow-hidden">
+      <div class="max-w-7xl mx-auto px-4 flex items-center justify-between text-[10px] tracking-[0.22em] uppercase text-gray-500 font-semibold">
+        <span class="hidden sm:inline">Architecture</span>
+        <span>Interior</span>
+        <span class="hidden md:inline">Luxury Villa</span>
+        
+        <!-- Center Neon Lime Geometric Badge with Dark "T" Icon -->
+        <div class="relative mx-4 px-8 py-2 bg-lime-neon text-obsidian-950 rounded-sm shadow-lg flex items-center justify-center" style="clip-path: polygon(12% 0%, 88% 0%, 100% 100%, 0% 100%);">
+          <svg class="w-6 h-5 text-obsidian-950" viewBox="0 0 28 24" fill="currentColor">
+            <rect x="0" y="0" width="6" height="6" />
+            <rect x="22" y="0" width="6" height="6" />
+            <rect x="7" y="4" width="6" height="8" />
+            <rect x="15" y="4" width="6" height="8" />
+            <rect x="11" y="13" width="6" height="11" />
+          </svg>
+        </div>
+
+        <span class="hidden md:inline">Smart Home</span>
+        <span>Sustainable</span>
+        <span class="hidden sm:inline">Penthouse</span>
+      </div>
+    </div>
+
+    <!-- 7. "TRUSTED BY FAMILIES & INVESTORS ACROSS THE REGION" TESTIMONIALS -->
+    <section id="testimonials" class="py-16 sm:py-24 px-4 sm:px-8 lg:px-16 max-w-6xl mx-auto">
+      <!-- Heading -->
+      <div class="text-center mb-14">
+        <div class="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-2">
+          <span class="w-1.5 h-1.5 rounded-full bg-lime-neon"></span>
+          <span>Client Stories</span>
+        </div>
+        <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-white leading-snug">
+          Trusted by families &amp; investors<br />across the region
+        </h2>
+      </div>
+
+      <!-- 2-Column Split Layout matching screenshot -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-center">
+        
+        <!-- Left Portrait with Subtle Architectural Offset Backdrop -->
+        <div class="md:col-span-5 relative">
+          <div class="relative mx-auto max-w-xs">
+            <!-- Subtle dark decorative offset block -->
+            <div class="absolute -left-4 -bottom-4 w-full h-full bg-obsidian-800 border border-white/10 -z-10 rounded-sm"></div>
+            
+            <div class="overflow-hidden rounded-sm border border-white/15 bg-obsidian-800 aspect-[4/4.6]">
+              <img 
+                id="testimonialImg"
+                src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=800&q=80" 
+                alt="Client Portrait" 
+                class="w-full h-full object-cover object-top transition duration-500"
+              />
+            </div>
+
+            <div class="mt-4">
+              <h3 id="testimonialName" class="text-base font-bold text-white">Alex Morgan</h3>
+              <p id="testimonialRole" class="text-xs text-gray-400">Real Estate Investor, Beverly Hills</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Quote Content & Interactive Controls -->
+        <div class="md:col-span-7 flex flex-col justify-between space-y-6">
+          <!-- Opening Quote Icon -->
+          <div class="text-4xl sm:text-5xl font-serif text-white/80 leading-none select-none">“</div>
+
+          <div>
+            <h4 id="testimonialHeadline" class="text-lg sm:text-xl font-bold text-white mb-3">
+              Absolutely wonderful!
+            </h4>
+            <p id="testimonialQuote" class="text-xs sm:text-sm text-gray-300 leading-relaxed">
+              "Working with TRESTA transformed how we acquire architectural properties. Their curation saved us months of searching, and their private advisory team handled every negotiation and inspection detail with remarkable calm and precision."
+            </p>
+          </div>
+
+          <!-- Closing Quote Icon Aligned Right -->
+          <div class="text-4xl sm:text-5xl font-serif text-white/80 leading-none text-right select-none">”</div>
+
+          <!-- Controls & Pagination Row -->
+          <div class="pt-4 border-t border-white/10 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <button onclick="changeTestimonial(-1)" aria-label="Previous Testimonial" class="w-9 h-9 rounded-sm bg-obsidian-800 hover:bg-obsidian-700 border border-white/15 text-gray-300 flex items-center justify-center transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+              </button>
+              <button onclick="changeTestimonial(1)" aria-label="Next Testimonial" class="w-9 h-9 rounded-sm bg-lime-neon hover:bg-lime-hover text-obsidian-950 flex items-center justify-center transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+              </button>
+            </div>
+
+            <div class="flex items-center gap-3 text-xs text-gray-400 font-mono">
+              <span id="testimonialIndex" class="text-lime-neon font-bold">01</span>
+              <div class="w-12 h-[1px] bg-white/20"></div>
+              <span>04</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 8. "ARTICLE & BLOG POSTS" 3-COLUMN EDITORIAL SECTION -->
+    <section id="blog" class="py-16 sm:py-24 px-4 sm:px-8 lg:px-14 max-w-6xl mx-auto">
+      <div class="text-center mb-14">
+        <div class="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-2">
+          <span class="w-1.5 h-1.5 rounded-full bg-lime-neon"></span>
+          <span>Insights &amp; Journal</span>
+        </div>
+        <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-white">
+          Article &amp; Blog posts
+        </h2>
+      </div>
+
+      <!-- 3 Staggered Blog Cards Matching Screenshot -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-7 items-start">
+        
+        <!-- Blog Card 1 -->
+        <article class="group cursor-pointer" onclick="openArticleModal(0)">
+          <div class="relative overflow-hidden rounded-sm aspect-[4/3.4] mb-4 border border-white/10 bg-obsidian-800">
+            <img 
+              src="https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?auto=format&fit=crop&w=800&q=80" 
+              alt="Designing a warm modern home" 
+              class="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+            />
+          </div>
+          <h3 class="text-sm font-bold text-white group-hover:text-lime-neon transition leading-snug mb-2">
+            Designing a warm, livable modern home with natural timber
+          </h3>
+          <p class="text-xs text-gray-400 leading-relaxed mb-4">
+            How contemporary architects balance floor-to-ceiling glass with warm cedar soffits and acoustic serenity.
+          </p>
+          <div class="flex items-center gap-2.5 pt-3 border-t border-white/10">
+            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80" alt="Author" class="w-6 h-6 rounded-full object-cover" />
+            <span class="text-[11px] text-gray-400">Sarah Jenkins • 5 min read</span>
+          </div>
+        </article>
+
+        <!-- Blog Card 2 (Slightly pushed down on desktop like screenshot) -->
+        <article class="group cursor-pointer md:mt-6" onclick="openArticleModal(1)">
+          <div class="relative overflow-hidden rounded-sm aspect-[4/3] mb-4 border border-white/10 bg-obsidian-800">
+            <img 
+              src="https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=800&q=80" 
+              alt="Sustainable luxury materials" 
+              class="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+            />
+          </div>
+          <h3 class="text-sm font-bold text-white group-hover:text-lime-neon transition leading-snug mb-2">
+            How passive solar orientation elevates luxury hillside villas
+          </h3>
+          <p class="text-xs text-gray-400 leading-relaxed mb-4">
+            Smart cantilevered overhangs and cross-ventilation strategies that reduce energy footprints effortlessly.
+          </p>
+          <div class="flex items-center gap-2.5 pt-3 border-t border-white/10">
+            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80" alt="Author" class="w-6 h-6 rounded-full object-cover" />
+            <span class="text-[11px] text-gray-400">Marcus Vance • 4 min read</span>
+          </div>
+        </article>
+
+        <!-- Blog Card 3 -->
+        <article class="group cursor-pointer" onclick="openArticleModal(2)">
+          <div class="relative overflow-hidden rounded-sm aspect-[4/2.9] mb-4 border border-white/10 bg-obsidian-800">
+            <img 
+              src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=800&q=80" 
+              alt="Indoor outdoor living" 
+              class="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+            />
+          </div>
+          <h3 class="text-sm font-bold text-white group-hover:text-lime-neon transition leading-snug mb-2">
+            Inside the rise of seamless indoor-outdoor coastal sanctuaries
+          </h3>
+          <p class="text-xs text-gray-400 leading-relaxed mb-4">
+            Zero-threshold motorized glass walls and infinity courtyard pools redefining West Coast estates.
+          </p>
+          <div class="flex items-center gap-2.5 pt-3 border-t border-white/10">
+            <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=120&q=80" alt="Author" class="w-6 h-6 rounded-full object-cover" />
+            <span class="text-[11px] text-gray-400">Elena Rostova • 6 min read</span>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- 9. "READY TO FIND A HOME THAT FEELS RIGHT?" ARCHITECTURAL CTA BANNER -->
+    <section id="cta" class="relative overflow-hidden border-y border-white/10 louver-graphic">
+      <!-- Abstract 3D Architectural Ribbed Sculpture Overlay on the Right -->
+      <div class="max-w-6xl mx-auto px-4 sm:px-8 lg:px-14 py-16 sm:py-24 relative z-10 grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+        
+        <div class="md:col-span-7 space-y-4">
+          <div class="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.2em] text-lime-neon">
+            <span>• Private Advisory</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight">
+            Ready to find a home<br />that feels right?
+          </h2>
+          <p class="text-xs sm:text-sm text-gray-300 max-w-md leading-relaxed">
+            Connect with our architectural real estate specialists to unlock pocket listings, private twilight viewings, and bespoke acquisition guidance.
+          </p>
+          <div class="pt-2 flex flex-wrap items-center gap-3">
+            <button onclick="openConsultationModal()" class="px-5 py-2.5 rounded-sm bg-lime-neon hover:bg-lime-hover text-obsidian-950 font-bold text-xs flex items-center gap-2 transition shadow-lg">
+              <span>Get Started</span>
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </button>
+            <button onclick="openConsultationModal()" class="px-5 py-2.5 rounded-sm bg-obsidian-900/90 hover:bg-obsidian-800 text-white border border-white/20 font-semibold text-xs transition">
+              Schedule a Call
+            </button>
+          </div>
+        </div>
+
+        <!-- Decorative Sculptural Louver Sphere Visual (Matching Screenshot Right Graphic) -->
+        <div class="md:col-span-5 flex justify-center md:justify-end">
+          <div class="relative w-56 h-56 sm:w-64 sm:h-64 rounded-full border border-white/15 bg-gradient-to-tr from-obsidian-950 via-obsidian-700 to-white/20 shadow-2xl overflow-hidden flex items-center justify-center">
+            <div class="absolute inset-0 opacity-60" style="background: repeating-linear-gradient(-38deg, #111214 0px, #111214 7px, #3b3e45 7px, #ffffff33 11px);"></div>
+            <div class="relative z-10 w-24 h-24 rounded-full bg-obsidian-950/80 backdrop-blur border border-lime-neon/40 flex items-center justify-center">
+              <svg class="w-9 h-8 text-lime-neon" viewBox="0 0 28 24" fill="currentColor">
+                <rect x="0" y="0" width="6" height="6" />
+                <rect x="22" y="0" width="6" height="6" />
+                <rect x="7" y="4" width="6" height="8" />
+                <rect x="15" y="4" width="6" height="8" />
+                <rect x="11" y="13" width="6" height="11" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 10. FOOTER -->
+    <footer class="pt-16 pb-10 px-4 sm:px-8 lg:px-14 bg-[#121316] relative">
+      <div class="max-w-6xl mx-auto">
+        
+        <!-- Centered Large Geometric T Logo + TRESTA Wordmark -->
+        <div class="flex flex-col items-center text-center mb-14">
+          <svg class="w-16 h-14 text-lime-neon mb-3" viewBox="0 0 28 24" fill="currentColor">
+            <rect x="0" y="0" width="6" height="6" />
+            <rect x="22" y="0" width="6" height="6" />
+            <rect x="7" y="4" width="6" height="8" />
+            <rect x="15" y="4" width="6" height="8" />
+            <rect x="11" y="13" width="6" height="11" />
+          </svg>
+          <h2 class="text-2xl sm:text-3xl font-extrabold tracking-[0.22em] text-white">TRESTA</h2>
+          <p class="text-[11px] text-gray-400 max-w-md mt-2 leading-relaxed">
+            Curating architectural homes, minimalist estates, and design-forward residences for discerning buyers and investors worldwide.
+          </p>
+        </div>
+
+        <!-- 3-Column Footer Links & Newsletter -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-10 pb-12 border-b border-white/10 text-xs">
+          
+          <!-- Column 1: Menu -->
+          <div class="lg:col-span-3 space-y-2.5">
+            <h3 class="text-white font-bold uppercase tracking-wider text-[11px] mb-3">Menu</h3>
+            <ul class="space-y-2 text-gray-400">
+              <li><a href="#hero" class="hover:text-lime-neon flex items-center gap-1.5 transition"><span class="text-lime-neon">↗</span> Home</a></li>
+              <li><a href="#process" class="hover:text-lime-neon flex items-center gap-1.5 transition"><span class="text-lime-neon">↗</span> About Us</a></li>
+              <li><a href="#properties" class="hover:text-lime-neon flex items-center gap-1.5 transition"><span class="text-lime-neon">↗</span> Properties</a></li>
+              <li><a href="#testimonials" class="hover:text-lime-neon flex items-center gap-1.5 transition"><span class="text-lime-neon">↗</span> Agents</a></li>
+              <li><a href="#blog" class="hover:text-lime-neon flex items-center gap-1.5 transition"><span class="text-lime-neon">↗</span> Blog</a></li>
+            </ul>
+          </div>
+
+          <!-- Column 2: Office Address -->
+          <div class="lg:col-span-5 space-y-3">
+            <h3 class="text-white font-bold uppercase tracking-wider text-[11px] mb-3">Office Address</h3>
+            <p class="text-gray-400 flex items-start gap-2">
+              <span class="text-lime-neon mt-0.5">📍</span>
+              <span>8420 Wilshire Blvd, Suite 400, Beverly Hills, CA 90211</span>
+            </p>
+            <p class="text-gray-400 flex items-center gap-2">
+              <span class="text-lime-neon">📞</span>
+              <span>+1 (310) 555-0194</span>
+            </p>
+            <p class="text-gray-400 flex items-center gap-2">
+              <span class="text-lime-neon">✉️</span>
+              <span>concierge@tresta-realty.com</span>
+            </p>
+          </div>
+
+          <!-- Column 3: Subscribe Newsletter -->
+          <div class="lg:col-span-4 space-y-3">
+            <h3 class="text-white font-bold uppercase tracking-wider text-[11px] mb-3">Subscribe Newsletter</h3>
+            <p class="text-gray-400 text-[11px] leading-relaxed">
+              Receive private off-market architectural listings and quarterly market reports directly in your inbox.
+            </p>
+            <form onsubmit="handleNewsletterSubmit(event)" class="flex items-center mt-2">
+              <input 
+                id="newsletterEmail"
+                type="email" 
+                required
+                placeholder="Enter your email..." 
+                class="w-full bg-obsidian-800 border border-white/15 rounded-l-sm px-3.5 py-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-lime-neon"
+              />
+              <button type="submit" aria-label="Subscribe" class="px-3.5 py-2.5 bg-lime-neon hover:bg-lime-hover text-obsidian-950 font-bold rounded-r-sm transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M7 17L17 7M17 7H8M17 7V16"/></svg>
+              </button>
+            </form>
+            <p id="newsletterFeedback" class="text-[11px] text-lime-neon hidden">✓ Subscribed to TRESTA Private Dispatch.</p>
+          </div>
+
+        </div>
+
+        <!-- Bottom Copyright & Legal Row -->
+        <div class="pt-6 flex flex-col sm:flex-row items-center justify-between text-[11px] text-gray-500 gap-4">
+          <p>© 2025 TRESTA Architectural Realty LLC. All rights reserved.</p>
+          <div class="flex items-center gap-6">
+            <a href="#privacy" onclick="showToast('Privacy Policy opened')" class="hover:text-gray-300 transition">Privacy</a>
+            <a href="#terms" onclick="showToast('Terms of Service opened')" class="hover:text-gray-300 transition">Terms</a>
+            <a href="#security" onclick="showToast('Security Overview opened')" class="hover:text-gray-300 transition">Security</a>
+          </div>
+        </div>
+
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- PROPERTY QUICK-VIEW MODAL -->
+  <div id="propertyModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+    <div class="bg-obsidian-900 border border-white/15 rounded-md max-w-2xl w-full overflow-hidden shadow-2xl animate-fadeIn">
+      <div class="relative h-64 sm:h-80 bg-obsidian-800">
+        <img id="modalPropImg" src="" alt="Property Preview" class="w-full h-full object-cover" />
+        <button onclick="closePropertyModal()" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-obsidian-950/80 text-white hover:bg-lime-neon hover:text-obsidian-950 flex items-center justify-center transition">
+          ✕
+        </button>
+        <span id="modalPropLocation" class="absolute bottom-4 left-4 bg-obsidian-950/90 text-lime-neon text-xs font-semibold px-3 py-1 rounded border border-white/10"></span>
+      </div>
+      <div class="p-6 space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 id="modalPropTitle" class="text-xl font-bold text-white"></h3>
+          <span id="modalPropPrice" class="text-xl font-extrabold text-lime-neon"></span>
+        </div>
+        <p id="modalPropDesc" class="text-xs sm:text-sm text-gray-300 leading-relaxed"></p>
+        <div id="modalPropSpecs" class="flex items-center gap-6 text-xs text-gray-400 py-3 border-y border-white/10"></div>
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+          <button onclick="saveCurrentProperty()" class="px-4 py-2.5 rounded bg-obsidian-800 hover:bg-obsidian-700 border border-white/15 text-xs font-semibold text-white flex items-center gap-2 transition">
+            <span>♡ Save to Shortlist</span>
+          </button>
+          <button onclick="closePropertyModal(); openConsultationModal();" class="px-5 py-2.5 rounded bg-lime-neon hover:bg-lime-hover text-obsidian-950 font-bold text-xs transition">
+            Schedule Private Showing →
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONSULTATION / INQUIRY MODAL -->
+  <div id="consultationModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+    <div class="bg-obsidian-900 border border-white/15 rounded-md max-w-md w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between">
+        <h3 class="text-lg font-bold text-white">Private Architectural Advisory</h3>
+        <button onclick="closeConsultationModal()" class="text-gray-400 hover:text-white">✕</button>
+      </div>
+      <p class="text-xs text-gray-400">Leave your details below and a senior TRESTA partner will arrange a private walkthrough or portfolio consultation.</p>
+      <form onsubmit="submitConsultation(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="block text-gray-300 mb-1">Full Name</label>
+          <input type="text" required placeholder="Alex Morgan" class="w-full bg-obsidian-800 border border-white/15 rounded px-3 py-2 text-white focus:outline-none focus:border-lime-neon" />
+        </div>
+        <div>
+          <label class="block text-gray-300 mb-1">Email Address</label>
+          <input type="email" required placeholder="alex@domain.com" class="w-full bg-obsidian-800 border border-white/15 rounded px-3 py-2 text-white focus:outline-none focus:border-lime-neon" />
+        </div>
+        <div>
+          <label class="block text-gray-300 mb-1">Preferred Location</label>
+          <select class="w-full bg-obsidian-800 border border-white/15 rounded px-3 py-2 text-white focus:outline-none focus:border-lime-neon">
+            <option>Beverly Hills / Los Angeles</option>
+            <option>Malibu Coast</option>
+            <option>Palm Springs</option>
+            <option>Aspen</option>
+          </select>
+        </div>
+        <button type="submit" class="w-full py-2.5 bg-lime-neon hover:bg-lime-hover text-obsidian-950 font-bold rounded transition mt-2">
+          Request Private Viewing →
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- FLOATING TOAST NOTIFICATION -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 hidden bg-obsidian-900 border border-lime-neon text-white text-xs px-4 py-3 rounded shadow-2xl flex items-center gap-2.5">
+    <span class="w-2 h-2 rounded-full bg-lime-neon"></span>
+    <span id="toastMsg">Saved to shortlist</span>
+  </div>
+
+  <!-- INTERACTIVE JAVASCRIPT -->
+  <script>
+    // Property Dataset for Modal & Filtering
+    const properties = [
+      {
+        title: "Oakwood Modern Villa",
+        location: "Beverly Hills, CA",
+        price: "$1,250,000",
+        specs: "🛏 4 Beds  •  🛁 3 Baths  •  📐 3,200 sqft",
+        img: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=85",
+        desc: "Crafted with warm cedar soffits, board-formed concrete, and retractable zero-edge glass walls opening onto a private saltwater courtyard pool."
+      },
+      {
+        title: "Skyline Horizon House",
+        location: "Malibu Coast, CA",
+        price: "$980,000",
+        specs: "🛏 3 Beds  •  🛁 3 Baths  •  📐 2,650 sqft",
+        img: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1200&q=85",
+        desc: "A cantilevered coastal residence engineered for unobstructed ocean sunsets, featuring minimalist white stucco volumes and bespoke Italian millwork."
+      },
+      {
+        title: "Aura Minimalist Residence",
+        location: "Beverly Hills, CA",
+        price: "$1,640,000",
+        specs: "🛏 5 Beds  •  🛁 5 Baths  •  📐 4,650 sqft",
+        img: "https://images.unsplash.com/photo-1600585152220-90363fe7e115?auto=format&fit=crop&w=1200&q=85",
+        desc: "Dramatic double-height architectural pavilion with sculptural sun-shading louvers, private wine gallery, and seamless indoor-outdoor entertaining terraces."
+      },
+      {
+        title: "Serene Glass Pavilion",
+        location: "Palm Springs, CA",
+        price: "$820,000",
+        specs: "🛏 3 Beds  •  🛁 2 Baths  •  📐 2,400 sqft",
+        img: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=85",
+        desc: "Desert modernism reimagined with passive solar overhangs, terrazzo flooring, and tranquil desert xeriscaping framed by mountain vistas."
+      },
+      {
+        title: "Velvet Horizon Estate",
+        location: "Aspen, CO",
+        price: "$1,490,000",
+        specs: "🛏 5 Beds  •  🛁 4 Baths  •  📐 4,100 sqft",
+        img: "https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=1200&q=85",
+        desc: "Elevated hillside sanctuary combining charred timber siding, radiant heated stone floors, and panoramic twilight views."
+      }
+    ];
+
+    // Testimonials Dataset
+    const testimonials = [
+      {
+        name: "Alex Morgan",
+        role: "Real Estate Investor, Beverly Hills",
+        headline: "Absolutely wonderful!",
+        quote: "\"Working with TRESTA transformed how we acquire architectural properties. Their curation saved us months of searching, and their private advisory team handled every negotiation and inspection detail with remarkable calm and precision.\"",
+        img: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=800&q=80"
+      },
+      {
+        name: "Victoria Sterling",
+        role: "Architectural Collector, Malibu",
+        headline: "Unmatched eye for design & value.",
+        quote: "\"Every residence TRESTA showed us felt like a livable work of art. They understood our appreciation for natural light, warm minimalism, and complete privacy from day one.\"",
+        img: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=800&q=80"
+      },
+      {
+        name: "Julian & Claire Chen",
+        role: "Homeowners, Palm Springs",
+        headline: "A truly seamless closing experience.",
+        quote: "\"From our first virtual walkthrough to receiving the keys to our desert pavilion, TRESTA's concierge team made a complex cross-state relocation feel effortless.\"",
+        img: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=800&q=80"
+      },
+      {
+        name: "Henrik Lindqvist",
+        role: "Founder & Principal, Nordic Capital",
+        headline: "Off-market access that delivers.",
+        quote: "\"Two of our highest-performing luxury residential holdings came directly through TRESTA's private dispatch before ever reaching the public MLS.\"",
+        img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80"
+      }
+    ];
+
+    let currentTestimonial = 0;
+    let savedPropertiesCount = 0;
+
+    function changeTestimonial(dir) {
+      currentTestimonial = (currentTestimonial + dir + testimonials.length) % testimonials.length;
+      const item = testimonials[currentTestimonial];
+      document.getElementById('testimonialName').textContent = item.name;
+      document.getElementById('testimonialRole').textContent = item.role;
+      document.getElementById('testimonialHeadline').textContent = item.headline;
+      document.getElementById('testimonialQuote').textContent = item.quote;
+      document.getElementById('testimonialImg').src = item.img;
+      document.getElementById('testimonialIndex').textContent = `0${currentTestimonial + 1}`;
+    }
+
+    // Open Property Modal
+    function openPropertyModal(index) {
+      const p = properties[index];
+      document.getElementById('modalPropImg').src = p.img;
+      document.getElementById('modalPropTitle').textContent = p.title;
+      document.getElementById('modalPropLocation').textContent = p.location;
+      document.getElementById('modalPropPrice').textContent = p.price;
+      document.getElementById('modalPropDesc').textContent = p.desc;
+      document.getElementById('modalPropSpecs').textContent = p.specs;
+      const modal = document.getElementById('propertyModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closePropertyModal() {
+      const modal = document.getElementById('propertyModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function openArticleModal(idx) {
+      const titles = [
+        "Designing a warm, livable modern home with natural timber",
+        "How passive solar orientation elevates luxury hillside villas",
+        "Inside the rise of seamless indoor-outdoor coastal sanctuaries"
+      ];
+      showToast(`Reading: "${titles[idx]}"`);
+    }
+
+    function saveCurrentProperty() {
+      savedPropertiesCount++;
+      document.getElementById('savedCount').textContent = savedPropertiesCount;
+      showToast("Added residence to your Saved Shortlist");
+      closePropertyModal();
+    }
+
+    function toggleSavedToast() {
+      showToast(`You have ${savedPropertiesCount} saved residence(s) in your shortlist.`);
+    }
+
+    // Interactive Hero Filter
+    function applyPropertyFilter() {
+      const loc = document.getElementById('filterLocation').value;
+      const type = document.getElementById('filterType').value;
+      const price = document.getElementById('filterPrice').value;
+      const cards = document.querySelectorAll('.prop-card');
+      let matchCount = 0;
+
+      cards.forEach(card => {
+        const cLoc = card.getAttribute('data-location');
+        const cType = card.getAttribute('data-type');
+        const cPrice = parseInt(card.getAttribute('data-price'), 10);
+
+        const locMatch = (loc === 'all' || cLoc === loc);
+        const typeMatch = (type === 'all' || cType === type);
+        const priceMatch = (price === 'all') || (price === 'under1m' && cPrice < 1000000) || (price === 'over1m' && cPrice >= 1000000);
+
+        if (locMatch && typeMatch && priceMatch) {
+          card.style.opacity = '1';
+          card.style.transform = 'scale(1)';
+          matchCount++;
+        } else {
+          card.style.opacity = '0.22';
+          card.style.transform = 'scale(0.98)';
+        }
+      });
+
+      const statusEl = document.getElementById('filterStatusText');
+      statusEl.textContent = `Showing ${matchCount} matching architectural residence(s)`;
+      statusEl.classList.remove('hidden');
+      document.getElementById('properties').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function resetFilters() {
+      document.getElementById('filterLocation').value = 'all';
+      document.getElementById('filterType').value = 'all';
+      document.getElementById('filterPrice').value = 'all';
+      document.querySelectorAll('.prop-card').forEach(card => {
+        card.style.opacity = '1';
+        card.style.transform = 'scale(1)';
+      });
+      document.getElementById('filterStatusText').classList.add('hidden');
+      showToast("Filters reset — showing all 5 featured deals");
+    }
+
+    // Consultation Modal
+    function openConsultationModal() {
+      const modal = document.getElementById('consultationModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeConsultationModal() {
+      const modal = document.getElementById('consultationModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function submitConsultation(e) {
+      e.preventDefault();
+      closeConsultationModal();
+      showToast("Private viewing request received. Our advisor will reach out shortly.");
+    }
+
+    // Newsletter Submit
+    function handleNewsletterSubmit(e) {
+      e.preventDefault();
+      document.getElementById('newsletterEmail').value = '';
+      document.getElementById('newsletterFeedback').classList.remove('hidden');
+      showToast("Welcome to the TRESTA Private Dispatch.");
+    }
+
+    // Toast Notification Helper
+    let toastTimeout;
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMsg').textContent = message;
+      toast.classList.remove('hidden');
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 3400);
+    }
+  </script>
+</body>
+</html>

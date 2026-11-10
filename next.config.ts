@@ -19,6 +19,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "**.supabase.co",
       },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
     ],
   },
   async headers() {
@@ -40,7 +44,7 @@ const nextConfig: NextConfig = {
               `script-src 'self' ${isDev ? "'unsafe-eval'" : ""} 'unsafe-inline'`.trim().replace(/\s+/g, " "),
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com",
-              "img-src 'self' data: blob: https://*.supabase.co",
+              "img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com",
               "font-src 'self' data: https://fonts.gstatic.com",
               `connect-src 'self' data: blob: https://*.supabase.co ${apiOrigin ? apiOrigin : "http://localhost:4000 http://127.0.0.1:4000 https://*.onrender.com"} ws: wss:`.trim(),
               "object-src 'none'",
