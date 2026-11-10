@@ -438,9 +438,9 @@ function ForgotPasswordContent() {
 
           <Button
             type="submit"
-            variant="gradient"
+            variant="default"
             size="lg"
-            className="w-full font-semibold shadow-md mt-2"
+            className="w-full font-semibold shadow-none mt-2 h-10"
             disabled={isLoading}
           >
             {isLoading ? (
@@ -473,8 +473,8 @@ function ForgotPasswordContent() {
                   <Input
                     id="otpIdentifierInput"
                     type="text"
-                    placeholder={isBn ? 'user@example.com অথবা 01712345678' : 'user@example.com or 01712345678'}
-                    className="pl-10"
+                    placeholder={isBn ? 'rafiq@barivara.com অথবা 01711234567' : 'rafiq@barivara.com or 01711234567'}
+                    className="pl-10 text-sm"
                     {...requestOtpForm.register('identifier')}
                   />
                 </div>
@@ -487,9 +487,9 @@ function ForgotPasswordContent() {
 
               <Button
                 type="submit"
-                variant="gradient"
+                variant="default"
                 size="lg"
-                className="w-full font-semibold shadow-md mt-2"
+                className="w-full font-semibold shadow-none mt-2 h-10"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -557,9 +557,9 @@ function ForgotPasswordContent() {
 
               <Button
                 type="submit"
-                variant="gradient"
+                variant="default"
                 size="lg"
-                className="w-full font-semibold shadow-md mt-2"
+                className="w-full font-semibold shadow-none mt-2 h-10"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -654,9 +654,9 @@ function ForgotPasswordContent() {
 
               <Button
                 type="submit"
-                variant="gradient"
+                variant="default"
                 size="lg"
-                className="w-full font-semibold shadow-md mt-2"
+                className="w-full font-semibold shadow-none mt-2 h-10"
                 disabled={isLoading}
               >
                 {isLoading ? (

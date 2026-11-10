@@ -12,7 +12,6 @@ import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { StatusBadge } from '@/components/ui/status-badge';
 import {
@@ -46,7 +45,6 @@ import {
   FileText,
   RotateCcw,
   Search,
-  User,
   X,
 } from 'lucide-react';
 

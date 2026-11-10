@@ -413,7 +413,7 @@ export function CollectPaymentDialog({
             </Button>
             <Button
               type="submit"
-              variant="gradient"
+              variant="default"
               disabled={isLoading}
               className="gap-2"
             >

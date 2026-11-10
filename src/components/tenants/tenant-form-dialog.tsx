@@ -21,7 +21,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { FileUploader } from '@/components/ui/file-uploader';
-import { UserPlus, User, Loader2, Save } from 'lucide-react';
+import { User, Loader2, Save } from 'lucide-react';
 
 const tenantSchema = z.object({
   name: z.string().min(2, 'ভাড়া টিয়ার নাম লিখুন'),
@@ -238,7 +238,7 @@ export function TenantFormDialog({
             >
               {t.cancel}
             </Button>
-            <Button type="submit" variant="gradient" disabled={isLoading} className="gap-2">
+            <Button type="submit" variant="default" disabled={isLoading} className="gap-2">
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />

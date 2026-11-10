@@ -1,26 +1,26 @@
-export interface PropertyItem {
+export interface ProductModuleItem {
   id: string;
+  slug: string;
   title: string;
   titleBn: string;
-  location: string;
-  locationBn: string;
-  area: string; // e.g. "Gulshan-2", "Banani Block D", "Dhanmondi 9/A", "Uttara Sector 3"
-  propertyType: 'Flat' | 'Duplex' | 'Commercial' | 'Studio' | 'Penthouse';
-  propertyTypeBn: string;
-  priceMonthlyBdt: number;
-  formattedPriceBdt: string;
-  formattedPriceBn: string;
-  beds: number;
-  baths: number;
-  sqft: number;
-  parking: number;
+  category: 'Receipts' | 'Utilities' | 'Tenants' | 'Payments' | 'Ledger';
+  categoryBn: string;
+  badge: string;
+  badgeBn: string;
+  highlightMetric: string;
+  highlightMetricBn: string;
   imageUrl: string;
-  tag: string;
-  tagBn: string;
   descriptionEn: string;
   descriptionBn: string;
+  specs: string[];
+  specsBn: string[];
   features: string[];
   featuresBn: string[];
+  sampleUiSnippetEn: string;
+  sampleUiSnippetBn: string;
+  ctaTextEn: string;
+  ctaTextBn: string;
+  targetPropertyType?: string[];
 }
 
 export interface TestimonialItem {
@@ -30,6 +30,7 @@ export interface TestimonialItem {
   role: string;
   roleBn: string;
   location: string;
+  unitsCount: string;
   quoteEn: string;
   quoteBn: string;
   headlineEn: string;
@@ -50,6 +51,8 @@ export interface ArticleItem {
   imageUrl: string;
   categoryEn: string;
   categoryBn: string;
+  tagEn: string;
+  tagBn: string;
 }
 
 export interface ProcessStep {
@@ -58,7 +61,7 @@ export interface ProcessStep {
   titleBn: string;
   descEn: string;
   descBn: string;
-  iconType: 'grid' | 'photo' | 'contract' | 'key';
+  iconType: 'building' | 'users' | 'invoice' | 'whatsapp';
   imageBadgeUrl?: string;
 }
 
@@ -67,7 +70,8 @@ export interface StatItem {
   valueBn: string;
   labelEn: string;
   labelBn: string;
+  sublabelEn: string;
+  sublabelBn: string;
 }
 
 export type SupportedLocale = 'en' | 'bn';
-

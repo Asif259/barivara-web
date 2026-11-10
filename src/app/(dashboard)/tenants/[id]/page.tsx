@@ -18,7 +18,6 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import {
   ResponsiveTableContainer,
   MobileDataRow,
-  MobileTableSkeleton,
   CompactStatus,
 } from '@/components/ui/responsive-table';
 import {

@@ -17,13 +17,16 @@ export const LandingStats: React.FC<LandingStatsProps> = ({ locale }) => {
         {STATS.map((stat, idx) => (
           <div
             key={idx}
-            className="stat-circle w-full aspect-square max-w-[260px] mx-auto md:mx-0 rounded-full bg-[#1c1d21]/90 border border-white/10 flex flex-col items-center justify-center text-center p-6 hover:border-[#d9ff43]/60 transition-colors duration-300 shadow-xl"
+            className="stat-circle w-full aspect-square max-w-[260px] mx-auto md:mx-0 rounded-full bg-[#1c1d21]/90 border border-white/10 flex flex-col items-center justify-center text-center p-6 hover:border-[#10b981]/60 transition-colors duration-300 shadow-xl"
           >
             <span className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight tabular-nums">
               {isBn ? stat.valueBn : stat.value}
             </span>
-            <span className="text-[11px] text-gray-400 mt-2 uppercase tracking-wider font-medium max-w-[170px] leading-snug">
+            <span className="text-xs text-[#10b981] mt-2 font-medium max-w-[170px] leading-snug">
               {isBn ? stat.labelBn : stat.labelEn}
+            </span>
+            <span className="text-[10px] text-gray-400 mt-1 max-w-[150px] leading-tight">
+              {isBn ? stat.sublabelBn : stat.sublabelEn}
             </span>
           </div>
         ))}
@@ -31,4 +34,3 @@ export const LandingStats: React.FC<LandingStatsProps> = ({ locale }) => {
     </section>
   );
 };
-

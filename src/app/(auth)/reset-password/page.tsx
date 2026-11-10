@@ -8,7 +8,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'sonner';
 import {
-  Lock,
   KeyRound,
   Eye,
   EyeOff,
@@ -222,9 +221,9 @@ function ResetPasswordForm() {
 
         <Button
           type="submit"
-          variant="gradient"
+          variant="default"
           size="lg"
-          className="w-full font-semibold shadow-md mt-2"
+          className="w-full font-semibold shadow-none mt-2 h-10"
           disabled={isLoading}
         >
           {isLoading ? (

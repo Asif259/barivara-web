@@ -243,7 +243,7 @@ export function GenerateRentDialog({
             >
               {t.cancel}
             </Button>
-            <Button type="submit" variant="gradient" disabled={isLoading} className="gap-2">
+            <Button type="submit" variant="default" disabled={isLoading} className="gap-2">
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />

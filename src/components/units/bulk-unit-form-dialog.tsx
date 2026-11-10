@@ -170,7 +170,7 @@ export function BulkUnitFormDialog({ propertyId, units: existingUnits, open, onO
 
           <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-800">{summary}</p>
         </div>
-        <DialogFooter><Button type="button" variant="outline" disabled={isSubmitting} onClick={() => onOpenChange(false)}>{t.cancel}</Button><Button type="button" variant="gradient" disabled={isSubmitting || hasInvalidNumbers} onClick={submit} className="gap-2">{isSubmitting ? <><Loader2 className="h-4 w-4 animate-spin" />{t.loading}</> : <><Save className="h-4 w-4" />{t.createUnits}</>}</Button></DialogFooter>
+        <DialogFooter><Button type="button" variant="outline" disabled={isSubmitting} onClick={() => onOpenChange(false)}>{t.cancel}</Button><Button type="button" variant="default" disabled={isSubmitting || hasInvalidNumbers} onClick={submit} className="gap-2">{isSubmitting ? <><Loader2 className="h-4 w-4 animate-spin" />{t.loading}</> : <><Save className="h-4 w-4" />{t.createUnits}</>}</Button></DialogFooter>
       </DialogContent>
     </Dialog>
   );

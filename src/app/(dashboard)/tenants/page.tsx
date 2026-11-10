@@ -12,14 +12,12 @@ import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableSkeleton } from '@/components/ui/table';
 import {
   ResponsiveTableContainer,
   MobileDataRow,
   MobileTableSkeleton,
-  CompactStatus,
 } from '@/components/ui/responsive-table';
 import {
   BottomSheet,

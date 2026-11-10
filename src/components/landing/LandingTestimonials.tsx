@@ -32,10 +32,9 @@ export const LandingTestimonials: React.FC<LandingTestimonialsProps> = ({ locale
     <section id="testimonials" className="py-16 sm:py-24 px-4 sm:px-8 lg:px-16 max-w-6xl mx-auto">
       {/* Heading */}
       <div className="text-center mb-14">
-        <div className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-2 font-semibold">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#d9ff43]" />
-          <span>{isBn ? 'সফল বাড়িওয়ালাদের গল্প' : 'Client Stories'}</span>
-        </div>
+        <p className="text-xs text-gray-400 mb-1.5 font-medium">
+          {isBn ? 'বাস্তব অভিজ্ঞতা ও মূল্যায়ন' : 'Real Landlord Experiences'}
+        </p>
         <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-white leading-snug">
           {isBn ? (
             <>সারা দেশের বাড়িওয়ালা ও প্রপার্টি মালিকদের<br />নির্ভরযোগ্য সঙ্গী</>
@@ -101,21 +100,21 @@ export const LandingTestimonials: React.FC<LandingTestimonialsProps> = ({ locale
               <button
                 onClick={handlePrev}
                 aria-label="Previous Testimonial"
-                className="btn-press w-9 h-9 rounded-sm bg-[#1c1d21] hover:bg-[#2e3138] border border-white/15 text-gray-300 flex items-center justify-center transition-colors"
+                className="btn-press w-9 h-9 rounded-sm bg-[#1c1d21] hover:bg-[#2e3138] border border-white/15 text-gray-300 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#10b981]"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
               <button
                 onClick={handleNext}
                 aria-label="Next Testimonial"
-                className="btn-press w-9 h-9 rounded-sm bg-[#d9ff43] hover:bg-[#c6f028] text-[#111214] flex items-center justify-center transition-colors"
+                className="btn-press w-9 h-9 rounded-sm bg-[#12664F] hover:bg-[#0E513F] text-white border border-[#10b981]/40 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#10b981]"
               >
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="w-4 h-4 text-[#10b981]" />
               </button>
             </div>
 
             <div className="flex items-center gap-3 text-xs text-gray-400 font-mono tabular-nums">
-              <span className="text-[#d9ff43] font-bold">{formattedCurrent}</span>
+              <span className="text-[#10b981] font-bold">{formattedCurrent}</span>
               <div className="w-12 h-[1px] bg-white/20" />
               <span>{formattedTotal}</span>
             </div>

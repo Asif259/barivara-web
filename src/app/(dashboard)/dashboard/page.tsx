@@ -228,8 +228,8 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="flex items-end justify-between gap-4">
-                  <span className="text-4xl font-semibold tracking-tight text-[#171717]">{formatNumber(collectionRate, language)}%</span>
-                  <span className="pb-1 text-xs text-[#6B7280]">{formatNumber(currentMonth?.paidCount || 0, language)} {isEn ? 'fully paid' : 'সম্পূর্ণ পরিশোধিত'}</span>
+                  <span className="text-4xl font-semibold tracking-tight text-[#171717] tabular-nums">{formatNumber(collectionRate, language)}%</span>
+                  <span className="pb-1 text-xs text-[#6B7280] tabular-nums">{formatNumber(currentMonth?.paidCount || 0, language)} {isEn ? 'fully paid' : 'সম্পূর্ণ পরিশোধিত'}</span>
                 </div>
                 <div className="mt-5 h-2 overflow-hidden rounded-full bg-[#E8F3EF]">
                   <div className="h-full rounded-full bg-[#12664F] transition-all" style={{ width: `${Math.min(Math.max(collectionRate, 0), 100)}%` }} />
@@ -508,7 +508,7 @@ function Metric({ label, value, detail, icon: Icon }: { label: string; value: st
         <Icon className="h-4 w-4 text-[#9CA3AF]" />
         <p className="truncate text-sm font-medium">{label}</p>
       </div>
-      <p className="mt-3 text-2xl font-semibold tracking-tight text-[#171717]">{value}</p>
+      <p className="mt-3 text-2xl font-semibold tracking-tight text-[#171717] tabular-nums">{value}</p>
       <p className="mt-1 truncate text-xs text-[#6B7280]">{detail}</p>
     </div>
   );
@@ -518,7 +518,7 @@ function FinancialFigure({ label, value, accent = false, danger = false }: { lab
   return (
     <div>
       <p className="text-[13px] text-[#6B7280]">{label}</p>
-      <p className={`mt-2 text-xl font-semibold tracking-tight ${danger ? 'text-[#DC2626]' : accent ? 'text-[#12664F]' : 'text-[#171717]'}`}>
+      <p className={`mt-2 text-xl font-semibold tracking-tight tabular-nums ${danger ? 'text-[#DC2626]' : accent ? 'text-[#12664F]' : 'text-[#171717]'}`}>
         {value}
       </p>
     </div>

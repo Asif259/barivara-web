@@ -86,97 +86,97 @@ export default function RegisterPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between pb-4 border-b border-[#E5E7EB]">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">{t.register}</h2>
-          <p className="text-sm text-slate-500 mt-1">{t.registerSubtext}</p>
+          <h2 className="text-xl font-bold text-[#171717] tracking-tight">{t.register}</h2>
+          <p className="text-xs text-[#6B7280] mt-1">{t.registerSubtext}</p>
         </div>
         <Button
           type="button"
           variant="outline"
           size="sm"
           onClick={toggleLanguage}
-          className="gap-1.5 text-xs text-slate-600 rounded-xl"
+          className="gap-1.5 text-xs text-[#374151] rounded-lg border-[#E5E7EB]"
         >
-          <Globe className="w-3.5 h-3.5 text-emerald-600" />
+          <Globe className="w-3.5 h-3.5 text-[#12664F]" />
           {language === 'bn' ? 'English' : 'বাংলা'}
         </Button>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="name">{t.fullName}</Label>
+        <div className="space-y-1.5">
+          <Label htmlFor="name" className="text-xs font-medium text-[#374151]">{t.fullName}</Label>
           <div className="relative">
-            <UserIcon className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+            <UserIcon className="absolute left-3.5 top-3 h-4 w-4 text-[#9CA3AF]" />
             <Input
               id="name"
               type="text"
-              placeholder={language === 'bn' ? 'আসিফ চৌধুরী' : 'Asif Chowdhury'}
-              className="pl-10"
+              placeholder={language === 'bn' ? 'ইঞ্জিনিয়ার রফিকুল ইসলাম' : 'Rafiqul Islam'}
+              className="pl-10 text-sm"
               {...register('name')}
             />
           </div>
           {errors.name && (
-            <p className="text-xs font-medium text-rose-500">{errors.name.message}</p>
+            <p className="text-xs font-medium text-[#DC2626]">{errors.name.message}</p>
           )}
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="phone">{t.phone} (অপশনাল যদি ইমেইল দেন)</Label>
+        <div className="space-y-1.5">
+          <Label htmlFor="phone" className="text-xs font-medium text-[#374151]">{t.phone} (অপশনাল যদি ইমেইল দেন)</Label>
           <div className="relative">
-            <Phone className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+            <Phone className="absolute left-3.5 top-3 h-4 w-4 text-[#9CA3AF]" />
             <Input
               id="phone"
               type="tel"
-              placeholder="01712345678"
-              className="pl-10"
+              placeholder="01711234567"
+              className="pl-10 text-sm tabular-nums"
               {...register('phone')}
             />
           </div>
           {errors.phone && (
-            <p className="text-xs font-medium text-rose-500">{errors.phone.message}</p>
+            <p className="text-xs font-medium text-[#DC2626]">{errors.phone.message}</p>
           )}
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="email">{t.email} (অপশনাল যদি ফোন দেন)</Label>
+        <div className="space-y-1.5">
+          <Label htmlFor="email" className="text-xs font-medium text-[#374151]">{t.email} (অপশনাল যদি ফোন দেন)</Label>
           <div className="relative">
-            <Mail className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+            <Mail className="absolute left-3.5 top-3 h-4 w-4 text-[#9CA3AF]" />
             <Input
               id="email"
               type="email"
-              placeholder="user@example.com"
-              className="pl-10"
+              placeholder="rafiq@barivara.com"
+              className="pl-10 text-sm"
               {...register('email')}
             />
           </div>
           {errors.email && (
-            <p className="text-xs font-medium text-rose-500">{errors.email.message}</p>
+            <p className="text-xs font-medium text-[#DC2626]">{errors.email.message}</p>
           )}
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="password">{t.password}</Label>
+        <div className="space-y-1.5">
+          <Label htmlFor="password" className="text-xs font-medium text-[#374151]">{t.password}</Label>
           <div className="relative">
-            <Lock className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+            <Lock className="absolute left-3.5 top-3 h-4 w-4 text-[#9CA3AF]" />
             <Input
               id="password"
               type="password"
               placeholder="••••••••"
-              className="pl-10"
+              className="pl-10 text-sm"
               {...register('password')}
             />
           </div>
           {errors.password && (
-            <p className="text-xs font-medium text-rose-500">{errors.password.message}</p>
+            <p className="text-xs font-medium text-[#DC2626]">{errors.password.message}</p>
           )}
         </div>
 
         <Button
           type="submit"
-          variant="gradient"
+          variant="default"
           size="lg"
-          className="w-full font-semibold shadow-md mt-2"
+          className="w-full font-semibold shadow-none mt-2 h-10"
           disabled={isLoading}
         >
           {isLoading ? (
@@ -193,12 +193,12 @@ export default function RegisterPage() {
         </Button>
       </form>
 
-      <div className="text-center pt-2 border-t border-slate-100">
-        <p className="text-sm text-slate-500">
+      <div className="text-center pt-3 border-t border-[#E5E7EB]">
+        <p className="text-xs text-[#6B7280]">
           {t.alreadyHaveAccount}{' '}
           <Link
             href="/login"
-            className="font-semibold text-emerald-600 hover:text-emerald-700 hover:underline"
+            className="font-semibold text-[#12664F] hover:underline"
           >
             {t.loginNow}
           </Link>

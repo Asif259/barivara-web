@@ -16,10 +16,9 @@ export const LandingBlog: React.FC<LandingBlogProps> = ({ locale, onSelectArticl
   return (
     <section id="blog" className="py-16 sm:py-24 px-4 sm:px-8 lg:px-14 max-w-6xl mx-auto">
       <div className="text-center mb-14">
-        <div className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-2 font-semibold">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#d9ff43]" />
-          <span>{isBn ? 'সহায়িকা ও গাইড' : 'Insights & Journal'}</span>
-        </div>
+        <p className="text-xs text-gray-400 mb-1.5 font-medium">
+          {isBn ? 'সহায়িকা ও প্রপার্টি গাইড' : 'Insights & Legal Guidance'}
+        </p>
         <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-white">
           {isBn ? 'বাড়িওয়ালাদের জন্য গুরুত্বপূর্ণ ব্লগ ও পরামর্শ' : 'Article & Blog posts'}
         </h2>
@@ -37,19 +36,19 @@ export const LandingBlog: React.FC<LandingBlogProps> = ({ locale, onSelectArticl
               onClick={() => onSelectArticle?.(article)}
               className={`group cursor-pointer ${isSecond ? 'md:mt-6' : ''}`}
             >
-              <div className={`relative overflow-hidden rounded-sm ${aspectClass} mb-4 border border-white/10 bg-[#1c1d21]`}>
+              <div className={`relative overflow-hidden rounded-sm ${aspectClass} mb-4 border border-white/10 group-hover:border-[#10b981]/40 transition-colors bg-[#1c1d21]`}>
                 <Image
                   src={article.imageUrl}
                   alt={isBn ? article.titleBn : article.titleEn}
                   fill
                   sizes="(max-width: 768px) 100vw, 33vw"
-                  className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                  className="object-cover"
                 />
-                <span className="absolute top-3 left-3 bg-[#111214]/80 backdrop-blur-sm text-[10px] uppercase tracking-wider px-2 py-0.5 rounded text-gray-200 border border-white/10 font-medium">
+                <span className="absolute top-3 left-3 bg-[#111214]/80 backdrop-blur-sm text-[11px] px-2 py-0.5 rounded text-gray-200 border border-white/10 font-medium">
                   {isBn ? article.categoryBn : article.categoryEn}
                 </span>
               </div>
-              <h3 className="text-sm font-bold text-white group-hover:text-[#d9ff43] transition-colors leading-snug mb-2">
+              <h3 className="text-sm font-bold text-white group-hover:text-[#10b981] transition-colors leading-snug mb-2">
                 {isBn ? article.titleBn : article.titleEn}
               </h3>
               <p className="text-xs text-gray-400 leading-relaxed mb-4">

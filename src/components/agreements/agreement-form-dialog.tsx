@@ -601,7 +601,7 @@ export function AgreementFormDialog({
               </Button>
               <Button
                 type="submit"
-                variant="gradient"
+                variant="default"
                 disabled={isLoading || (!isEditing && hasActiveAgreement) || isCheckingTenant}
                 className="gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >

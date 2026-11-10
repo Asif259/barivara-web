@@ -451,13 +451,12 @@ body {
   --ease-spring-emil: cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.landing-body-bg {
-  background-color: #d9ff43;
-}
 
 .page-frame {
   background-color: #16171a;
   min-height: 100vh;
+  position: relative;
+  overflow: hidden;
 }
 
 .hero-giant-title {
@@ -497,18 +496,20 @@ body {
   transition: transform 250ms var(--ease-out-emil);
 }
 
-.prop-card:hover {
-  transform: translateY(-2px);
-}
+@media (hover: hover) and (pointer: fine) {
+  .prop-card:hover {
+    transform: translateY(-2px);
+  }
 
-.prop-card:hover .prop-img {
-  transform: scale(1.04);
-}
+  .prop-card:hover .prop-img {
+    transform: scale(1.04);
+  }
 
-.prop-card:hover .arrow-btn {
-  background-color: #ffffff;
-  color: #111214;
-  transform: translate(2px, -2px);
+  .prop-card:hover .arrow-btn {
+    background-color: #ffffff;
+    color: #111214;
+    transform: translate(2px, -2px);
+  }
 }
 
 .btn-press {
@@ -532,4 +533,22 @@ body {
 
 .modal-enter {
   animation: modalScaleIn 200ms var(--ease-out-emil) forwards;
+  transform-origin: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prop-card,
+  .prop-card:hover,
+  .btn-press,
+  .btn-press:active,
+  .stat-circle {
+    transform: none !important;
+    transition: opacity 150ms ease, background-color 150ms ease !important;
+  }
+
+  .modal-enter {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }

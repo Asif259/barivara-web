@@ -8,27 +8,24 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden selection:bg-emerald-500 selection:text-white">
-      {/* Background Decorative Gradients */}
-      <div className="absolute top-[-15%] left-[-10%] w-[500px] h-[500px] rounded-full bg-emerald-100/60 blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-[-15%] right-[-10%] w-[500px] h-[500px] rounded-full bg-teal-100/60 blur-[100px] pointer-events-none" />
-
-      <div className="sm:mx-auto sm:w-full sm:max-w-md z-10 text-center mb-6">
-        <Link href="/" className="inline-flex items-center gap-3 group">
-          <div className="h-12 w-12 rounded-2xl overflow-hidden shrink-0 shadow-lg shadow-emerald-600/20 group-hover:scale-105 transition-transform duration-200">
-            <Image src="/logo.png" alt="BariVara" width={48} height={48} className="w-full h-full object-cover" />
+    <div className="min-h-screen bg-[#FAFAF9] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 selection:bg-[#12664F] selection:text-white">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md mb-8">
+        <Link href="/" className="inline-flex items-center gap-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#12664F] rounded-lg">
+          <div className="h-10 w-10 rounded-lg overflow-hidden shrink-0 border border-[#E5E7EB] bg-white transition-transform duration-200 group-hover:scale-102">
+            <Image src="/icon.png" alt="BariVara" width={40} height={40} className="w-full h-full object-cover" />
           </div>
-          <div className="text-left">
-            <span className="text-2xl font-bold text-slate-900 tracking-tight block">
-              বাড়িভাড়া <span className="text-emerald-600 text-sm font-semibold">BariVara</span>
-            </span>
-            <span className="text-xs text-slate-500 block">স্মার্ট বাড়ি ও ভাড়া ব্যবস্থাপনা</span>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xl font-bold text-[#171717] tracking-tight">বাড়িভাড়া</span>
+              <span className="text-xs font-semibold tracking-wider text-[#12664F] uppercase bg-[#E8F3EF] px-1.5 py-0.5 rounded">BariVara</span>
+            </div>
+            <p className="text-xs text-[#6B7280]">স্মার্ট বাড়ি ও ডিজিটাল ভাড়া ব্যবস্থাপনা</p>
           </div>
         </Link>
       </div>
 
-      <div className="sm:mx-auto sm:w-full sm:max-w-md z-10 px-4 sm:px-0">
-        <div className="bg-white py-8 px-6 shadow-xl shadow-slate-200/50 rounded-3xl border border-slate-200/80 sm:px-10">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-8 px-6 sm:px-8 rounded-xl border border-[#E5E7EB] shadow-sm">
           {children}
         </div>
       </div>

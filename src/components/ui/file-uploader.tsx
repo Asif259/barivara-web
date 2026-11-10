@@ -5,16 +5,12 @@ import { useQuery } from '@tanstack/react-query';
 import {
   UploadCloud,
   FileText,
-  Image as ImageIcon,
   CheckCircle2,
-  AlertCircle,
-  X,
   Loader2,
   ExternalLink,
   Trash2,
   Eye,
 } from 'lucide-react';
-import { Button } from './button';
 import { FileCategory, Media } from '@/lib/types';
 import { getApiErrorMessage } from '@/lib/api';
 import { uploadFileDirectly, getFileDownloadUrl, deleteFileRecord } from '@/lib/file-upload';
