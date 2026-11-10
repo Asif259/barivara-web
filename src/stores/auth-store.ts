@@ -56,7 +56,23 @@ export const useAuthStore = create<AuthState>()(
         isAuthenticated: state.isAuthenticated,
       }),
       onRehydrateStorage: () => (state) => {
-        state?.setHasHydrated(true);
+        if (state) {
+          try {
+            const tokenToCheck = state.refreshToken || state.accessToken;
+            if (tokenToCheck) {
+              const parts = tokenToCheck.split('.');
+              if (parts.length === 3) {
+                const payload = JSON.parse(atob(parts[1]));
+                if (typeof payload.exp === 'number' && payload.exp * 1000 < Date.now()) {
+                  state.logout();
+                }
+              }
+            }
+          } catch {
+            // Malformed token; allow API client to handle gracefully
+          }
+          state.setHasHydrated(true);
+        }
       },
     }
   )

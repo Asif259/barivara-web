@@ -75,6 +75,16 @@ export function dataUrlToBlob(dataUrl: string): Blob {
  */
 export function printImage(dataUrl: string): Promise<void> {
   return new Promise((resolve, reject) => {
+    if (
+      typeof dataUrl !== 'string' ||
+      (!dataUrl.startsWith('data:image/png;base64,') &&
+        !dataUrl.startsWith('data:image/jpeg;base64,') &&
+        !dataUrl.startsWith('data:image/webp;base64,'))
+    ) {
+      reject(new Error('Invalid image data URL format'));
+      return;
+    }
+
     const iframe = document.createElement('iframe');
     iframe.setAttribute('aria-hidden', 'true');
     iframe.style.cssText =

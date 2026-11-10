@@ -110,7 +110,7 @@ export function CollectPaymentDialog({
 
   const paymentSchema = z.object({
     amount: z
-      .number({ invalid_type_error: isEn ? 'Enter valid amount' : 'সঠিক টাকার পরিমাণ দিন' })
+      .number({ message: isEn ? 'Enter valid amount' : 'সঠিক টাকার পরিমাণ দিন' })
       .min(1, isEn ? 'Amount must be at least 1' : 'টাকার পরিমাণ কমপক্ষে ১ হতে হবে')
       .max(remaining, isEn ? `Amount cannot exceed ${remaining}` : `বকেয়া ${remaining} টাকার বেশি নেওয়া যাবে না`),
     paymentMethod: z.string().min(1, isEn ? 'Select payment method' : 'পেমেন্ট মেথড নির্বাচন করুন'),
