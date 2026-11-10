@@ -72,6 +72,7 @@ export default function StorySection() {
 
   const goTo = useCallback(
     (index: number) => {
+      setActive(index);
       const node = sectionRef.current;
       if (!node) return;
       const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -83,7 +84,7 @@ export default function StorySection() {
         return;
       }
       const travel = node.offsetHeight - window.innerHeight;
-      const top = node.offsetTop + (travel * (index + 0.35)) / chapters.length;
+      const top = node.offsetTop + (travel * (index + 0.5)) / chapters.length;
       window.scrollTo({ top, behavior: reduced ? 'auto' : 'smooth' });
     },
     [chapters, pinned],
@@ -95,7 +96,7 @@ export default function StorySection() {
     <section
       id="story"
       ref={sectionRef}
-      className={cn('bv-ink-section relative', pinned ? 'lg:h-[720dvh]' : 'h-auto py-20')}
+      className={cn('bv-ink-section relative', pinned ? 'lg:h-[300dvh]' : 'h-auto py-20')}
     >
       <div className={cn(pinned ? 'lg:sticky lg:top-0 lg:flex lg:h-[100dvh] lg:items-center' : 'relative')}>
         <div className="mx-auto w-full max-w-7xl px-5 py-20 sm:px-8 lg:py-0">
