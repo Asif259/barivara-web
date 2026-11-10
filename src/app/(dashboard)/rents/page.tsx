@@ -130,22 +130,22 @@ export default function MonthlyRentsPage() {
 
     const paymentForReceipt: Payment = payment
       ? {
-          ...payment,
-          monthlyRent: rent,
-          owner: payment.owner || rent.agreement?.unit?.property?.owner,
-        }
+        ...payment,
+        monthlyRent: rent,
+        owner: payment.owner || rent.agreement?.unit?.property?.owner,
+      }
       : {
-          id: rent.id,
-          monthlyRentId: rent.id,
-          amount: Number(rent.paidAmount) || Number(rent.totalAmount) || 0,
-          paymentMethod: 'CASH',
-          paymentDate: rent.paidDate || rent.updatedAt || rent.createdAt,
-          status: 'COMPLETED',
-          createdAt: rent.createdAt,
-          updatedAt: rent.updatedAt,
-          monthlyRent: rent,
-          owner: rent.agreement?.unit?.property?.owner,
-        };
+        id: rent.id,
+        monthlyRentId: rent.id,
+        amount: Number(rent.paidAmount) || Number(rent.totalAmount) || 0,
+        paymentMethod: 'CASH',
+        paymentDate: rent.paidDate || rent.updatedAt || rent.createdAt,
+        status: 'COMPLETED',
+        createdAt: rent.createdAt,
+        updatedAt: rent.updatedAt,
+        monthlyRent: rent,
+        owner: rent.agreement?.unit?.property?.owner,
+      };
 
     setSelectedReceiptPayment(paymentForReceipt);
     setReceiptDialogOpen(true);
@@ -210,7 +210,7 @@ export default function MonthlyRentsPage() {
 
         {/* Default / Previous Month Indicator */}
         {selectedYear === defaultPeriod.year && selectedMonth === defaultPeriod.month && (
-          <span className="text-[11px] bg-[#F3FAF5] text-[#12664F] font-semibold px-2.5 py-1 rounded-full border border-[#CDE4DA]">
+          <span className="text-[11px] bg-[#F3FAF5] text-[#2DC2BD] font-semibold px-2.5 py-1 rounded-full border border-[#CDE4DA]">
             {t.previousMonth}
           </span>
         )}
@@ -445,19 +445,19 @@ export default function MonthlyRentsPage() {
                 rent.status === 'PAID'
                   ? 'success'
                   : rent.status === 'OVERDUE'
-                  ? 'danger'
-                  : rent.status === 'PARTIAL'
-                  ? 'warning'
-                  : 'info';
+                    ? 'danger'
+                    : rent.status === 'PARTIAL'
+                      ? 'warning'
+                      : 'info';
 
               const statusLabel =
                 rent.status === 'PAID'
                   ? (isEn ? 'Paid' : 'পরিশোধিত')
                   : rent.status === 'OVERDUE'
-                  ? (isEn ? 'Overdue' : 'বকেয়া')
-                  : rent.status === 'PARTIAL'
-                  ? (isEn ? 'Partial' : 'আংশিক')
-                  : (isEn ? 'Pending' : 'অপেক্ষমাণ');
+                    ? (isEn ? 'Overdue' : 'বকেয়া')
+                    : rent.status === 'PARTIAL'
+                      ? (isEn ? 'Partial' : 'আংশিক')
+                      : (isEn ? 'Pending' : 'অপেক্ষমাণ');
 
               return (
                 <MobileDataRow

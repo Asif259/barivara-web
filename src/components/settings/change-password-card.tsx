@@ -109,7 +109,7 @@ export function ChangePasswordCard() {
     <Card className="rounded-[10px] border-[#E5E7EB] shadow-none">
       <CardHeader>
         <CardTitle className="text-lg flex items-center gap-2">
-          <KeyRound className="w-5 h-5 text-[#12664F]" />
+          <KeyRound className="w-5 h-5 text-[#2DC2BD]" />
           {t.securitySettingsTitle}
         </CardTitle>
         <CardDescription>{t.securitySettingsDesc}</CardDescription>

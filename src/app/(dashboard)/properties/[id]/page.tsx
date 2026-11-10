@@ -425,5 +425,5 @@ export default function PropertyDetailPage() {
 }
 
 function SummaryMetric({ label, value, detail, accent = false }: { label: string; value: string | number; detail: string; accent?: boolean }) {
-  return <div className="min-w-0 p-5"><p className="truncate text-[13px] font-medium text-[#6B7280]">{label}</p><p className={`mt-2 truncate text-xl font-semibold tracking-tight ${accent ? 'text-[#12664F]' : 'text-[#171717]'}`}>{value}</p><p className="mt-1 truncate text-xs text-[#6B7280]">{detail}</p></div>;
+  return <div className="min-w-0 p-5"><p className="truncate text-[13px] font-medium text-[#6B7280]">{label}</p><p className={`mt-2 truncate text-xl font-semibold tracking-tight ${accent ? 'text-[#2DC2BD]' : 'text-[#171717]'}`}>{value}</p><p className="mt-1 truncate text-xs text-[#6B7280]">{detail}</p></div>;
 }

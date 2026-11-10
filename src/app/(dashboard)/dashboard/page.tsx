@@ -121,7 +121,7 @@ export default function DashboardPage() {
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <label className="flex h-10 items-center gap-2 rounded-lg border border-[#E5E7EB] bg-white px-3 text-sm text-[#6B7280] focus-within:border-[#12664F] focus-within:ring-2 focus-within:ring-[#12664F]/10">
+          <label className="flex h-10 items-center gap-2 rounded-lg border border-[#E5E7EB] bg-white px-3 text-sm text-[#6B7280] focus-within:border-[#2DC2BD] focus-within:ring-2 focus-within:ring-[#2DC2BD]/10">
             <Filter className="h-4 w-4 text-[#9CA3AF]" />
             <span className="sr-only">{isEn ? 'Filter by property' : 'বাড়ি দিয়ে ফিল্টার করুন'}</span>
             <select
@@ -223,7 +223,7 @@ export default function DashboardPage() {
                     <CardTitle className="text-[17px]">{t.collectionRate}</CardTitle>
                     <CardDescription className="mt-1">{isEn ? 'Collected vs expected' : 'আদায়ের অগ্রগতি'}</CardDescription>
                   </div>
-                  <TrendingUp className="h-4 w-4 text-[#12664F]" />
+                  <TrendingUp className="h-4 w-4 text-[#2DC2BD]" />
                 </div>
               </CardHeader>
               <CardContent>
@@ -232,7 +232,7 @@ export default function DashboardPage() {
                   <span className="pb-1 text-xs text-[#6B7280] tabular-nums">{formatNumber(currentMonth?.paidCount || 0, language)} {isEn ? 'fully paid' : 'সম্পূর্ণ পরিশোধিত'}</span>
                 </div>
                 <div className="mt-5 h-2 overflow-hidden rounded-full bg-[#E8F3EF]">
-                  <div className="h-full rounded-full bg-[#12664F] transition-all" style={{ width: `${Math.min(Math.max(collectionRate, 0), 100)}%` }} />
+                  <div className="h-full rounded-full bg-[#2DC2BD] transition-all" style={{ width: `${Math.min(Math.max(collectionRate, 0), 100)}%` }} />
                 </div>
                 <div className="mt-3 flex items-center justify-between text-xs text-[#6B7280]">
                   <span>{isEn ? 'Collection progress' : 'আদায়ের অগ্রগতি'}</span>
@@ -258,7 +258,7 @@ export default function DashboardPage() {
                 {isEn ? 'Invoices that need attention' : 'যেসব বিলের জন্য পদক্ষেপ প্রয়োজন'}
               </CardDescription>
             </div>
-            <Link href="/rents" className="inline-flex items-center gap-1 text-sm font-medium text-[#12664F] hover:text-[#0E513F]">
+            <Link href="/rents" className="inline-flex items-center gap-1 text-sm font-medium text-[#2DC2BD] hover:text-[#0E513F]">
               {isEn ? 'View all rents' : 'সকল ভাড়া দেখুন'} <ArrowUpRight className="h-4 w-4" />
             </Link>
           </CardHeader>
@@ -365,12 +365,12 @@ export default function DashboardPage() {
                   {outstandingRents.map((rent) => {
                     const statusLabel =
                       rent.status === 'PAID' ? (isEn ? 'Paid' : 'পরিশোধিত') :
-                      rent.status === 'PARTIAL' ? (isEn ? 'Partial' : 'আংশিক') :
-                      rent.status === 'OVERDUE' ? (isEn ? 'Overdue' : 'বকেয়া') : (isEn ? 'Pending' : 'অপেক্ষমাণ');
+                        rent.status === 'PARTIAL' ? (isEn ? 'Partial' : 'আংশিক') :
+                          rent.status === 'OVERDUE' ? (isEn ? 'Overdue' : 'বকেয়া') : (isEn ? 'Pending' : 'অপেক্ষমাণ');
                     const statusVariant =
                       rent.status === 'PAID' ? 'success' :
-                      rent.status === 'PARTIAL' ? 'warning' :
-                      rent.status === 'OVERDUE' ? 'danger' : 'neutral';
+                        rent.status === 'PARTIAL' ? 'warning' :
+                          rent.status === 'OVERDUE' ? 'danger' : 'neutral';
 
                     return (
                       <MobileDataRow
@@ -518,7 +518,7 @@ function FinancialFigure({ label, value, accent = false, danger = false }: { lab
   return (
     <div>
       <p className="text-[13px] text-[#6B7280]">{label}</p>
-      <p className={`mt-2 text-xl font-semibold tracking-tight tabular-nums ${danger ? 'text-[#DC2626]' : accent ? 'text-[#12664F]' : 'text-[#171717]'}`}>
+      <p className={`mt-2 text-xl font-semibold tracking-tight tabular-nums ${danger ? 'text-[#DC2626]' : accent ? 'text-[#2DC2BD]' : 'text-[#171717]'}`}>
         {value}
       </p>
     </div>

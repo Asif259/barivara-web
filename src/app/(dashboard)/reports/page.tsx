@@ -176,7 +176,7 @@ export default function ReportsPage() {
               value={formatCurrency(fin?.collectedRent || 0, language)}
               subtitle={`${isEn ? 'Expected:' : 'প্রত্যাশিত:'} ${formatCurrency(fin?.expectedRent || 0, language)}`}
               icon={CheckCircle2}
-              iconColor="text-[#12664F]"
+              iconColor="text-[#2DC2BD]"
               iconBgColor="bg-[#F3FAF5]"
             />
             <StatCard
@@ -192,7 +192,7 @@ export default function ReportsPage() {
               value={formatCurrency(netIncome, language)}
               subtitle={isEn ? 'Revenue minus expenses' : 'মোট আদায় থেকে খরচ বাদ'}
               icon={TrendingUp}
-              iconColor={netIncome >= 0 ? 'text-[#12664F]' : 'text-[#DC2626]'}
+              iconColor={netIncome >= 0 ? 'text-[#2DC2BD]' : 'text-[#DC2626]'}
               iconBgColor={netIncome >= 0 ? 'bg-[#F3FAF5]' : 'bg-[#FEF7F7]'}
             />
             <StatCard
@@ -213,7 +213,7 @@ export default function ReportsPage() {
           <Card className="rounded-[10px] border-[#E5E7EB] shadow-none">
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
-                <PieChart className="w-5 h-5 text-[#12664F]" />
+                <PieChart className="w-5 h-5 text-[#2DC2BD]" />
                 {isEn ? 'Rent Invoices by Status' : 'ভাড়ার বিলসমূহের বর্তমান অবস্থা'}
               </CardTitle>
             </CardHeader>
@@ -240,7 +240,7 @@ export default function ReportsPage() {
           <Card className="rounded-[10px] border-[#E5E7EB] shadow-none">
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
-                <Building2 className="w-5 h-5 text-[#12664F]" />
+                <Building2 className="w-5 h-5 text-[#2DC2BD]" />
                 {isEn ? 'Property Portfolio Stats' : 'বাড়ি ও ফ্ল্যাটের তথ্য'}
               </CardTitle>
             </CardHeader>

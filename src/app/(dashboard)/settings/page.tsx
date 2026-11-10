@@ -232,7 +232,7 @@ export default function SettingsPage() {
       <Card className="rounded-[10px] border-[#E5E7EB] shadow-none">
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            <UserIcon className="w-5 h-5 text-[#12664F]" />
+            <UserIcon className="w-5 h-5 text-[#2DC2BD]" />
             {t.profileInformation}
           </CardTitle>
           <CardDescription>
@@ -257,7 +257,7 @@ export default function SettingsPage() {
                     setNameInput(currentUser.name || '');
                     setIsEditingName(true);
                   }}
-                  className="h-6 px-2 text-xs text-[#12664F] hover:text-[#0D4D3B] hover:bg-[#12664F]/5 font-medium gap-1"
+                  className="h-6 px-2 text-xs text-[#2DC2BD] hover:text-[#0D4D3B] hover:bg-[#2DC2BD]/5 font-medium gap-1"
                 >
                   <Pencil className="w-3 h-3" />
                   {t.editName}
@@ -292,7 +292,7 @@ export default function SettingsPage() {
                     type="submit"
                     size="sm"
                     disabled={updateNameMutation.isPending || !nameInput.trim()}
-                    className="h-9 px-3 gap-1.5 bg-[#12664F] hover:bg-[#0D4D3B] text-white shrink-0"
+                    className="h-9 px-3 gap-1.5 bg-[#2DC2BD] hover:bg-[#0D4D3B] text-white shrink-0"
                   >
                     {updateNameMutation.isPending ? (
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -371,7 +371,7 @@ export default function SettingsPage() {
       <Card className="rounded-[10px] border-[#E5E7EB] shadow-none">
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            <Pencil className="w-5 h-5 text-[#12664F]" />
+            <Pencil className="w-5 h-5 text-[#2DC2BD]" />
             {t.ownerSignature}
           </CardTitle>
           <CardDescription>{t.ownerSignatureDescription}</CardDescription>

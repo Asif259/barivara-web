@@ -4,10 +4,10 @@ import { Home, LayoutDashboard, Compass } from 'lucide-react';
 
 export default function NotFound() {
   return (
-    <main className="min-h-screen bg-[#060807] text-[#F2F5F4] flex items-center justify-center p-6 relative overflow-hidden selection:bg-[#12664F] selection:text-white">
+    <main className="min-h-screen bg-[#060807] text-[#F2F5F4] flex items-center justify-center p-6 relative overflow-hidden selection:bg-[#2DC2BD] selection:text-white">
       {/* Ambient background glow */}
       <div
-        className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-[#12664F]/20 blur-[140px] pointer-events-none"
+        className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-[#2DC2BD]/20 blur-[140px] pointer-events-none"
         aria-hidden="true"
       />
       <div
@@ -44,7 +44,7 @@ export default function NotFound() {
             href="/"
             className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-[#0B2B22] bg-white hover:bg-gray-100 transition-all shadow-lg active:scale-95"
           >
-            <Home className="w-4 h-4 text-[#12664F]" />
+            <Home className="w-4 h-4 text-[#2DC2BD]" />
             <span>হোমে ফিরে যান (Home)</span>
           </Link>
 

@@ -140,9 +140,9 @@ export function Sidebar({
         isMobile
           ? 'relative h-full w-72 border-r border-[#E5E7EB]'
           : cn(
-              'fixed left-0 top-0 bottom-0 h-screen z-40 border-r border-[#E5E7EB] transition-[width] duration-200 ease-in-out',
-              isExpanded ? 'w-[250px]' : 'w-[68px]'
-            ),
+            'fixed left-0 top-0 bottom-0 h-screen z-40 border-r border-[#E5E7EB] transition-[width] duration-200 ease-in-out',
+            isExpanded ? 'w-[250px]' : 'w-[68px]'
+          ),
         className
       )}
     >
@@ -213,7 +213,7 @@ export function Sidebar({
                 className={cn(
                   'relative flex items-center h-10 rounded-lg text-sm font-medium transition-colors duration-150 group overflow-hidden',
                   isActive
-                    ? 'bg-[#E8F3EF] text-[#12664F] font-semibold'
+                    ? 'bg-[#E8F3EF] text-[#2DC2BD] font-semibold'
                     : 'text-[#6B7280] hover:text-[#171717] hover:bg-[#F3F4F6]'
                 )}
               >
@@ -222,7 +222,7 @@ export function Sidebar({
                   <Icon
                     className={cn(
                       'h-5 w-5 shrink-0 transition-colors',
-                      isActive ? 'text-[#12664F]' : 'text-[#6B7280] group-hover:text-[#307473]'
+                      isActive ? 'text-[#2DC2BD]' : 'text-[#6B7280] group-hover:text-[#307473]'
                     )}
                   />
                 </div>
@@ -248,7 +248,7 @@ export function Sidebar({
       <div className="p-3 border-t border-[#E5E7EB] shrink-0 overflow-hidden">
         <div className="flex items-center mb-2.5 overflow-hidden">
           <div className="w-[44px] h-10 flex items-center justify-center shrink-0">
-            <div className="h-9 w-9 rounded-lg bg-[#E8F3EF] border border-[#CDE4DA] flex items-center justify-center text-sm font-semibold text-[#12664F] shrink-0">
+            <div className="h-9 w-9 rounded-lg bg-[#E8F3EF] border border-[#CDE4DA] flex items-center justify-center text-sm font-semibold text-[#2DC2BD] shrink-0">
               {user?.name?.charAt(0)?.toUpperCase() || 'U'}
             </div>
           </div>

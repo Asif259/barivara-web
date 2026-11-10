@@ -271,7 +271,7 @@ export default function TenantDetailPage() {
             {profilePictureUrl ? (
               <button
                 onClick={() => openPreview(profilePictureUrl, t.profilePicture)}
-                className="h-16 w-16 sm:h-20 sm:w-20 rounded-lg overflow-hidden border border-[#CDE4DA] bg-[#E8F3EF] hover:border-[#12664F] transition-colors cursor-pointer"
+                className="h-16 w-16 sm:h-20 sm:w-20 rounded-lg overflow-hidden border border-[#CDE4DA] bg-[#E8F3EF] hover:border-[#2DC2BD] transition-colors cursor-pointer"
                 aria-label={isEn ? 'View profile picture' : 'প্রোফাইল ছবি দেখুন'}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -282,7 +282,7 @@ export default function TenantDetailPage() {
                 />
               </button>
             ) : (
-              <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-lg bg-[#E8F3EF] text-[#12664F] flex items-center justify-center font-semibold text-2xl sm:text-3xl border border-[#CDE4DA]">
+              <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-lg bg-[#E8F3EF] text-[#2DC2BD] flex items-center justify-center font-semibold text-2xl sm:text-3xl border border-[#CDE4DA]">
                 {tenant.name.charAt(0).toUpperCase()}
               </div>
             )}

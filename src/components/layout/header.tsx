@@ -54,7 +54,7 @@ export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
           </div>
           <p className="mt-1 text-xs text-[#6B7280]">
             {language === 'bn' ? 'স্বাগতম, ' : 'Welcome back, '}
-            <span className="font-medium text-[#12664F]">{user?.name || 'Owner'}</span>
+            <span className="font-medium text-[#2DC2BD]">{user?.name || 'Owner'}</span>
             <span className="mx-1.5 text-[#D1D5DB]">·</span>
             {new Date().toLocaleDateString(language === 'bn' ? 'bn-BD' : 'en-US', {
               weekday: 'long',
@@ -75,13 +75,13 @@ export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
           onClick={toggleLanguage}
           className="gap-1.5 text-xs font-medium text-[#374151] rounded-md border-[#E5E7EB] hover:bg-[#F3F4F6]"
         >
-          <Globe className="w-3.5 h-3.5 text-[#12664F]" />
+          <Globe className="w-3.5 h-3.5 text-[#2DC2BD]" />
           {language === 'bn' ? 'English' : 'বাংলা'}
         </Button>
 
         {/* User Pill */}
         <div className="flex items-center gap-2 pl-3 border-l border-[#E5E7EB]">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#E8F3EF] text-[#12664F] font-semibold text-sm">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#E8F3EF] text-[#2DC2BD] font-semibold text-sm">
             {user?.name?.charAt(0)?.toUpperCase() || 'U'}
           </div>
         </div>

@@ -86,7 +86,7 @@ export default function LoginPage() {
           onClick={toggleLanguage}
           className="gap-1.5 text-xs text-[#374151] rounded-lg border-[#E5E7EB]"
         >
-          <Globe className="w-3.5 h-3.5 text-[#12664F]" />
+          <Globe className="w-3.5 h-3.5 text-[#2DC2BD]" />
           {language === 'bn' ? 'English' : 'বাংলা'}
         </Button>
       </div>
@@ -114,7 +114,7 @@ export default function LoginPage() {
             <Label htmlFor="password" className="text-xs font-medium text-[#374151]">{t.password}</Label>
             <Link
               href="/forgot-password"
-              className="text-xs font-medium text-[#12664F] hover:underline"
+              className="text-xs font-medium text-[#2DC2BD] hover:underline"
             >
               {language === 'bn' ? 'পাসওয়ার্ড ভুলে গেছেন?' : 'Forgot Password?'}
             </Link>
@@ -160,7 +160,7 @@ export default function LoginPage() {
           {t.dontHaveAccount}{' '}
           <Link
             href="/register"
-            className="font-semibold text-[#12664F] hover:underline"
+            className="font-semibold text-[#2DC2BD] hover:underline"
           >
             {t.registerNow}
           </Link>

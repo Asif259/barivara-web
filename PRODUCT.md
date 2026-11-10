@@ -34,7 +34,7 @@ The only property-tech SaaS built specifically for Bangladeshi tenancy realities
 
 - **Brand Name**: BariVara (বাড়িভাড়া)
 - **Voice**: Respectful, professional, highly transparent, trustworthy, and culturally authentic.
-- **Visual Anchors**: Primary Emerald (`#12664F`), Deep Teal (`#307473`), Electric Cyan (`#2DC2BD`), Ice Blue (`#C6D4FF`), Neutral Paper (`#FAFAF9`), and Dark Navy (`#0A1118`).
+- **Visual Anchors**: Primary Emerald (`#2DC2BD`), Deep Teal (`#307473`), Electric Cyan (`#2DC2BD`), Ice Blue (`#C6D4FF`), Neutral Paper (`#FAFAF9`), and Dark Navy (`#0A1118`).
 - **Strict Brand Policy**: Zero tolerance for generic purple gradients or foreign SaaS tropes.
 
 ## Evidence on Hand

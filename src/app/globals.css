@@ -11,7 +11,7 @@
   --color-hero-muted: #b8ccc3;
   --color-hero-mint: #7ff0c2;
   --color-hero-mint-light: #a1f4d2;
-  --color-hero-emerald: #12664f;
+  --color-hero-emerald: #2DC2BD;
   --color-hero-emerald-dark: #0e513e;
   --color-hero-voucher-border: #d8d0ba;
 }
@@ -47,7 +47,7 @@
     --ring: 161 70% 24%;
 
     --radius: 0.5rem;
-    --brand-primary: #12664f;
+    --brand-primary: #2DC2BD;
     --brand-secondary: #307473;
     --brand-accent: #2dc2bd;
     --surface: #ffffff;
@@ -145,13 +145,16 @@ body {
   width: 6px;
   height: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: #f1f5f9;
 }
+
 ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
   border-radius: 9999px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
@@ -176,7 +179,7 @@ body {
   }
 
   /* Hide background web layout when printing */
-  body > *:not([data-radix-portal]) {
+  body>*:not([data-radix-portal]) {
     display: none !important;
   }
 
@@ -187,7 +190,7 @@ body {
   }
 
   [data-slot="dialog-overlay"],
-  div[data-state="open"] > [data-slot="dialog-overlay"],
+  div[data-state="open"]>[data-slot="dialog-overlay"],
   .fixed.inset-0.z-50.bg-slate-950\/50 {
     display: none !important;
   }
@@ -275,7 +278,7 @@ body {
   --bv-panel: #0b241c;
   --bv-line: rgba(255, 255, 255, 0.09);
   --bv-line-strong: rgba(255, 255, 255, 0.16);
-  --bv-emerald: #12664f;
+  --bv-emerald: #2DC2BD;
   --bv-emerald-deep: #0b4436;
   --bv-mint: #7ff0c2;
   --bv-teal: #2dc2bd;
@@ -351,20 +354,24 @@ body {
 }
 
 @keyframes bv-float {
+
   0%,
   100% {
     transform: translate3d(0, 0, 0);
   }
+
   50% {
     transform: translate3d(0, -8px, 0);
   }
 }
 
 @keyframes bv-blink {
+
   0%,
   100% {
     opacity: 0.35;
   }
+
   50% {
     opacity: 1;
   }
@@ -374,6 +381,7 @@ body {
   from {
     transform: translateX(0);
   }
+
   to {
     transform: translateX(-50%);
   }
@@ -384,6 +392,7 @@ body {
     opacity: 0;
     transform: translate3d(0, 22px, 0);
   }
+
   to {
     opacity: 1;
     transform: translate3d(0, 0, 0);
@@ -422,6 +431,7 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .bv-float,
   .bv-blink,
   .bv-marquee-track {
@@ -471,15 +481,13 @@ body {
 }
 
 .louver-graphic {
-  background: 
+  background:
     radial-gradient(circle at 75% 50%, rgba(255, 255, 255, 0.12) 0%, rgba(22, 23, 26, 0.95) 68%),
-    repeating-linear-gradient(
-      -32deg,
+    repeating-linear-gradient(-32deg,
       rgba(255, 255, 255, 0.08) 0px,
       rgba(255, 255, 255, 0.08) 2px,
       transparent 2px,
-      transparent 14px
-    );
+      transparent 14px);
 }
 
 .stat-circle {
@@ -525,6 +533,7 @@ body {
     opacity: 0;
     transform: scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -537,6 +546,7 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .prop-card,
   .prop-card:hover,
   .btn-press,

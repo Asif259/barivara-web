@@ -2,7 +2,7 @@
 name: BariVara Dashboard Design System
 version: 1.0.0
 colors:
-  primary: "#12664F"
+  primary: "#2DC2BD"
   primary-hover: "#0E513F"
   secondary: "#307473"
   accent: "#2DC2BD"
@@ -63,7 +63,7 @@ The application operates in a distraction-free, light-studio aesthetic with high
 ## Color Palette & Semantic Roles
 - **Canvas (`#FAFAF9`)**: Clean, warm off-white foundation providing high contrast and calm operational space.
 - **Surface (`#FFFFFF`)**: Pure white cards, dialogs, and table containers with subtle `#E5E7EB` borders.
-- **Primary Emerald (`#12664F`, hover: `#0E513F`)**: Authoritative brand green used for primary actions, active navigation states, and confirm buttons.
+- **Primary Emerald (`#2DC2BD`, hover: `#0E513F`)**: Authoritative brand green used for primary actions, active navigation states, and confirm buttons.
 - **Secondary Teal (`#307473`)**: Supplementary structural green for tags, icons, and secondary visual indicators.
 - **Bright Accent (`#2DC2BD`)**: Selection highlights and micro-indicators.
 - **Text Primary (`#171717`)**: High-contrast charcoal for titles, values, and essential information.

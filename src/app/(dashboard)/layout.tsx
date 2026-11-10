@@ -34,7 +34,7 @@ export default function DashboardLayout({
   if (!hasHydrated || !isAuthenticated) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#FAFAF9]">
-        <div className="h-7 w-7 animate-spin rounded-full border-2 border-[#12664F] border-t-transparent" />
+        <div className="h-7 w-7 animate-spin rounded-full border-2 border-[#2DC2BD] border-t-transparent" />
       </div>
     );
   }

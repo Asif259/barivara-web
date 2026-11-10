@@ -33,7 +33,7 @@ export function TenantAvatar({ profilePictureId, name, size = 'md', onClick, dis
     <button
       onClick={handleClick}
       disabled={disabled || isLoading || !imageUrl}
-      className={`flex shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#CDE4DA] bg-[#E8F3EF] font-semibold text-[#12664F] disabled:cursor-default ${sizeClasses[size]}`}
+      className={`flex shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#CDE4DA] bg-[#E8F3EF] font-semibold text-[#2DC2BD] disabled:cursor-default ${sizeClasses[size]}`}
       aria-label={ariaLabel}
     >
       {isLoading ? (

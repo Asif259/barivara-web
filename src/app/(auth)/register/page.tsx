@@ -98,7 +98,7 @@ export default function RegisterPage() {
           onClick={toggleLanguage}
           className="gap-1.5 text-xs text-[#374151] rounded-lg border-[#E5E7EB]"
         >
-          <Globe className="w-3.5 h-3.5 text-[#12664F]" />
+          <Globe className="w-3.5 h-3.5 text-[#2DC2BD]" />
           {language === 'bn' ? 'English' : 'বাংলা'}
         </Button>
       </div>
@@ -198,7 +198,7 @@ export default function RegisterPage() {
           {t.alreadyHaveAccount}{' '}
           <Link
             href="/login"
-            className="font-semibold text-[#12664F] hover:underline"
+            className="font-semibold text-[#2DC2BD] hover:underline"
           >
             {t.loginNow}
           </Link>
